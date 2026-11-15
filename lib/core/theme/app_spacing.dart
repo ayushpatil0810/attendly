@@ -19,6 +19,8 @@ abstract final class AppSpacing {
   static const double dockClearance = 100.0;
 
   // Common insets
+  static const double cardPadding = 16.0;
+
   static const EdgeInsets screenPadding = EdgeInsets.symmetric(
     horizontal: screenHorizontal,
   );
