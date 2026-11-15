@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/errors/app_failure.dart';
+import 'package:attendly/core/services/preferences_service.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/shared/widgets/app_segmented_control.dart';
 import 'package:attendly/core/shared/widgets/app_text_field.dart';
@@ -128,6 +129,8 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
             .read(attendanceControllerProvider.notifier)
             .updateSession(updated);
 
+        AppHaptics.lightImpact(ref);
+
         if (!mounted) return;
         Navigator.of(context).pop();
 
@@ -154,6 +157,8 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                   ? null
                   : _noteController.text.trim(),
             );
+
+        AppHaptics.lightImpact(ref);
 
         if (!mounted) return;
         Navigator.of(context).pop();

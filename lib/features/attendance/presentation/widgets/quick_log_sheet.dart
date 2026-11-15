@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/errors/app_failure.dart';
+import 'package:attendly/core/services/preferences_service.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/shared/widgets/app_segmented_control.dart';
 import 'package:attendly/core/shared/widgets/app_toast.dart';
@@ -100,6 +101,8 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
             component: _selectedComponent,
             status: status,
           );
+
+      AppHaptics.lightImpact(ref);
 
       if (!mounted) return;
       Navigator.of(context).pop();

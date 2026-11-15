@@ -148,6 +148,4 @@ class SemesterController extends AsyncNotifier<void> {
 }
 
 final semesterControllerProvider =
-    AsyncNotifierProvider.autoDispose<SemesterController, void>(
-      SemesterController.new,
-    );
+    AsyncNotifierProvider<SemesterController, void>(SemesterController.new);

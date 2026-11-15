@@ -2,9 +2,9 @@
 
 ## Project Overview
 - **Project Name / Identifier:** College Attendance Tracker (Working title: attendly)
-- **Current Development Phase:** Phase 4: Insights, Advanced Charts & Attendance Simulator
-- **Overall Project Status:** Phase 4 Completed (Ready for Phase 5 review)
-- **Description:** A 100% offline-only personal college attendance tracking mobile app built with Flutter, Riverpod, Drift (SQLite), and go_router. Features independent lecture and lab tracking, Raw Combined and Component Average (50/50) attendance calculation methods, safe absence calculations, recovery projections, What-if Attendance Simulator, and a custom design system following soft, colorful, modern minimalism (light theme only, Plus Jakarta Sans, Hugeicons, floating bottom navigation dock).
+- **Current Development Phase:** Phase 5: Settings, Local Backup & Data Safety
+- **Overall Project Status:** Phase 5 Completed (Ready for Phase 6 review)
+- **Description:** A 100% offline-only personal college attendance tracking mobile app built with Flutter, Riverpod, Drift (SQLite), and go_router. Features independent lecture and lab tracking, Raw Combined and Component Average (50/50) attendance calculation methods, safe absence calculations, recovery projections, What-if Attendance Simulator, local JSON backup/export, transactional restore with validation, app preferences, and a custom design system following soft, colorful, modern minimalism (light theme only, Plus Jakarta Sans, Hugeicons, floating bottom navigation dock).
 
 ---
 
@@ -16,184 +16,159 @@
 | **Phase 2** | **Attendance Management** | **Completed** |
 | **Phase 3** | **Dashboard & Attendance Calculations** | **Completed** |
 | **Phase 4** | **Insights, Advanced Charts & Attendance Simulator** | **Completed** |
-| Phase 5 | Settings & Data Safety | Not Started |
+| **Phase 5** | **Settings, Local Backup & Data Safety** | **Completed** |
 | Phase 6 | Polish & Release Preparation | Not Started |
 
 ---
 
-## Phase 4 Progress & Achievements
+## Phase 5 Progress & Achievements
 
 ### 1. Pre-implementation Baseline & Review
 - [x] Reviewed all nine project documents (`PRD.md`, `SPEC.md`, `TECH_STACK.md`, `ARCHITECTURE.md`, `DATABASE.md`, `DESIGN.md`, `TESTING.md`, `AGENTS.md`, `CHANGELOG.md`) and `progress.md`.
-- [x] Verified existing tests and static analysis baseline: 112/112 tests passed, 0 analyzer issues found.
-- [x] Confirmed existing calculation engine parity and reuse strategy.
+- [x] Verified existing tests and static analysis baseline: 147/147 tests passed, 0 analyzer issues found.
+- [x] Verified strict separation between actual attendance records (SQLite) and hypothetical simulator sessions (in-memory only).
 
-### 2. Domain & Calculation Layer (`lib/features/attendance/domain/`)
-- [x] **Hypothetical Session Entity (`HypotheticalSession`):**
-  - Ephemeral model representing future hypothetical class meetings with subject, component (`lecture`/`lab`), and status (`present`/`absent`).
-  - Stored strictly in-memory; never persisted to the database.
-- [x] **Simulator Projection Entity (`SimulatorProjection`):**
-  - Encapsulates immutable actual baseline summary alongside projected attendance summary, percentage difference delta, and threshold status transition flags (`improvedToThreshold`, `droppedBelowThreshold`).
-- [x] **Scenario Calculator Service (`ScenarioCalculator`):**
-  - Pure Dart calculation service reusing the authoritative `AttendanceCalculator` engine.
-  - Maps hypothetical sessions to ephemeral in-memory sessions with negative IDs, guaranteeing 100% mathematical parity with dashboard calculation rules.
-  - Strictly preserves Raw Combined and Component Average (50/50) semantics, including provisional states when enabled components lack recorded sessions.
-- [x] **Insights Filter Entity (`InsightsFilter`):**
-  - Multi-dimensional filter model supporting Date Range (`allTime`, `last7Days`, `last30Days`, `custom` with `DateTimeRange`), Subject filter (`int? subjectId`), and Component filter (`SessionComponent? component`).
-  - Implements pure session evaluation (`matches(session)` and `filterSessions(sessions)`).
-- [x] **Insight Observation Generator (`InsightObservationGenerator`):**
-  - Pure Dart service that derives short, factual observations strictly from recorded session data.
-  - Automatically suppresses observations when total conducted classes < 3 to prevent overconfident conclusions from few sessions.
-  - Mathematically identifies threshold adherence, safe absence allowances, recovery requirements, subject-level attention needs, Lecture vs. Lab component imbalances ($\ge 10\%$ difference), and chronological cumulative trend trajectories ($\ge 5\%$ change over $\ge 4$ dates).
-  - Strictly avoids generic motivational slogans, unsupported predictions, or claims that unrecorded classes were missed.
+### 2. Core Backup & Restore System (`lib/core/backup/`)
+- [x] **Versioned Format Models (`BackupConstants` & `BackupData`):**
+  - Authoritative format identifier `college-attendance-tracker-backup` with version `1`.
+  - Serializes and deserializes `SemesterBackupModel`, `SubjectBackupModel`, `AttendanceSessionBackupModel`, and optional `appPreferences`.
+  - Generates `BackupSummary` for previewing export date, semester names/counts, subject counts, and present/absent session breakdowns before restore.
+- [x] **Pure Dart Validator (`BackupValidator`):**
+  - Validates JSON document syntax and structure.
+  - Verifies format identifier and format version (rejecting unsupported/future versions > 1).
+  - Validates ISO-8601 timestamps and calendar date strings (`YYYY-MM-DD`, real calendar validation).
+  - Enforces entity uniqueness (no duplicate semester IDs, subject IDs, or session IDs).
+  - Validates referential integrity: every subject references an existing semester in the backup; every session references an existing subject.
+  - Enforces component rules: rejects sessions whose component (`lecture` or `lab`) is disabled on the parent subject.
+  - Enforces duplicate session constraints: rejects duplicate `(subjectId, sessionDate, component)` records.
+  - Enforces safe file size (< 25 MB) and total record count boundaries (< 100,000 records).
+- [x] **Transactional Backup Service (`BackupService`):**
+  - Generates portable UTF-8 JSON backups of all persistent application data.
+  - Executes restore entirely within an atomic database transaction (`_db.transaction`).
+  - Safely remaps old IDs to new auto-increment IDs (`oldId -> newId`) across foreign-key relationships.
+  - Strictly preserves existing local database without partial writes if any error occurs during restore.
+  - Adheres to the approved replace restore policy with explicit user confirmation.
+- [x] **Strict Simulator Isolation:**
+  - Ephemeral simulator scenarios remain strictly in memory; they are never queried or exported during backup generation, and hypothetical sessions cannot be imported into the actual database.
 
-### 3. Reactive State Management (Riverpod)
-- [x] **Insights Providers (`lib/features/insights/presentation/providers/insights_providers.dart`):**
-  - `insightsFilterProvider`: Manages active filter state (date range, subject, component) with reset capability.
-  - `filteredSemesterAttendanceSummaryProvider`: Reactive provider that filters the active semester's sessions stream and recalculates the summary using `AttendanceCalculator`.
-  - `insightObservationsProvider`: Derives factual observations reactively from the filtered attendance summary.
-- [x] **Simulator Providers (`lib/features/simulator/presentation/providers/simulator_providers.dart`):**
-  - `scenarioCalculatorProvider`: Exposes pure `ScenarioCalculator`.
-  - `simulatorControllerProvider`: In-memory `Notifier<List<HypotheticalSession>>` providing `addSession`, `addMultipleSessions` (batch add), `toggleSessionStatus`, `updateSession`, `removeSession`, and `reset`.
-  - `simulatorProjectionProvider`: Reactive provider combining the read-only actual sessions stream from Drift with the ephemeral hypothetical sessions to output `SimulatorProjection`.
+### 3. Core Platform Services (`lib/core/services/`)
+- [x] **Platform File Service (`PlatformFileService`):**
+  - Abstraction for picking local `.json` backup files and exporting backups.
+  - Uses `file_picker` (13.3.3) for custom extension file picking and desktop file saving.
+  - Uses `share_plus` (13.3.1) for native mobile share-sheet export allowing offline saving to local files or storage.
+  - Mockable interface for 100% deterministic test execution.
+- [x] **Preferences & Haptics (`preferences_service.dart`):**
+  - Manages `hapticFeedbackEnabled` state persisting via `SharedPreferences`.
+  - `AppHaptics` utility providing tactile vibration for attendance logging and button interactions when enabled.
 
-### 4. Insights Screen UI (`lib/features/insights/presentation/widgets/` & `InsightsScreen`)
-- [x] **Screen Architecture (`InsightsScreen`):**
-  - Segmented control (`AppSegmentedControl`) toggling seamlessly between **Insights** and **Simulator** views with soft animations and icons.
-  - Proper bottom padding (`AppSpacing.dockClearance`) ensuring zero obstruction by the floating dock.
-- [x] **Interactive Filter Bar (`InsightsFilterBar`):**
-  - Horizontal scrolling filter pills for Date Range (All Time, Last 7 Days, Last 30 Days, Custom range picker dialog), Subject selector, and Component selector.
-  - Actionable "Reset" pill when non-default filter is applied.
-- [x] **Attendance Overview (`InsightsOverviewCard`):**
-  - Tabular attendance percentage, status badge, threshold reference, and Conducted/Present/Absent breakdown.
-  - Custom `_AttendanceDistributionPainter` rendering a clean donut chart of Present vs. Absent sessions.
-  - Clear provisional policy banner when Component Average is pending one enabled component.
-- [x] **Subject Comparison (`SubjectComparisonCard`):**
-  - Compact horizontal comparison bars showing attendance performance across subjects.
-  - Vertical target threshold marker indicator on each bar track.
-  - Does NOT rank unavailable subjects as 0%; unavailable and provisional subjects are displayed with honest labels.
-- [x] **Lecture vs. Lab Comparison (`LectureLabComparisonCard`):**
-  - Paired comparison bars showing independent Lecture and Lab counts and percentages for subjects with both components enabled.
-  - Variance pills highlighting differences (e.g., `Lab +15% vs Lecture` or `Equal`).
-  - Labeled "Not available" when a component has no recorded sessions.
-- [x] **Advanced Chronological Trend (`AdvancedTrendCard`):**
-  - Cumulative attendance line chart based strictly on actual recorded session dates with date range display.
-  - Honest empty state when fewer than two dates have recorded classes.
-- [x] **Factual Key Observations (`InsightObservationsSection`):**
-  - Clean observation tiles with color-coded icons (mint for positive, coral for warning, violet/lavender for info).
-
-### 5. Attendance Simulator UI (`lib/features/simulator/presentation/widgets/` & `SimulatorScreen`)
-- [x] **Projection Card (`SimulatorProjectionCard`):**
-  - Side-by-side comparison of **Actual Recorded Baseline** vs. **Projected Outcome**.
-  - Impact badge displaying delta percentage points (`+X.X%` improvement or `-X.X%` decrease) and threshold status transitions (`Reaches Target!`, `Drops Below Target`).
-  - Clear "Hypothetical Scenario — Not saved to database" visual indicator.
-- [x] **Interactive Input Panel (`SimulatorInputPanel`):**
-  - Subject and component selector with auto-selection for single-component subjects.
-  - Quick action buttons: `+1 Present` (mint) and `+1 Absent` (coral).
-  - Batch add buttons: `+3 Present`, `+5 Present`.
-- [x] **Simulated Sessions List (`HypotheticalSessionList`):**
-  - List of hypothetical sessions showing subject name and component badge.
-  - Interactive status pill: single tap flips status between Present and Absent.
-  - Delete button to remove individual hypothetical sessions.
-  - Global `Reset Scenario` button to clear all simulated sessions.
-  - Clean empty state when no hypothetical sessions exist, showing actual baseline without fake improvement.
-- [x] **Standalone Route & Navigation (`SimulatorScreen`):**
-  - Registered `/simulator` route in GoRouter (`RouteNames.simulatorPath`).
-  - Connected "Open Simulator" action from Dashboard's Component Average card in `SafeAbsenceRecoveryCard`.
-
-### 6. Simulator Isolation & Safety Verification
-- [x] **Zero SQLite Writes:** Verified that adding, toggling, editing, removing, or resetting hypothetical sessions executes 0 SQLite database queries and creates 0 database rows.
-- [x] **Dashboard Unchanged:** Verified that dashboard summaries and attendance totals remain 100% identical while hypothetical sessions are modeled.
-- [x] **Reactive Baseline Refresh:** Verified that when actual attendance changes in Drift, the simulator baseline refreshes reactively without stale combinations.
+### 4. Settings Presentation Suite (`lib/features/settings/` & `SettingsScreen`)
+- [x] **Settings Screen (`SettingsScreen`):**
+  - Custom top navigation bar with back navigation and clean Plus Jakarta Sans title.
+  - Four compact, non-card-overloaded sections following `DESIGN.md`.
+- [x] **Semester Settings (`SemesterSettingsSection`):**
+  - Displays current active semester name, threshold, and calculation policy.
+  - Immediate calculation method switcher (`Raw Combined` vs `50/50 Average`) with instant recalculation across screens.
+  - Real-time attendance threshold slider updating target threshold across all calculations immediately.
+  - Direct actions to switch active semesters (`SemesterSwitcherSheet`) or edit full semester details (`SemesterFormSheet`).
+- [x] **App Preferences (`AppPreferencesSection`):**
+  - Interactive `AppSwitchTile` toggling haptic feedback.
+  - Transparent information explaining system-level reduced-motion support.
+- [x] **Local Backup & Restore (`BackupRestoreSection`):**
+  - One-tap export flow with timestamped file naming (`attendly_backup_YYYY-MM-DD_HHmmss.json`), loading indicators, and success toast.
+  - One-tap restore flow prompting file selection, validating backup, and displaying error dialogs for corrupted or unsupported files.
+  - `BackupSummaryDialog`: Pre-restore confirmation modal displaying export date, semester list, subject count, attendance breakdown, and a high-visibility warning regarding data replacement.
+- [x] **Privacy & Offline Information (`PrivacyOfflineSection`):**
+  - Highlights 100% offline local SQLite storage.
+  - Emphasizes zero account/login requirements, zero cloud sync/telemetry, and student data ownership.
+  - Explains data loss risk upon app uninstall if no backup was exported.
+- [x] **Navigation & Integration:**
+  - Registered `/settings` route in `GoRouter` (`RouteNames.settingsPath`).
+  - Linked Settings cog in `DashboardHeader` directly to Settings screen.
 
 ---
 
-## Architectural & File Changes in Phase 4
+## Architectural & File Changes in Phase 5
 
 ```text
 lib/
 ├── app/
 │   └── router/
-│       ├── app_router.dart                                      # Registered /simulator route
-│       └── route_names.dart                                     # Added simulator & simulatorPath
+│       ├── app_router.dart                                      # Registered /settings route
+│       └── route_names.dart                                     # Added settings & settingsPath
+├── core/
+│   ├── backup/
+│   │   ├── backup_format.dart                                   # Format constants, entities & BackupSummary
+│   │   ├── backup_providers.dart                                # Riverpod backupServiceProvider
+│   │   ├── backup_service.dart                                  # JSON export & transactional restore service
+│   │   └── backup_validator.dart                                # Multi-stage schema and integrity validator
+│   ├── services/
+│   │   ├── platform_file_service.dart                           # FilePicker & SharePlus file abstraction
+│   │   └── preferences_service.dart                             # Haptic feedback state & AppHaptics utility
+│   └── theme/
+│       └── app_icons.dart                                       # Added HugeIcons for backup, restore, shield
 └── features/
     ├── attendance/
-    │   └── domain/
-    │       ├── entities/
-    │       │   ├── component_attendance_summary.dart            # Added isAvailable / isNotAvailable getters
-    │       │   ├── hypothetical_session.dart                    # In-memory ephemeral simulated session entity
-    │       │   ├── insight_observation.dart                     # Factual observation model with category types
-    │       │   ├── insights_filter.dart                         # Multi-dimensional filter model & session filtering
-    │       │   ├── semester_attendance_summary.dart             # Added meetsThreshold, isBelowThreshold, formattedPercentage
-    │       │   ├── simulator_projection.dart                    # Simulator projection model with deltas & transitions
-    │       │   └── subject_attendance_summary.dart              # Added meetsThreshold, isBelowThreshold, formattedPercentage
-    │       └── services/
-    │           ├── insight_observation_generator.dart           # Pure Dart factual observation generator
-    │           └── scenario_calculator.dart                     # Pure Dart simulator projection calculation engine
+    │   └── presentation/widgets/
+    │       ├── quick_log_sheet.dart                             # Added tactile haptic feedback on save
+    │       └── session_form_sheet.dart                          # Added tactile haptic feedback on save
     ├── dashboard/
     │   └── presentation/widgets/
-    │       └── safe_absence_recovery_card.dart                  # Added 'Open Simulator' action for Component Average
-    ├── insights/
-    │   └── presentation/
-    │       ├── providers/
-    │       │   └── insights_providers.dart                      # Filter notifier, filtered summary, observation providers
-    │       └── widgets/
-    │           ├── advanced_trend_card.dart                     # Chronological trend chart with date range
-    │           ├── insight_observations_section.dart            # Factual observation cards section
-    │           ├── insights_content.dart                        # Composed Insights tab content & empty filter state
-    │           ├── insights_filter_bar.dart                     # Interactive date range, subject, component filter pills
-    │           ├── insights_overview_card.dart                  # Overview hero with custom donut distribution chart
-    │           ├── lecture_lab_comparison_card.dart             # Paired Lecture vs Lab comparison with variance badges
-    │           └── subject_comparison_card.dart                 # Horizontal comparison bars with threshold line
-    ├── shell/
-    │   └── presentation/screens/
-    │       └── insights_screen.dart                             # Replaced placeholder with segmented Insights/Simulator view
-    └── simulator/
+    │       └── dashboard_header.dart                            # Connected settings cog to /settings route
+    ├── semesters/
+    │   └── presentation/providers/
+    │       └── semesters_provider.dart                          # Persistent SemesterController (non-autoDispose)
+    └── settings/
         └── presentation/
             ├── providers/
-            │   └── simulator_providers.dart                     # In-memory simulator controller & projection provider
+            │   └── settings_providers.dart                      # BackupController and export/restore states
             ├── screens/
-            │   └── simulator_screen.dart                        # Dedicated standalone Simulator screen & content
+            │   └── settings_screen.dart                         # Four-section Settings screen
             └── widgets/
-                ├── hypothetical_session_list.dart               # Simulated session list with toggle & reset
-                ├── simulator_input_panel.dart                   # Subject/component picker & quick add buttons
-                └── simulator_projection_card.dart               # Baseline vs. projected comparison card with deltas
+                ├── app_preferences_section.dart                 # Haptic toggle & reduced motion info
+                ├── backup_restore_section.dart                  # Export & restore action cards
+                ├── backup_summary_dialog.dart                   # Pre-restore summary confirmation modal
+                ├── privacy_offline_section.dart                 # Offline-only & privacy notice
+                └── semester_settings_section.dart               # Threshold slider & calculation switcher
 ```
 
 ---
 
 ## Test Verification Summary
-- **Total Tests:** 147 passing tests across 20 test suites (35 new tests added in Phase 4).
-- **Domain Calculation Tests:**
-  - `scenario_calculator_test.dart` (9 tests): Raw Combined no sessions baseline, one Present projection, one Absent projection, mixed outcomes, threshold exactly met, single-component subjects, Component Average 50/50 averaging, provisional state handling, and single-component simulation.
-  - `insight_observation_generator_test.dart` (4 tests): <3 sessions empty state, positive target & safe absence observation, below target & recovery observation, component imbalance (lecture vs lab variance $\ge 10\%$).
-  - `insights_filter_test.dart` (6 tests): Default filter, subject filter, component filter, Last 7 Days, Last 30 Days, Custom date range.
-- **Simulator Isolation Tests:**
-  - `simulator_isolation_test.dart` (6 tests): Adding hypothetical session does not write to SQLite, toggling status does not modify actual records, removing session does not delete actual records, resetting does not modify database, dashboard values remain strictly unchanged, actual database session changes refresh baseline reactively.
-- **Screen & Widget Tests:**
-  - `insights_screen_test.dart` (5 tests): Empty state, populated insights with overview, subjects, comparisons and trend, segmented tab switching to Simulator, Last 7 Days filter and Reset, Component Average provisional state.
-  - `simulator_screen_test.dart` (5 tests): Baseline attendance and empty state, +1 Present updates projection and list, toggling status flips Present/Absent, Reset Scenario clears all hypothetical entries, batch add (+3 Present).
-  - `navigation_dock_test.dart` (1 test): Updated navigation verification for Insights and Simulator.
-  - Pre-existing tests (111 tests): All database, dashboard, quick log, history, onboarding, and calculation tests continue passing.
+- **Total Tests:** 186 passing tests across 24 test suites (39 new tests added in Phase 5).
+- **Core Backup & Validation Tests:**
+  - `backup_validator_test.dart` (23 tests): Valid backup parsing and summary, empty string rejection, invalid JSON syntax, non-object root, missing/unrecognized format identifier, unsupported format version (> 1), invalid export timestamp, missing data object, non-list collections, duplicate semester IDs, blank semester name, invalid threshold (out of bounds), unsupported calculation method, invalid calendar dates (e.g. Feb 31), start date after end date, duplicate subject IDs, broken semester foreign keys, subject without enabled components, duplicate session IDs, broken subject foreign keys, invalid session calendar dates, invalid component/status enums, component disabled on subject, duplicate `(subject, date, component)` sessions.
+  - `backup_export_test.dart` (3 tests): Empty database export matching schema, populated database export with all fields and preferences, and simulator data isolation verification.
+  - `backup_restore_test.dart` (4 tests): Fresh database restore with domain calculation parity, replace policy verification, transactional failure rollback leaving existing database 100% intact, and full round-trip export-restore-reexport data equivalence.
+- **Settings Screen & Navigation Tests:**
+  - `settings_screen_test.dart` (8 tests): All 4 sections rendered with initial semester details, toggling haptic feedback updates preference state, changing calculation method updates semester, export backup flow triggers file service with success toast, restore with invalid file shows error dialog, restore with valid file displays summary dialog and cancels safely without altering database, confirming Restore & Replace replaces local data, privacy section displays all offline guarantees.
+  - `dashboard_settings_navigation_test.dart` (1 test): Tapping settings cog on dashboard header navigates to `/settings`.
+- **Pre-existing Suites (147 tests):** All database, calculation engine, simulator isolation, insights, history, quick log, and onboarding tests continue passing without regression.
 - **Static Analysis & Formatting:**
-  - `dart format .`: 123 files checked, 100% cleanly formatted.
+  - `dart format .`: 141 files checked, 100% cleanly formatted.
   - `flutter analyze`: **0 issues found**.
-  - `flutter test`: **147/147 tests passed**.
+  - `flutter test`: **186/186 tests passed**.
+
+---
+
+## Privacy & Offline Verification
+- [x] Zero network dependencies: Verified no Firebase, Supabase, authentication, remote databases, cloud sync, or telemetry packages exist.
+- [x] Platform manifest check: Verified `android/app/src/main/AndroidManifest.xml` contains NO `android.permission.INTERNET` permission.
+- [x] Backups remain 100% local: Files are written only to device storage or native share sheets; no data is ever uploaded.
+- [x] Honest data claims: No unsupported encryption claims are made in the UI or documentation.
 
 ---
 
 ## Known Issues
-- None. All Phase 4 requirements, mathematical parity, simulator isolation, advanced charts, filter interactions, and responsive layouts are fully verified and operating 100% offline.
+- None. All Phase 5 requirements, local backup/export, local restore/import, transactional safety, data validation, and settings controls are verified and working 100% offline.
 
 ---
 
-## Next Steps (Phase 5 Readiness)
-1. **Wait for user explicit approval** before initiating Phase 5.
-2. In Phase 5 (Settings & Data Safety):
-   - Build Settings screen (`SettingsScreen`) for semester threshold editing, calculation method configuration, and semester archiving.
-   - Build local backup export service (`BackupService`) producing versioned portable JSON.
-   - Build transactional backup restore service with schema and referential validation.
-   - Test full backup export and restore round-trips against SQLite.
+## Next Steps (Phase 6 Readiness)
+1. **Wait for user explicit approval** before initiating Phase 6.
+2. In Phase 6 (Polish & Release Preparation):
+   - Accessibility audit across all screens.
+   - Comprehensive edge-case handling and responsiveness verification on small viewports.
+   - Final release preparation according to project documentation.
 
 ---
 

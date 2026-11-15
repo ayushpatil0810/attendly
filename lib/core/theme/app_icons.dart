@@ -30,6 +30,12 @@ abstract final class AppIcons {
   static const calendar = HugeIcons.strokeRoundedCalendar03;
   static const info = HugeIcons.strokeRoundedInformationCircle;
   static const alert = HugeIcons.strokeRoundedAlertCircle;
+  static const exportFile = HugeIcons.strokeRoundedUpload01;
+  static const importFile = HugeIcons.strokeRoundedDownload01;
+  static const shield = HugeIcons.strokeRoundedShield01;
+  static const file = HugeIcons.strokeRoundedFile01;
+  static const device = HugeIcons.strokeRoundedSmartPhone01;
+  static const database = HugeIcons.strokeRoundedDatabase;
 }
 
 /// Standardized HugeIcon wrapper for uniform styling

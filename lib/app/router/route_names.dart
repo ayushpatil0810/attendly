@@ -4,10 +4,12 @@ abstract final class RouteNames {
   static const semesterSetup = 'semesterSetup';
   static const home = 'home';
   static const simulator = 'simulator';
+  static const settings = 'settings';
 
   static const splashPath = '/';
   static const onboardingPath = '/onboarding';
   static const semesterSetupPath = '/semester-setup';
   static const homePath = '/home';
   static const simulatorPath = '/simulator';
+  static const settingsPath = '/settings';
 }

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:attendly/app/router/route_names.dart';
 import 'package:attendly/core/shared/widgets/app_bottom_sheet.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/semesters/domain/entities/semester.dart';
-import 'package:attendly/features/semesters/presentation/widgets/semester_form_sheet.dart';
 import 'package:attendly/features/semesters/presentation/widgets/semester_switcher_sheet.dart';
 
 class DashboardHeader extends StatelessWidget {
@@ -64,15 +65,11 @@ class DashboardHeader extends StatelessWidget {
         ),
         const SizedBox(width: AppSpacing.sm),
         Semantics(
-          label: 'Edit semester settings',
+          label: 'Open settings',
           button: true,
           child: GestureDetector(
             onTap: () {
-              showAppBottomSheet(
-                context: context,
-                title: 'Edit Semester',
-                child: SemesterFormSheet(initialSemester: semester),
-              );
+              context.pushNamed(RouteNames.settings);
             },
             child: Container(
               padding: const EdgeInsets.all(10),
