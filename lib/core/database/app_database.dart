@@ -6,19 +6,20 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import 'tables/attendance_sessions_table.dart';
+import 'tables/day_notes_table.dart';
 import 'tables/semesters_table.dart';
 import 'tables/subjects_table.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Semesters, Subjects, AttendanceSessions])
+@DriftDatabase(tables: [Semesters, Subjects, AttendanceSessions, DayNotes])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -27,6 +28,10 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         'CREATE INDEX IF NOT EXISTS idx_attendance_sessions_date '
         'ON attendance_sessions(session_date);',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_day_notes_date '
+        'ON day_notes(date);',
       );
     },
     onUpgrade: (Migrator m, int from, int to) async {
@@ -75,6 +80,13 @@ class AppDatabase extends _$AppDatabase {
           'ON attendance_sessions(session_date);',
         );
         await customStatement('PRAGMA foreign_keys = ON;');
+      }
+      if (from < 4) {
+        await m.createTable(dayNotes);
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_day_notes_date '
+          'ON day_notes(date);',
+        );
       }
     },
     beforeOpen: (details) async {

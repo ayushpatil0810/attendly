@@ -90,7 +90,7 @@ class _SubjectFormSheetState extends ConsumerState<SubjectFormSheet> {
 
         if (mounted) {
           AppToast.showSuccess(context, message: 'Subject added.');
-          widget.onSaved?.call(id!);
+          widget.onSaved?.call(id);
           Navigator.of(context).pop();
         }
       }

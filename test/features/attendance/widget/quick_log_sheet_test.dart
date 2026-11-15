@@ -20,7 +20,6 @@ void main() {
   late SharedPreferences prefs;
   late int semesterId;
   late int bothComponentsSubId;
-  late int lectureOnlySubId;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
@@ -39,7 +38,7 @@ void main() {
       labEnabled: true,
     );
 
-    lectureOnlySubId = await subjRepo.createSubject(
+    await subjRepo.createSubject(
       semesterId: semesterId,
       name: 'History of Computing',
       lectureEnabled: true,
@@ -51,56 +50,54 @@ void main() {
     await db.close();
   });
 
-  Widget createWidgetUnderTest({DateTime? initialDate}) {
+  Widget createWidgetUnderTest({DateTime? initialDate, int? initialSubjectId}) {
     return ProviderScope(
       overrides: [
         databaseProvider.overrideWithValue(db),
         sharedPreferencesProvider.overrideWithValue(prefs),
       ],
       child: MaterialApp(
-        home: Scaffold(body: QuickLogSheet(initialDate: initialDate)),
+        home: Scaffold(
+          body: QuickLogSheet(
+            initialDate: initialDate,
+            initialSubjectId: initialSubjectId,
+          ),
+        ),
       ),
     );
   }
 
-  group('QuickLogSheet Widget Tests', () {
+  void setTestViewport(WidgetTester tester) {
+    tester.view.physicalSize = const Size(800, 1200);
+    tester.view.devicePixelRatio = 1.0;
+  }
+
+  group('Redesigned QuickLogSheet Tests', () {
     testWidgets(
-      'shows subjects and allows component selection for multi-component subject',
+      'lists all subjects vertically with dedicated component sub-rows',
       (tester) async {
+        setTestViewport(tester);
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
         await tester.pumpWidget(createWidgetUnderTest());
         await tester.pumpAndSettle();
 
-        // Subject chips visible
+        // Header and date visible
+        expect(find.text('Quick Attendance Log'), findsOneWidget);
+        expect(find.text('Done Logging'), findsOneWidget);
+
+        // Both subjects are visible simultaneously in vertical list
         expect(find.text('Computer Networks'), findsOneWidget);
         expect(find.text('History of Computing'), findsOneWidget);
 
-        // Computer Networks is selected by default -> has both components -> shows Lecture & Lab segmented control
-        expect(find.text('Lecture'), findsOneWidget);
-        expect(find.text('Lab'), findsOneWidget);
+        // Computer Networks has both Theory Lecture and Practical Lab
+        expect(find.text('Theory Lecture'), findsWidgets);
+        expect(find.text('Practical Lab'), findsOneWidget);
 
-        // Present and Absent immediate action buttons visible
-        expect(find.text('Present'), findsOneWidget);
-        expect(find.text('Absent'), findsOneWidget);
-
-        await tester.pumpWidget(const SizedBox());
-        await tester.pump(Duration.zero);
-      },
-    );
-
-    testWidgets(
-      'automatically selects the only enabled component for single-component subject',
-      (tester) async {
-        expect(lectureOnlySubId, greaterThan(0));
-        await tester.pumpWidget(createWidgetUnderTest());
-        await tester.pumpAndSettle();
-
-        // Tap on History of Computing (lecture only)
-        await tester.tap(find.text('History of Computing'));
-        await tester.pumpAndSettle();
-
-        // Component is automatically set to Lecture without segmented control
-        expect(find.text('Component: '), findsOneWidget);
-        expect(find.text('Lecture'), findsOneWidget);
+        // Quick action buttons visible
+        expect(find.text('+ Present'), findsWidgets);
+        expect(find.text('+ Absent'), findsWidgets);
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);
@@ -108,17 +105,29 @@ void main() {
     );
 
     testWidgets(
-      'immediately saves attendance upon tapping Present without extra save button',
+      'immediately records attendance upon tapping + Present without closing modal',
       (tester) async {
+        setTestViewport(tester);
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
         final testDate = DateTime(2026, 3, 10);
         await tester.pumpWidget(createWidgetUnderTest(initialDate: testDate));
         await tester.pumpAndSettle();
 
-        // Select Computer Networks -> Lecture -> tap Present
-        await tester.tap(find.text('Present'));
+        // Tap the first "+ Present" button (for Computer Networks - Lecture)
+        await tester.tap(find.text('+ Present').first);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
         await tester.pumpAndSettle();
 
-        // Verify persisted in DB
+        // Modal is STILL open
+        expect(find.text('Quick Attendance Log'), findsOneWidget);
+
+        // Chip is now visible on the card
+        expect(find.text('Lec 1: Present'), findsOneWidget);
+
+        // Verify persisted in SQLite
         final repo = AttendanceRepositoryImpl(db);
         final sessions = await repo.getSessionsForDate(
           semesterId,
@@ -134,42 +143,106 @@ void main() {
       },
     );
 
-    testWidgets('immediately saves attendance upon tapping Absent', (
-      tester,
-    ) async {
-      final testDate = DateTime(2026, 3, 11);
-      await tester.pumpWidget(createWidgetUnderTest(initialDate: testDate));
-      await tester.pumpAndSettle();
+    testWidgets(
+      'allows adding multiple lectures on the spot for a specific subject',
+      (tester) async {
+        setTestViewport(tester);
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      // Tap Lab component
-      await tester.tap(find.text('Lab'));
-      await tester.pumpAndSettle();
+        final testDate = DateTime(2026, 3, 10);
+        await tester.pumpWidget(createWidgetUnderTest(initialDate: testDate));
+        await tester.pumpAndSettle();
 
-      // Tap Absent
-      await tester.tap(find.text('Absent'));
-      await tester.pumpAndSettle();
+        // Add 1st lecture for Computer Networks (Present)
+        await tester.tap(find.text('+ Present').first);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pumpAndSettle();
 
-      // Verify persisted in DB
-      final repo = AttendanceRepositoryImpl(db);
-      final sessions = await repo.getSessionsForDate(semesterId, '2026-03-11');
-      expect(sessions.length, equals(1));
-      expect(sessions.first.component, equals(SessionComponent.lab));
-      expect(sessions.first.status, equals(AttendanceStatus.absent));
+        expect(find.text('Lec 1: Present'), findsOneWidget);
 
-      await tester.pumpWidget(const SizedBox());
-      await tester.pump(Duration.zero);
-    });
+        // Add 2nd lecture on the spot for the same subject (Present)
+        await tester.tap(find.text('+ Present').first);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pumpAndSettle();
+
+        // Both chips are visible
+        expect(find.text('Lec 1: Present'), findsOneWidget);
+        expect(find.text('Lec 2: Present'), findsOneWidget);
+
+        // Verify 2 sessions exist in DB
+        final repo = AttendanceRepositoryImpl(db);
+        final sessions = await repo.getSessionsForDate(
+          semesterId,
+          '2026-03-10',
+        );
+        expect(sessions.length, equals(2));
+        expect(sessions[0].status, equals(AttendanceStatus.present));
+        expect(sessions[1].status, equals(AttendanceStatus.present));
+
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(Duration.zero);
+      },
+    );
 
     testWidgets(
-      'keeps Present and Absent available when a lecture is already logged',
+      'allows logging attendance for different subjects in single session',
       (tester) async {
-        final testDate = DateTime(2026, 3, 10);
-        final dateStr = '2026-03-10';
+        setTestViewport(tester);
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
+        final testDate = DateTime(2026, 3, 10);
+        await tester.pumpWidget(createWidgetUnderTest(initialDate: testDate));
+        await tester.pumpAndSettle();
+
+        // Mark Computer Networks Lecture as Present (1st + Present button)
+        await tester.tap(find.text('+ Present').at(0));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pumpAndSettle();
+
+        // Mark Computer Networks Lab as Absent (2nd + Absent button)
+        await tester.tap(find.text('+ Absent').at(1));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pumpAndSettle();
+
+        // Mark History of Computing as Present (3rd + Present button)
+        await tester.tap(find.text('+ Present').at(2));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pumpAndSettle();
+
+        final repo = AttendanceRepositoryImpl(db);
+        final sessions = await repo.getSessionsForDate(
+          semesterId,
+          '2026-03-10',
+        );
+        expect(sessions.length, equals(3));
+
+        // Sheet is still open
+        expect(find.text('Quick Attendance Log'), findsOneWidget);
+
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(Duration.zero);
+      },
+    );
+
+    testWidgets(
+      'deletes session when remove button on chip is tapped',
+      (tester) async {
+        setTestViewport(tester);
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final testDate = DateTime(2026, 3, 10);
         final repo = AttendanceRepositoryImpl(db);
         await repo.createSession(
           subjectId: bothComponentsSubId,
-          sessionDate: dateStr,
+          sessionDate: '2026-03-10',
           component: SessionComponent.lecture,
           status: AttendanceStatus.present,
         );
@@ -177,20 +250,69 @@ void main() {
         await tester.pumpWidget(createWidgetUnderTest(initialDate: testDate));
         await tester.pumpAndSettle();
 
-        expect(
-          find.text(
-            '1 Lecture is already logged for this day. This save adds another.',
-          ),
-          findsOneWidget,
-        );
-        expect(find.text('Present'), findsOneWidget);
-        expect(find.text('Absent'), findsOneWidget);
+        expect(find.text('Lec 1: Present'), findsOneWidget);
 
-        await tester.tap(find.text('Absent'));
+        // Tap the semantics action for removing the chip
+        final removeButton = find.bySemanticsLabel('Remove Lec 1 Present');
+        expect(removeButton, findsOneWidget);
+        await tester.tap(removeButton);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
         await tester.pumpAndSettle();
 
-        final sessions = await repo.getSessionsForDate(semesterId, dateStr);
-        expect(sessions.length, equals(2));
+        // Chip is removed
+        expect(find.text('Lec 1: Present'), findsNothing);
+
+        final sessions = await repo.getSessionsForDate(
+          semesterId,
+          '2026-03-10',
+        );
+        expect(sessions, isEmpty);
+
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(Duration.zero);
+      },
+    );
+
+    testWidgets(
+      'tapping Done button pops the modal sheet',
+      (tester) async {
+        setTestViewport(tester);
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              databaseProvider.overrideWithValue(db),
+              sharedPreferencesProvider.overrideWithValue(prefs),
+            ],
+            child: MaterialApp(
+              home: Builder(
+                builder: (context) {
+                  return ElevatedButton(
+                    onPressed: () => showQuickLogSheet(context: context),
+                    child: const Text('Open Quick Log'),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Open sheet
+        await tester.tap(find.text('Open Quick Log'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(QuickLogSheet), findsOneWidget);
+
+        // Tap Done Logging
+        await tester.tap(find.text('Done Logging'));
+        await tester.pumpAndSettle();
+
+        // Sheet is dismissed
+        expect(find.byType(QuickLogSheet), findsNothing);
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);

@@ -13,6 +13,7 @@ import 'package:attendly/features/attendance/domain/entities/attendance_session.
 import 'package:attendly/features/attendance/domain/entities/attendance_status.dart';
 import 'package:attendly/features/attendance/presentation/providers/attendance_providers.dart';
 import 'package:attendly/features/attendance/presentation/widgets/attendance_calendar.dart';
+import 'package:attendly/features/attendance/presentation/widgets/day_note_banner.dart';
 import 'package:attendly/features/attendance/presentation/widgets/delete_session_dialog.dart';
 import 'package:attendly/features/attendance/presentation/widgets/session_form_sheet.dart';
 import 'package:attendly/features/subjects/domain/entities/subject.dart';
@@ -106,6 +107,8 @@ class HistoryScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 12),
+              DayNoteBanner(dateStr: formatDateOnly(selectedDate)),
               const SizedBox(height: 16),
 
               // Session list for selected date

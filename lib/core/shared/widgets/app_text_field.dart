@@ -23,6 +23,7 @@ class AppTextField extends StatelessWidget {
     this.obscureText = false,
     this.enabled = true,
     this.autofocus = false,
+    this.textCapitalization = TextCapitalization.none,
     this.maxLines = 1,
     this.minLines,
     this.maxLength,
@@ -44,6 +45,7 @@ class AppTextField extends StatelessWidget {
   final bool obscureText;
   final bool enabled;
   final bool autofocus;
+  final TextCapitalization textCapitalization;
   final int? maxLines;
   final int? minLines;
   final int? maxLength;
@@ -64,6 +66,7 @@ class AppTextField extends StatelessWidget {
           style: AppTypography.bodyLarge,
           keyboardType: keyboardType,
           textInputAction: textInputAction,
+          textCapitalization: textCapitalization,
           onChanged: onChanged,
           onFieldSubmitted: onSubmitted,
           validator: validator,

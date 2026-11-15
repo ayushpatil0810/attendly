@@ -4,11 +4,14 @@ import 'package:attendly/features/semesters/presentation/providers/semesters_pro
 import 'package:attendly/features/subjects/presentation/providers/subjects_provider.dart';
 
 import '../../data/repositories/attendance_repository_impl.dart';
+import '../../data/repositories/day_note_repository_impl.dart';
 import '../../domain/entities/attendance_session.dart';
 import '../../domain/entities/attendance_status.dart';
+import '../../domain/entities/day_note.dart';
 import '../../domain/entities/semester_attendance_summary.dart';
 import '../../domain/entities/session_component.dart';
 import '../../domain/repositories/attendance_repository.dart';
+import '../../domain/repositories/day_note_repository.dart';
 import '../../domain/services/attendance_calculator.dart';
 import '../../domain/services/recovery_calculator.dart';
 import '../../domain/services/safe_absence_calculator.dart';
@@ -307,3 +310,91 @@ final semesterAttendanceSummaryProvider =
 
       return AsyncData(summary);
     });
+
+final dayNoteRepositoryProvider = Provider<DayNoteRepository>((ref) {
+  final db = ref.watch(databaseProvider);
+  return DayNoteRepositoryImpl(db);
+});
+
+final dayNoteForDateFamilyProvider =
+    StreamProvider.family<DayNote?, String>((ref, dateStr) {
+  final activeSemester = ref.watch(activeSemesterProvider);
+  if (activeSemester == null) {
+    return Stream.value(null);
+  }
+  final repo = ref.watch(dayNoteRepositoryProvider);
+  return repo.watchNoteForDate(activeSemester.id, dateStr);
+});
+
+final dayNotesForMonthProvider = StreamProvider<Map<String, String>>((ref) {
+  final activeSemester = ref.watch(activeSemesterProvider);
+  if (activeSemester == null) {
+    return Stream.value({});
+  }
+  final currentMonth = ref.watch(currentMonthProvider);
+  final yearMonthPrefix =
+      '${currentMonth.year.toString().padLeft(4, '0')}-${currentMonth.month.toString().padLeft(2, '0')}';
+  final repo = ref.watch(dayNoteRepositoryProvider);
+  return repo
+      .watchNotesForMonth(activeSemester.id, yearMonthPrefix)
+      .map((notes) {
+    final map = <String, String>{};
+    for (final note in notes) {
+      map[note.date] = note.content;
+    }
+    return map;
+  });
+});
+
+class DayNoteController extends AsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
+
+  Future<void> saveNote({
+    required String date,
+    required String content,
+  }) async {
+    final activeSemester = ref.read(activeSemesterProvider);
+    if (activeSemester == null) return;
+
+    state = const AsyncLoading();
+    try {
+      final repo = ref.read(dayNoteRepositoryProvider);
+      await repo.setNoteForDate(
+        semesterId: activeSemester.id,
+        date: date,
+        content: content,
+      );
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> deleteNote({
+    required String date,
+  }) async {
+    final activeSemester = ref.read(activeSemesterProvider);
+    if (activeSemester == null) return;
+
+    state = const AsyncLoading();
+    try {
+      final repo = ref.read(dayNoteRepositoryProvider);
+      await repo.deleteNoteForDate(
+        semesterId: activeSemester.id,
+        date: date,
+      );
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
+  }
+}
+
+final dayNoteControllerProvider =
+    AsyncNotifierProvider<DayNoteController, void>(
+      DayNoteController.new,
+    );
+

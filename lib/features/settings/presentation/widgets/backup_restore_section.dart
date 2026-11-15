@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:attendly/core/services/preferences_service.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/shared/widgets/app_toast.dart';
 import 'package:attendly/core/theme/app_colors.dart';
@@ -15,6 +16,7 @@ class BackupRestoreSection extends ConsumerWidget {
   const BackupRestoreSection({super.key});
 
   void _handleExport(BuildContext context, WidgetRef ref) async {
+    AppHaptics.selectionClick(ref);
     final result = await ref
         .read(backupControllerProvider.notifier)
         .exportBackup();
@@ -22,13 +24,14 @@ class BackupRestoreSection extends ConsumerWidget {
     if (!context.mounted) return;
 
     if (result.isSuccess && !result.isCanceled) {
+      AppHaptics.lightImpact(ref);
       AppToast.showSuccess(context, message: 'Backup exported successfully!');
     } else if (!result.isSuccess && result.errorMessage != null) {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
           backgroundColor: AppColors.pureWhite,
-          shape: const RoundedRectangleBorder(borderRadius: AppRadius.xlBorder),
+          shape: const RoundedRectangleBorder(borderRadius: AppRadius.lgBorder),
           title: Text(
             'Export Failed',
             style: AppTypography.screenTitle.copyWith(fontSize: 18),
@@ -50,6 +53,7 @@ class BackupRestoreSection extends ConsumerWidget {
   }
 
   void _handleRestore(BuildContext context, WidgetRef ref) async {
+    AppHaptics.selectionClick(ref);
     final validationResult = await ref
         .read(backupControllerProvider.notifier)
         .pickAndValidateBackup();
@@ -61,7 +65,7 @@ class BackupRestoreSection extends ConsumerWidget {
         context: context,
         builder: (ctx) => AlertDialog(
           backgroundColor: AppColors.pureWhite,
-          shape: const RoundedRectangleBorder(borderRadius: AppRadius.xlBorder),
+          shape: const RoundedRectangleBorder(borderRadius: AppRadius.lgBorder),
           title: Row(
             children: [
               const AppIcon(
@@ -77,7 +81,8 @@ class BackupRestoreSection extends ConsumerWidget {
             ],
           ),
           content: Text(
-            validationResult.error ?? 'The selected file could not be verified as a valid Attendly backup.',
+            validationResult.error ??
+                'The selected file could not be verified as a valid Attendly backup.',
             style: AppTypography.bodySmall.copyWith(color: AppColors.ink),
           ),
           actions: [
@@ -106,6 +111,7 @@ class BackupRestoreSection extends ConsumerWidget {
           if (!context.mounted) return;
 
           if (success) {
+            AppHaptics.lightImpact(ref);
             AppToast.showSuccess(
               context,
               message: 'Attendance data restored successfully!',
@@ -116,13 +122,13 @@ class BackupRestoreSection extends ConsumerWidget {
               builder: (ctx) => AlertDialog(
                 backgroundColor: AppColors.pureWhite,
                 shape: const RoundedRectangleBorder(
-                  borderRadius: AppRadius.xlBorder,
+                  borderRadius: AppRadius.lgBorder,
                 ),
                 title: Text(
                   'Restore Failed',
                   style: AppTypography.screenTitle.copyWith(fontSize: 18),
                 ),
-                content: Text(
+                content: const Text(
                   'An error occurred during restore. All changes were rolled back and existing data is safe.',
                   style: AppTypography.bodySmall,
                 ),
@@ -150,11 +156,14 @@ class BackupRestoreSection extends ConsumerWidget {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppRadius.lgBorder,
+        border: Border.all(
+          color: AppColors.divider.withValues(alpha: 0.8),
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.ink.withAlpha(6),
-            blurRadius: 14,
-            offset: const Offset(0, 2),
+            color: AppColors.ink.withValues(alpha: 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -166,15 +175,17 @@ class BackupRestoreSection extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                width: 38,
+                height: 38,
                 decoration: const BoxDecoration(
                   color: AppColors.softMint,
                   shape: BoxShape.circle,
                 ),
+                alignment: Alignment.center,
                 child: const AppIcon(
                   AppIcons.exportFile,
                   color: AppColors.inkMint,
-                  size: 20,
+                  size: 18,
                 ),
               ),
               const SizedBox(width: 12),
@@ -182,7 +193,7 @@ class BackupRestoreSection extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Export Local Backup', style: AppTypography.itemTitle),
+                    const Text('Export Local Backup', style: AppTypography.itemTitle),
                     const SizedBox(height: 3),
                     Text(
                       'Save all semesters, subjects, and attendance history to a portable JSON backup file.',
@@ -203,8 +214,8 @@ class BackupRestoreSection extends ConsumerWidget {
                       isLoading: backupState.isExporting,
                       onPressed:
                           backupState.isExporting || backupState.isRestoring
-                          ? null
-                          : () => _handleExport(context, ref),
+                              ? null
+                              : () => _handleExport(context, ref),
                     ),
                   ],
                 ),
@@ -220,15 +231,17 @@ class BackupRestoreSection extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                width: 38,
+                height: 38,
                 decoration: const BoxDecoration(
                   color: AppColors.softLavender,
                   shape: BoxShape.circle,
                 ),
+                alignment: Alignment.center,
                 child: const AppIcon(
                   AppIcons.importFile,
                   color: AppColors.brandViolet,
-                  size: 20,
+                  size: 18,
                 ),
               ),
               const SizedBox(width: 12),
@@ -236,7 +249,7 @@ class BackupRestoreSection extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Restore from Backup', style: AppTypography.itemTitle),
+                    const Text('Restore from Backup', style: AppTypography.itemTitle),
                     const SizedBox(height: 3),
                     Text(
                       'Import data from a previously saved JSON file. Restoring will replace existing local records.',
@@ -258,13 +271,43 @@ class BackupRestoreSection extends ConsumerWidget {
                       isLoading: backupState.isRestoring,
                       onPressed:
                           backupState.isExporting || backupState.isRestoring
-                          ? null
-                          : () => _handleRestore(context, ref),
+                              ? null
+                              : () => _handleRestore(context, ref),
                     ),
                   ],
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 14),
+
+          // Atomic Guarantee Safety Callout
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.softMint.withValues(alpha: 0.6),
+              borderRadius: AppRadius.smBorder,
+            ),
+            child: Row(
+              children: [
+                const AppIcon(
+                  AppIcons.check,
+                  size: 14,
+                  color: AppColors.inkMint,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Atomic guarantee: If an import is interrupted, all changes roll back safely with zero data loss.',
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.inkMint,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

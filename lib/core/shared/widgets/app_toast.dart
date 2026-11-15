@@ -40,6 +40,8 @@ abstract final class AppToast {
   static void showInfo(
     BuildContext context, {
     required String message,
+    String? actionLabel,
+    VoidCallback? onAction,
     Duration duration = const Duration(seconds: 3),
   }) {
     _show(
@@ -47,6 +49,8 @@ abstract final class AppToast {
       message: message,
       backgroundColor: AppColors.ink,
       textColor: AppColors.pureWhite,
+      actionLabel: actionLabel,
+      onAction: onAction,
       duration: duration,
     );
   }
