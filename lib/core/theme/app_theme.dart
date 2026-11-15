@@ -14,7 +14,7 @@ abstract final class AppTheme {
       scaffoldBackgroundColor: AppColors.warmWhite,
       colorScheme: const ColorScheme(
         brightness: Brightness.light,
-        primary: AppColors.brandViolet,
+        primary: AppColors.inkViolet,
         onPrimary: AppColors.pureWhite,
         primaryContainer: AppColors.softLavender,
         onPrimaryContainer: AppColors.ink,
@@ -24,7 +24,7 @@ abstract final class AppTheme {
         onSecondaryContainer: AppColors.ink,
         tertiary: AppColors.brandPeach,
         onTertiary: AppColors.ink,
-        error: AppColors.brandCoral,
+        error: AppColors.inkCoral,
         onError: AppColors.pureWhite,
         errorContainer: AppColors.softCoral,
         onErrorContainer: AppColors.ink,
@@ -97,17 +97,17 @@ abstract final class AppTheme {
         focusedBorder: OutlineInputBorder(
           borderRadius: AppRadius.mdBorder,
           borderSide: const BorderSide(
-            color: AppColors.brandViolet,
+            color: AppColors.inkViolet,
             width: 1.5,
           ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: AppRadius.mdBorder,
-          borderSide: const BorderSide(color: AppColors.brandCoral),
+          borderSide: const BorderSide(color: AppColors.inkCoral),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: AppRadius.mdBorder,
-          borderSide: const BorderSide(color: AppColors.brandCoral, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.inkCoral, width: 1.5),
         ),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
@@ -115,7 +115,7 @@ abstract final class AppTheme {
         modalBackgroundColor: AppColors.pureWhite,
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: AppRadius.sheetTop),
-        showDragHandle: true,
+        showDragHandle: false,
         dragHandleColor: AppColors.divider,
       ),
       dialogTheme: DialogThemeData(

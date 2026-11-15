@@ -20,9 +20,11 @@ abstract final class AppIcons {
   static const close = HugeIcons.strokeRoundedCancel01;
   static const back = HugeIcons.strokeRoundedArrowLeft01;
   static const forward = HugeIcons.strokeRoundedArrowRight01;
+  static const arrowDown = HugeIcons.strokeRoundedArrowDown01;
   static const settings = HugeIcons.strokeRoundedSettings02;
   static const undo = HugeIcons.strokeRoundedRotateLeft01;
   static const archive = HugeIcons.strokeRoundedArchive02;
+  static const more = HugeIcons.strokeRoundedMoreHorizontal;
 
   // Components & Concepts
   static const lecture = HugeIcons.strokeRoundedTeacher;
@@ -45,14 +47,23 @@ class AppIcon extends StatelessWidget {
     super.key,
     this.size = 22.0,
     this.color = AppColors.ink,
+    this.semanticLabel,
   });
 
   final dynamic icon;
   final double size;
   final Color color;
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
-    return HugeIcon(icon: icon, color: color, size: size);
+    final iconWidget = ColorFiltered(
+      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+      child: HugeIcon(icon: icon, color: Colors.black, size: size),
+    );
+    if (semanticLabel != null) {
+      return Semantics(label: semanticLabel, child: iconWidget);
+    }
+    return iconWidget;
   }
 }

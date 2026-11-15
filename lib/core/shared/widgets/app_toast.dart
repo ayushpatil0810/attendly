@@ -31,7 +31,7 @@ abstract final class AppToast {
     _show(
       context,
       message: message,
-      backgroundColor: AppColors.brandCoral,
+      backgroundColor: AppColors.inkCoral,
       textColor: AppColors.pureWhite,
       duration: duration,
     );

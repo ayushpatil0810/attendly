@@ -34,7 +34,13 @@ class _SimulatorInputPanelState extends ConsumerState<SimulatorInputPanel> {
         decoration: BoxDecoration(
           color: AppColors.pureWhite,
           borderRadius: AppRadius.xlBorder,
-          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.ink.withAlpha(6),
+              blurRadius: 14,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Text(
           'Please create at least one subject to start simulating future attendance.',
@@ -67,7 +73,13 @@ class _SimulatorInputPanelState extends ConsumerState<SimulatorInputPanel> {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppRadius.xlBorder,
-        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.ink.withAlpha(6),
+            blurRadius: 14,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -268,7 +280,7 @@ class _ComponentChoicePill extends StatelessWidget {
         child: Text(
           label,
           style: AppTypography.labelSmall.copyWith(
-            color: isSelected ? AppColors.brandViolet : AppColors.mutedInk,
+            color: isSelected ? AppColors.inkViolet : AppColors.mutedInk,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
             fontSize: 11,
           ),
@@ -295,27 +307,31 @@ class _SimulateActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveFg = color == AppColors.brandMint
+        ? AppColors.inkMint
+        : AppColors.inkCoral;
+
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        constraints: const BoxConstraints(minHeight: 44),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: AppRadius.mdBorder,
-          border: Border.all(color: color.withOpacity(0.5)),
+          border: Border.all(color: effectiveFg, width: 1.5),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AppIcon(icon, size: 16, color: color),
+            AppIcon(icon, size: 16, color: effectiveFg),
             const SizedBox(width: 6),
             Text(
               label,
               style: AppTypography.labelMedium.copyWith(
-                color: color == AppColors.brandMint
-                    ? const Color(0xFF1E826D)
-                    : const Color(0xFFD63B48),
+                color: effectiveFg,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -336,8 +352,11 @@ class _BatchChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        constraints: const BoxConstraints(minHeight: 48),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: AppColors.track,
           borderRadius: AppRadius.smBorder,
@@ -346,7 +365,7 @@ class _BatchChip extends StatelessWidget {
           label,
           style: AppTypography.labelSmall.copyWith(
             color: AppColors.ink,
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: FontWeight.w600,
           ),
         ),

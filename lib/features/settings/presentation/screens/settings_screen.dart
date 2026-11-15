@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:attendly/app/router/route_names.dart';
+import 'package:attendly/core/shared/widgets/app_frame.dart';
 import 'package:attendly/core/shared/widgets/app_section_header.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
@@ -23,42 +25,41 @@ class SettingsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.warmWhite,
       body: SafeArea(
-        child: Column(
+        child: AppFrame(
+          child: Column(
           children: [
             // Top Navigation Bar
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.screenHorizontal,
-                vertical: 12,
+                vertical: 8,
               ),
               child: Row(
                 children: [
                   Semantics(
                     label: 'Go back',
                     button: true,
-                    child: GestureDetector(
-                      onTap: () {
+                    child: IconButton(
+                      tooltip: 'Back',
+                      icon: const AppIcon(
+                        AppIcons.back,
+                        size: 20,
+                        color: AppColors.ink,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 48,
+                        minHeight: 48,
+                      ),
+                      onPressed: () {
                         if (context.canPop()) {
                           context.pop();
                         } else {
-                          context.go('/');
+                          context.go(RouteNames.homePath);
                         }
                       },
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          color: AppColors.pureWhite,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const AppIcon(
-                          AppIcons.back,
-                          size: 20,
-                          color: AppColors.ink,
-                        ),
-                      ),
                     ),
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 8),
                   Text('Settings', style: AppTypography.screenTitle),
                 ],
               ),
@@ -68,6 +69,9 @@ class SettingsScreen extends ConsumerWidget {
             // Scrollable Content
             Expanded(
               child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.screenHorizontal,
                   vertical: AppSpacing.md,
@@ -118,6 +122,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

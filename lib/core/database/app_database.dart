@@ -18,7 +18,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -31,15 +31,50 @@ class AppDatabase extends _$AppDatabase {
     },
     onUpgrade: (Migrator m, int from, int to) async {
       if (from < 2) {
-        // Enforce uniqueness on (subject_id, session_date, component) and index session_date
         await customStatement(
-          'CREATE UNIQUE INDEX IF NOT EXISTS idx_attendance_sessions_unique '
-          'ON attendance_sessions(subject_id, session_date, component);',
+          'CREATE INDEX IF NOT EXISTS idx_attendance_sessions_date '
+          'ON attendance_sessions(session_date);',
+        );
+      }
+      if (from < 3) {
+        // A subject can have more than one lecture, or more than one lab,
+        // on the same day. Drop the unique index and any table-level UNIQUE
+        // by rebuilding the table. Existing rows are copied first.
+        await customStatement('PRAGMA foreign_keys = OFF;');
+        await customStatement(
+          'DROP INDEX IF EXISTS idx_attendance_sessions_unique;',
+        );
+        await customStatement('''
+          CREATE TABLE attendance_sessions_v3 (
+            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            subject_id INTEGER NOT NULL REFERENCES subjects (id) ON DELETE CASCADE,
+            session_date TEXT NOT NULL,
+            component TEXT NOT NULL,
+            status TEXT NOT NULL,
+            note TEXT,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            CHECK (component IN ('lecture', 'lab')),
+            CHECK (status IN ('present', 'absent')),
+            CHECK (length(session_date) = 10)
+          );
+        ''');
+        await customStatement('''
+          INSERT INTO attendance_sessions_v3 (
+            id, subject_id, session_date, component, status, note, created_at, updated_at
+          )
+          SELECT id, subject_id, session_date, component, status, note, created_at, updated_at
+          FROM attendance_sessions;
+        ''');
+        await customStatement('DROP TABLE attendance_sessions;');
+        await customStatement(
+          'ALTER TABLE attendance_sessions_v3 RENAME TO attendance_sessions;',
         );
         await customStatement(
           'CREATE INDEX IF NOT EXISTS idx_attendance_sessions_date '
           'ON attendance_sessions(session_date);',
         );
+        await customStatement('PRAGMA foreign_keys = ON;');
       }
     },
     beforeOpen: (details) async {

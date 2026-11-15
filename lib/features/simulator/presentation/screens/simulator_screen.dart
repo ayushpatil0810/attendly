@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:attendly/core/shared/widgets/app_error_state.dart';
+import 'package:attendly/core/shared/widgets/app_frame.dart';
 import 'package:attendly/core/shared/widgets/app_loading_state.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
@@ -30,6 +32,7 @@ class SimulatorScreen extends ConsumerWidget {
               size: 20,
               color: AppColors.mutedInk,
             ),
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             onPressed: () {
               ref.read(simulatorControllerProvider.notifier).reset();
             },
@@ -37,12 +40,14 @@ class SimulatorScreen extends ConsumerWidget {
         ],
       ),
       body: const SafeArea(
-        child: SingleChildScrollView(
+        child: AppFrame(
+          child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
             horizontal: AppSpacing.screenHorizontal,
             vertical: AppSpacing.sm,
           ),
           child: SimulatorContent(),
+          ),
         ),
       ),
     );
@@ -63,16 +68,9 @@ class SimulatorContent extends ConsumerWidget {
           child: AppLoadingState(message: 'Calculating projection...'),
         ),
       ),
-      error: (e, _) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            'Unable to compute simulation: $e',
-            style: AppTypography.bodySmall.copyWith(
-              color: AppColors.brandCoral,
-            ),
-          ),
-        ),
+      error: (e, _) => AppErrorState(
+        message: 'The what-if could not be calculated.',
+        onRetry: () => ref.invalidate(simulatorProjectionProvider),
       ),
       data: (projection) {
         if (projection == null) {

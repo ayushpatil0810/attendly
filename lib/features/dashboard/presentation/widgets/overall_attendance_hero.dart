@@ -2,16 +2,18 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:attendly/core/theme/app_colors.dart';
-import 'package:attendly/core/theme/app_icons.dart';
+import 'package:attendly/core/theme/app_motion.dart';
 import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
-import 'package:attendly/features/attendance/domain/entities/attendance_calculation_method.dart';
 import 'package:attendly/features/attendance/domain/entities/semester_attendance_summary.dart';
 import 'package:attendly/features/attendance/domain/entities/threshold_status.dart';
 
 class OverallAttendanceHero extends StatelessWidget {
   const OverallAttendanceHero({super.key, required this.summary});
+
+  static const double _ringSize = 164;
+  static const double _strokeWidth = 11;
 
   final SemesterAttendanceSummary summary;
 
@@ -73,7 +75,6 @@ class OverallAttendanceHero extends StatelessWidget {
       return '—';
     }
     final pct = summary.overallPercentage!;
-    // Display with 1 decimal if not whole, or integer if exact
     if (pct == pct.roundToDouble()) {
       return '${pct.toInt()}%';
     }
@@ -87,186 +88,176 @@ class OverallAttendanceHero extends StatelessWidget {
     final statusText = _getStatusText();
     final isAvailable = summary.isAvailable;
     final isProvisional = summary.isProvisional;
+    final formattedPct = _formatPercentage();
     final progress = summary.overallPercentage != null
         ? (summary.overallPercentage! / 100.0).clamp(0.0, 1.0)
         : 0.0;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.cardPadding),
-      decoration: BoxDecoration(
-        color: AppColors.pureWhite,
-        borderRadius: AppRadius.xlBorder,
-        border: Border.all(color: AppColors.border),
-      ),
+    return Semantics(
+      container: true,
+      label:
+          'Overall attendance: $formattedPct. Status: $statusText. Target is ${summary.thresholdPercent} percent.',
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Top Row: Calculation Method & Status Badge (Wrap ensures narrow screens do not overflow)
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: AppSpacing.xs,
-            runSpacing: AppSpacing.xs,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: AppSpacing.xxs,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.softLavender,
-                  borderRadius: AppRadius.pillBorder,
-                ),
-                child: Text(
-                  summary.calculationMethod ==
-                          AttendanceCalculationMethod.rawCombined
-                      ? 'Raw Combined'
-                      : 'Component Average (50/50)',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.brandViolet,
-                    fontWeight: FontWeight.w600,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Top Row: Calculation Method & Status Badge
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: AppSpacing.xxs,
                   ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: AppSpacing.xxs,
-                ),
-                decoration: BoxDecoration(
-                  color: badgeBg,
-                  borderRadius: AppRadius.pillBorder,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: statusColor,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    Flexible(
-                      child: Text(
-                        statusText,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.labelSmall.copyWith(
-                          color: statusColor == AppColors.brandMint
-                              ? const Color(0xFF1E826D)
-                              : (statusColor == AppColors.brandCoral
-                                    ? const Color(0xFFD63B48)
-                                    : statusColor),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-
-          // Main Hero Row: Percentage & Donut Progress Ring
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Donut Progress Ring with animated transition
-              SizedBox(
-                width: 88,
-                height: 88,
-                child: CustomPaint(
-                  painter: _DonutProgressPainter(
-                    progress: progress,
-                    progressColor: isAvailable || isProvisional
-                        ? statusColor
-                        : AppColors.track,
-                    trackColor: AppColors.track,
-                    threshold: summary.threshold,
-                    hasData: isAvailable || isProvisional,
+                  decoration: BoxDecoration(
+                    color: AppColors.softLavender,
+                    borderRadius: AppRadius.pillBorder,
                   ),
-                  child: Center(
-                    child: AppIcon(
-                      isAvailable
-                          ? (summary.thresholdStatus == ThresholdStatus.meeting
-                                ? AppIcons.check
-                                : AppIcons.alert)
-                          : AppIcons.calendar,
-                      size: 26,
-                      color: isAvailable ? statusColor : AppColors.mutedInk,
+                  child: Text(
+                    summary.calculationMethod.displayName,
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.inkViolet,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-
-              // Metrics & Target
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        _formatPercentage(),
-                        style: AppTypography.heroNumber.copyWith(
-                          fontSize: 40,
-                          color: isAvailable
-                              ? AppColors.ink
-                              : AppColors.mutedInk,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: AppSpacing.xxs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: badgeBg,
+                    borderRadius: AppRadius.pillBorder,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: statusColor,
+                          shape: BoxShape.circle,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 8,
-                      runSpacing: 2,
-                      children: [
-                        Text(
-                          'Target: ${summary.thresholdPercent}%',
-                          style: AppTypography.bodySmall.copyWith(
-                            color: AppColors.mutedInk,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        if (summary.differenceFromThreshold != null)
-                          Text(
-                            summary.differenceFromThreshold! >= 0
-                                ? '+${summary.differenceFromThreshold!.toStringAsFixed(1)}%'
-                                : '${summary.differenceFromThreshold!.toStringAsFixed(1)}%',
-                            style: AppTypography.labelSmall.copyWith(
-                              color: summary.differenceFromThreshold! >= 0
-                                  ? const Color(0xFF1E826D)
-                                  : const Color(0xFFD63B48),
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                      ],
-                    ),
-                    if (isProvisional)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
+                      const SizedBox(width: 5),
+                      Flexible(
                         child: Text(
-                          'Combined available when both components have sessions.',
+                          statusText,
+                          overflow: TextOverflow.ellipsis,
                           style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.brandPeach,
-                            fontSize: 10,
+                            color: statusColor == AppColors.brandMint
+                                ? AppColors.inkMint
+                                : (statusColor == AppColors.brandCoral
+                                      ? AppColors.inkCoral
+                                      : (statusColor == AppColors.brandPeach
+                                            ? AppColors.inkPeach
+                                            : AppColors.mutedInk)),
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            Center(
+              child: SizedBox(
+                width: _ringSize,
+                height: _ringSize,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0.0, end: progress),
+                      duration: AppMotion.duration(
+                        context,
+                        const Duration(milliseconds: 650),
+                      ),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, animatedProgress, _) {
+                        return CustomPaint(
+                          size: const Size.square(_ringSize),
+                          painter: _DonutProgressPainter(
+                            progress: animatedProgress,
+                            progressColor: isAvailable || isProvisional
+                                ? statusColor
+                                : AppColors.track,
+                            trackColor: AppColors.track,
+                            threshold: summary.threshold,
+                            hasData: isAvailable || isProvisional,
+                          ),
+                        );
+                      },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(_strokeWidth + 10),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          formattedPct,
+                          style: AppTypography.heroNumber.copyWith(
+                            color: isAvailable
+                                ? AppColors.ink
+                                : AppColors.mutedInk,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ],
-      ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 2,
+              children: [
+                Text(
+                  'Target: ${summary.thresholdPercent}%',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.mutedInk,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                if (summary.differenceFromThreshold != null)
+                  Text(
+                    summary.differenceFromThreshold! >= 0
+                        ? '+${summary.differenceFromThreshold!.toStringAsFixed(1)}%'
+                        : '${summary.differenceFromThreshold!.toStringAsFixed(1)}%',
+                    style: AppTypography.labelSmall.copyWith(
+                      color: summary.differenceFromThreshold! >= 0
+                          ? AppColors.inkMint
+                          : AppColors.inkCoral,
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+              ],
+            ),
+            if (isProvisional)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  'Combined available when both components have sessions.',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.inkPeach,
+                  ),
+                ),
+              ),
+          ],
+        ),
     );
   }
 }
@@ -288,26 +279,26 @@ class _DonutProgressPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final strokeWidth = 9.0;
+    const strokeWidth = OverallAttendanceHero._strokeWidth;
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - strokeWidth) / 2;
 
-    // Track
     final trackPaint = Paint()
       ..color = trackColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
+      ..strokeCap = StrokeCap.round
+      ..isAntiAlias = true;
 
     canvas.drawCircle(center, radius, trackPaint);
 
     if (hasData && progress > 0) {
-      // Progress Arc
       final progressPaint = Paint()
         ..color = progressColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round;
+        ..strokeCap = StrokeCap.round
+        ..isAntiAlias = true;
 
       const startAngle = -math.pi / 2;
       final sweepAngle = 2 * math.pi * progress;
@@ -319,18 +310,27 @@ class _DonutProgressPainter extends CustomPainter {
         false,
         progressPaint,
       );
-
-      // Threshold marker dot on track
-      final thresholdAngle = -math.pi / 2 + (2 * math.pi * threshold);
-      final markerX = center.dx + radius * math.cos(thresholdAngle);
-      final markerY = center.dy + radius * math.sin(thresholdAngle);
-
-      final markerPaint = Paint()
-        ..color = AppColors.ink
-        ..style = PaintingStyle.fill;
-
-      canvas.drawCircle(Offset(markerX, markerY), 2.5, markerPaint);
     }
+
+    final thresholdAngle = -math.pi / 2 + (2 * math.pi * threshold);
+    final tickPaint = Paint()
+      ..color = AppColors.ink
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round
+      ..isAntiAlias = true;
+    final inner = radius - strokeWidth * 0.2;
+    final outer = radius + strokeWidth * 0.45;
+    canvas.drawLine(
+      Offset(
+        center.dx + inner * math.cos(thresholdAngle),
+        center.dy + inner * math.sin(thresholdAngle),
+      ),
+      Offset(
+        center.dx + outer * math.cos(thresholdAngle),
+        center.dy + outer * math.sin(thresholdAngle),
+      ),
+      tickPaint,
+    );
   }
 
   @override

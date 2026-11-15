@@ -20,7 +20,13 @@ class AppPreferencesSection extends ConsumerWidget {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.ink.withAlpha(6),
+            blurRadius: 14,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,9 +54,8 @@ class AppPreferencesSection extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: AppColors.warmWhite,
+              color: AppColors.track.withAlpha(80),
               borderRadius: AppRadius.mdBorder,
-              border: Border.all(color: AppColors.border),
             ),
             child: Row(
               children: [

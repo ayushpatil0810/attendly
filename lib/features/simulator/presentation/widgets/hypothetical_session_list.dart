@@ -52,13 +52,13 @@ class HypotheticalSessionList extends ConsumerWidget {
                       const AppIcon(
                         AppIcons.delete,
                         size: 14,
-                        color: AppColors.brandCoral,
+                        color: AppColors.inkCoral,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'Reset Scenario',
                         style: AppTypography.labelSmall.copyWith(
-                          color: const Color(0xFFD63B48),
+                          color: AppColors.inkCoral,
                           fontWeight: FontWeight.w700,
                           fontSize: 11,
                         ),
@@ -79,7 +79,13 @@ class HypotheticalSessionList extends ConsumerWidget {
             decoration: BoxDecoration(
               color: AppColors.pureWhite,
               borderRadius: AppRadius.xlBorder,
-              border: Border.all(color: AppColors.border),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.ink.withAlpha(6),
+                  blurRadius: 14,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Row(
               children: [
@@ -124,7 +130,13 @@ class HypotheticalSessionList extends ConsumerWidget {
             decoration: BoxDecoration(
               color: AppColors.pureWhite,
               borderRadius: AppRadius.xlBorder,
-              border: Border.all(color: AppColors.border),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.ink.withAlpha(6),
+                  blurRadius: 14,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: ListView.separated(
               shrinkWrap: true,
@@ -211,7 +223,7 @@ class _HypotheticalRow extends StatelessWidget {
                     : 'Lab',
                 style: AppTypography.labelSmall.copyWith(
                   color: AppColors.mutedInk,
-                  fontSize: 10,
+                  fontSize: 12,
                 ),
               ),
             ],
@@ -221,16 +233,12 @@ class _HypotheticalRow extends StatelessWidget {
         // Interactive Status Pill (tap to flip Present <-> Absent)
         GestureDetector(
           onTap: onToggleStatus,
+          behavior: HitTestBehavior.opaque,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: isPresent ? AppColors.softMint : AppColors.softCoral,
               borderRadius: AppRadius.pillBorder,
-              border: Border.all(
-                color: isPresent
-                    ? AppColors.brandMint.withOpacity(0.5)
-                    : AppColors.brandCoral.withOpacity(0.5),
-              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -238,15 +246,17 @@ class _HypotheticalRow extends StatelessWidget {
                 AppIcon(
                   isPresent ? AppIcons.check : AppIcons.close,
                   size: 12,
-                  color: isPresent ? AppColors.brandMint : AppColors.brandCoral,
+                  color: isPresent
+                      ? AppColors.inkMint
+                      : AppColors.inkCoral,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   isPresent ? 'Present' : 'Absent',
                   style: AppTypography.labelSmall.copyWith(
                     color: isPresent
-                        ? const Color(0xFF1E826D)
-                        : const Color(0xFFD63B48),
+                        ? AppColors.inkMint
+                        : AppColors.inkCoral,
                     fontWeight: FontWeight.w700,
                     fontSize: 11,
                   ),
@@ -257,8 +267,9 @@ class _HypotheticalRow extends StatelessWidget {
         ),
         const SizedBox(width: 8),
 
-        // Delete button
+        // Delete button (comfortable 44x44 touch target)
         IconButton(
+          tooltip: 'Delete simulated session',
           onPressed: onDelete,
           icon: const AppIcon(
             AppIcons.delete,
@@ -267,7 +278,7 @@ class _HypotheticalRow extends StatelessWidget {
           ),
           visualDensity: VisualDensity.compact,
           padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
         ),
       ],
     );

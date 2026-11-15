@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
+import '../../theme/app_motion.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_typography.dart';
 
@@ -46,7 +47,10 @@ class AppSegmentedControl<T> extends StatelessWidget {
               onTap: () => onChanged(item.value),
               behavior: HitTestBehavior.opaque,
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
+                duration: AppMotion.duration(
+                  context,
+                  const Duration(milliseconds: 180),
+                ),
                 curve: Curves.easeInOut,
                 padding: const EdgeInsets.symmetric(
                   vertical: 10,

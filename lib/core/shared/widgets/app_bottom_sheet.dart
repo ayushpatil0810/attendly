@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_typography.dart';
 
@@ -46,21 +47,8 @@ Future<T?> showAppBottomSheet<T>({
                       Expanded(
                         child: Text(title, style: AppTypography.sectionTitle),
                       ),
-                      GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
-                        behavior: HitTestBehavior.opaque,
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(
-                            color: AppColors.track,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.close,
-                            size: 16,
-                            color: AppColors.mutedInk,
-                          ),
-                        ),
+                      AppCloseButton(
+                        onPressed: () => Navigator.of(context).pop(),
                       ),
                     ],
                   ),
@@ -74,4 +62,41 @@ Future<T?> showAppBottomSheet<T>({
       );
     },
   );
+}
+
+class AppCloseButton extends StatelessWidget {
+  const AppCloseButton({super.key, required this.onPressed, this.label = 'Close'});
+
+  final VoidCallback onPressed;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: Tooltip(
+        message: label,
+        child: Material(
+          color: AppColors.track,
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onPressed,
+            child: const SizedBox(
+              width: 48,
+              height: 48,
+              child: Center(
+                child: AppIcon(
+                  AppIcons.close,
+                  size: 20,
+                  color: AppColors.mutedInk,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

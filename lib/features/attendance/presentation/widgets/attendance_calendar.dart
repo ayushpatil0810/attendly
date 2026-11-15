@@ -47,7 +47,13 @@ class AttendanceCalendar extends ConsumerWidget {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppRadius.xlBorder,
-        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.ink.withAlpha(8),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Column(
@@ -56,58 +62,66 @@ class AttendanceCalendar extends ConsumerWidget {
           // Month navigation header
           Row(
             children: [
-              IconButton(
-                icon: const AppIcon(
-                  AppIcons.back,
-                  size: 20,
-                  color: AppColors.ink,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                onPressed: () {
-                  ref.read(currentMonthProvider.notifier).previousMonth();
-                },
-              ),
               Expanded(
                 child: Text(
                   monthTitle,
                   style: AppTypography.itemTitle.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ),
-              IconButton(
-                icon: const AppIcon(
-                  AppIcons.forward,
-                  size: 20,
-                  color: AppColors.ink,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                onPressed: () {
-                  ref.read(currentMonthProvider.notifier).nextMonth();
-                },
-              ),
-              if (!isCurrentMonth)
+              if (!isCurrentMonth) ...[
                 TextButton(
                   onPressed: () {
                     ref.read(currentMonthProvider.notifier).currentMonth();
                     ref.read(selectedDateProvider.notifier).selectToday();
                   },
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    minimumSize: const Size(40, 32),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    minimumSize: const Size(44, 36),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   child: Text(
                     'Today',
                     style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.brandViolet,
+                      color: AppColors.inkViolet,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
+                const SizedBox(width: 4),
+              ],
+              IconButton(
+                tooltip: 'Previous month',
+                icon: const AppIcon(
+                  AppIcons.back,
+                  size: 20,
+                  color: AppColors.ink,
+                  semanticLabel: 'Previous month',
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                onPressed: () {
+                  ref.read(currentMonthProvider.notifier).previousMonth();
+                },
+              ),
+              IconButton(
+                tooltip: 'Next month',
+                icon: const AppIcon(
+                  AppIcons.forward,
+                  size: 20,
+                  color: AppColors.ink,
+                  semanticLabel: 'Next month',
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                onPressed: () {
+                  ref.read(currentMonthProvider.notifier).nextMonth();
+                },
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -167,7 +181,7 @@ class AttendanceCalendar extends ConsumerWidget {
               final dayNumber = cellIndex - leadingBlanks + 1;
 
               if (dayNumber < 1 || dayNumber > daysInMonth) {
-                return const Expanded(child: SizedBox(height: 38));
+                return const Expanded(child: SizedBox(height: 48));
               }
 
               final cellDate = DateTime(
@@ -258,83 +272,96 @@ class _CalendarDayCell extends StatelessWidget {
   Widget build(BuildContext context) {
     Color textColor;
     if (isFuture) {
-      textColor = AppColors.divider;
+      textColor = AppColors.mutedInk;
     } else if (isSelected) {
       textColor = AppColors.pureWhite;
     } else if (isToday) {
-      textColor = AppColors.brandViolet;
+      textColor = AppColors.inkViolet;
     } else {
       textColor = AppColors.ink;
     }
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        height: 40,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Number container
-            Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.brandViolet
-                    : isToday
-                    ? AppColors.softLavender
-                    : Colors.transparent,
-                shape: BoxShape.circle,
-                border: isToday && !isSelected
-                    ? Border.all(color: AppColors.brandViolet, width: 1.5)
-                    : null,
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                '$dayNumber',
-                style: AppTypography.bodySmall.copyWith(
-                  color: textColor,
-                  fontWeight: isSelected || isToday
-                      ? FontWeight.w700
-                      : FontWeight.w500,
-                  fontSize: 13,
+    final statusText = hasPresent && hasAbsent
+        ? ', Present and Absent recorded'
+        : hasPresent
+        ? ', Present recorded'
+        : hasAbsent
+        ? ', Absent recorded'
+        : ', No sessions recorded';
+
+    return Semantics(
+      button: !isFuture,
+      selected: isSelected,
+      label: 'Day $dayNumber$statusText',
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: SizedBox(
+          height: 48,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Number container
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.inkViolet
+                      : isToday
+                      ? AppColors.softLavender
+                      : Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: isToday && !isSelected
+                      ? Border.all(color: AppColors.brandViolet, width: 1.5)
+                      : null,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '$dayNumber',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: textColor,
+                    fontWeight: isSelected || isToday
+                        ? FontWeight.w700
+                        : FontWeight.w500,
+                    fontSize: 13,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 2),
+              const SizedBox(height: 2),
 
-            // Indicator dots: Mint for present, Coral for absent.
-            // When no records exist: completely clean! Never show red for unrecorded.
-            SizedBox(
-              height: 5,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (hasPresent)
-                    Container(
-                      width: 4,
-                      height: 4,
-                      margin: const EdgeInsets.symmetric(horizontal: 1),
-                      decoration: const BoxDecoration(
-                        color: AppColors.brandMint,
-                        shape: BoxShape.circle,
+              // Indicator dots: Mint for present, Coral for absent.
+              // When no records exist: completely clean! Never show red for unrecorded.
+              SizedBox(
+                height: 5,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (hasPresent)
+                      Container(
+                        width: 4,
+                        height: 4,
+                        margin: const EdgeInsets.symmetric(horizontal: 1),
+                        decoration: const BoxDecoration(
+                          color: AppColors.inkMint,
+                          shape: BoxShape.circle,
+                        ),
                       ),
-                    ),
-                  if (hasAbsent)
-                    Container(
-                      width: 4,
-                      height: 4,
-                      margin: const EdgeInsets.symmetric(horizontal: 1),
-                      decoration: const BoxDecoration(
-                        color: AppColors.brandCoral,
-                        shape: BoxShape.circle,
+                    if (hasAbsent)
+                      Container(
+                        width: 4,
+                        height: 4,
+                        margin: const EdgeInsets.symmetric(horizontal: 1),
+                        decoration: const BoxDecoration(
+                          color: AppColors.inkCoral,
+                          shape: BoxShape.circle,
+                        ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

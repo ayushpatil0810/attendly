@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/shared/widgets/app_floating_dock.dart';
+import 'package:attendly/core/shared/widgets/app_frame.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/features/attendance/presentation/widgets/quick_log_sheet.dart';
 import 'package:attendly/features/subjects/presentation/screens/subjects_screen.dart';
@@ -37,33 +38,47 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final pages = IndexedStack(
+      index: _currentIndex,
+      children: [
+        HomeScreen(onNavigateToSubjects: () => _onDestinationSelected(1)),
+        const SubjectsScreen(),
+        const HistoryScreen(),
+        const InsightsScreen(),
+      ],
+    );
+
+    final useRail = AppFrame.useSideRail(context);
+
     return Scaffold(
       backgroundColor: AppColors.warmWhite,
       resizeToAvoidBottomInset: false,
-      body: Stack(
-        children: [
-          // Destination screens
-          IndexedStack(
-            index: _currentIndex,
-            children: [
-              HomeScreen(onNavigateToSubjects: () => _onDestinationSelected(1)),
-              const SubjectsScreen(),
-              const HistoryScreen(),
-              const InsightsScreen(),
-            ],
-          ),
-
-          // Floating Bottom Navigation Dock
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: AppFloatingDock(
-              currentIndex: _currentIndex,
-              onDestinationSelected: _onDestinationSelected,
-              onQuickLogPressed: _onQuickLogPressed,
+      body: useRail
+          ? Row(
+              children: [
+                AppSideRail(
+                  currentIndex: _currentIndex,
+                  onDestinationSelected: _onDestinationSelected,
+                  onQuickLogPressed: _onQuickLogPressed,
+                ),
+                Expanded(
+                  child: AppFrame(maxWidth: 720, child: pages),
+                ),
+              ],
+            )
+          : Stack(
+              children: [
+                pages,
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: AppFloatingDock(
+                    currentIndex: _currentIndex,
+                    onDestinationSelected: _onDestinationSelected,
+                    onQuickLogPressed: _onQuickLogPressed,
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }

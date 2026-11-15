@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/errors/app_failure.dart';
 import 'package:attendly/core/services/preferences_service.dart';
+import 'package:attendly/core/shared/widgets/app_bottom_sheet.dart';
+import 'package:attendly/core/shared/widgets/app_error_state.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/shared/widgets/app_segmented_control.dart';
 import 'package:attendly/core/shared/widgets/app_text_field.dart';
@@ -77,7 +79,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: AppColors.brandViolet,
+              primary: AppColors.inkViolet,
               onPrimary: AppColors.pureWhite,
               onSurface: AppColors.ink,
             ),
@@ -226,7 +228,9 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
         if (mounted) {
           AppToast.showError(
             context,
-            message: e is AppFailure ? e.message : 'Failed to delete session',
+            message: e is AppFailure
+                ? e.message
+                : 'The session could not be deleted. Try again.',
           );
         }
       }
@@ -244,12 +248,9 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
           child: CircularProgressIndicator(color: AppColors.brandViolet),
         ),
       ),
-      error: (err, _) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Text(
-          'Failed to load subjects: $err',
-          style: AppTypography.bodySmall.copyWith(color: AppColors.brandCoral),
-        ),
+      error: (err, _) => AppErrorState(
+        message: 'Subjects could not load.',
+        onRetry: () => ref.invalidate(activeSemesterSubjectsProvider),
       ),
       data: (subjects) {
         if (subjects.isEmpty) {
@@ -344,7 +345,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
               else
                 // Horizontal chips when adding
                 SizedBox(
-                  height: 40,
+                  height: 48,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: subjects.length,
@@ -383,7 +384,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                             subject.name,
                             style: AppTypography.itemTitle.copyWith(
                               color: isSelected
-                                  ? AppColors.brandViolet
+                                  ? AppColors.inkViolet
                                   : AppColors.ink,
                               fontWeight: isSelected
                                   ? FontWeight.w600
@@ -432,7 +433,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                       child: Text(
                         _component.displayName,
                         style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.brandViolet,
+                          color: AppColors.inkViolet,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -551,21 +552,8 @@ void showSessionFormSheet({
                         style: AppTypography.sectionTitle,
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      behavior: HitTestBehavior.opaque,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
-                          color: AppColors.track,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          size: 16,
-                          color: AppColors.mutedInk,
-                        ),
-                      ),
+                    AppCloseButton(
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
                   ],
                 ),

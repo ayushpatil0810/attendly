@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
@@ -23,68 +21,52 @@ class AppFloatingDock extends StatelessWidget {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        bottom: bottomInset > 0 ? bottomInset + 8 : 16,
-      ),
-      child: ClipRRect(
-        borderRadius: AppRadius.xxlBorder,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-          child: Container(
-            height: 66,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            decoration: BoxDecoration(
-              color: AppColors.dockBackground,
-              borderRadius: AppRadius.xxlBorder,
-              border: Border.all(
-                color: AppColors.border.withOpacity(0.8),
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.ink.withOpacity(0.06),
-                  blurRadius: 20,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+    return Material(
+      color: AppColors.pureWhite,
+      child: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          color: AppColors.pureWhite,
+          border: Border(top: BorderSide(color: AppColors.divider)),
+        ),
+        padding: EdgeInsets.fromLTRB(
+          8,
+          6,
+          8,
+          bottomInset > 0 ? bottomInset : 6,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _DockItem(
+              icon: AppIcons.home,
+              label: 'Home',
+              isSelected: currentIndex == 0,
+              onTap: () => onDestinationSelected(0),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _DockItem(
-                  icon: AppIcons.home,
-                  label: 'Home',
-                  isSelected: currentIndex == 0,
-                  onTap: () => onDestinationSelected(0),
-                ),
-                _DockItem(
-                  icon: AppIcons.subjects,
-                  label: 'Subjects',
-                  isSelected: currentIndex == 1,
-                  onTap: () => onDestinationSelected(1),
-                ),
-                _QuickLogButton(
-                  key: const Key('quick_log_dock_button'),
-                  onPressed: onQuickLogPressed,
-                ),
-                _DockItem(
-                  icon: AppIcons.history,
-                  label: 'History',
-                  isSelected: currentIndex == 2,
-                  onTap: () => onDestinationSelected(2),
-                ),
-                _DockItem(
-                  icon: AppIcons.insights,
-                  label: 'Insights',
-                  isSelected: currentIndex == 3,
-                  onTap: () => onDestinationSelected(3),
-                ),
-              ],
+            _DockItem(
+              icon: AppIcons.subjects,
+              label: 'Subjects',
+              isSelected: currentIndex == 1,
+              onTap: () => onDestinationSelected(1),
             ),
-          ),
+            _QuickLogButton(
+              key: const Key('quick_log_dock_button'),
+              onPressed: onQuickLogPressed,
+            ),
+            _DockItem(
+              icon: AppIcons.history,
+              label: 'History',
+              isSelected: currentIndex == 2,
+              onTap: () => onDestinationSelected(2),
+            ),
+            _DockItem(
+              icon: AppIcons.insights,
+              label: 'Insights',
+              isSelected: currentIndex == 3,
+              onTap: () => onDestinationSelected(3),
+            ),
+          ],
         ),
       ),
     );
@@ -106,38 +88,71 @@ class _DockItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isSelected ? AppColors.brandViolet : AppColors.mutedInk;
+    final disableAnimations =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final duration = disableAnimations
+        ? Duration.zero
+        : const Duration(milliseconds: 180);
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 58,
-        height: 56,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.softLavender : Colors.transparent,
-                borderRadius: AppRadius.pillBorder,
-              ),
-              child: AppIcon(icon, color: color, size: 22),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: AppTypography.labelSmall.copyWith(
-                color: color,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                fontSize: 10.5,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+    // Active tab animates into the violet highlight.
+    // Inactive tab immediately returns to default without undergoing a grey transition.
+    final targetColor = isSelected ? AppColors.inkViolet : AppColors.mutedInk;
+    final activeDuration = isSelected ? duration : Duration.zero;
+
+    return Semantics(
+      button: true,
+      label: '$label tab',
+      selected: isSelected,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 58, minHeight: 48),
+          child: TweenAnimationBuilder<Color?>(
+            key: ValueKey(isSelected),
+            tween: ColorTween(begin: AppColors.mutedInk, end: targetColor),
+            duration: activeDuration,
+            curve: Curves.easeInOutCubic,
+            builder: (context, animatedColor, _) {
+              final currentColor = isSelected
+                  ? (animatedColor ?? targetColor)
+                  : AppColors.mutedInk;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AnimatedContainer(
+                    duration: activeDuration,
+                    curve: Curves.easeInOutCubic,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.softLavender
+                          : Colors.transparent,
+                      borderRadius: AppRadius.pillBorder,
+                    ),
+                    child: AppIcon(icon, color: currentColor, size: 22),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    label,
+                    style: AppTypography.labelSmall.copyWith(
+                      color: currentColor,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w500,
+                      fontSize: 12,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -158,33 +173,99 @@ class _QuickLogButtonState extends State<_QuickLogButton> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
-      onTap: widget.onPressed,
-      child: AnimatedScale(
-        scale: _isPressed ? 0.92 : 1.0,
-        duration: const Duration(milliseconds: 100),
-        child: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: AppColors.brandViolet,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.brandViolet.withOpacity(0.35),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
+    final disableAnimations =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+
+    return Semantics(
+      button: true,
+      label: 'Quick log attendance',
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        onTap: widget.onPressed,
+        child: AnimatedScale(
+          scale: _isPressed ? 0.92 : 1.0,
+          duration: disableAnimations
+              ? Duration.zero
+              : const Duration(milliseconds: 100),
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: const BoxDecoration(
+              color: AppColors.brandViolet,
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: const AppIcon(
+              AppIcons.add,
+              color: AppColors.pureWhite,
+              size: 24,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Side navigation for medium and expanded windows. Same destinations as
+/// the phone dock, with Quick Log at the top of the rail.
+class AppSideRail extends StatelessWidget {
+  const AppSideRail({
+    super.key,
+    required this.currentIndex,
+    required this.onDestinationSelected,
+    required this.onQuickLogPressed,
+  });
+
+  final int currentIndex;
+  final ValueChanged<int> onDestinationSelected;
+  final VoidCallback onQuickLogPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: AppColors.pureWhite,
+        border: Border(right: BorderSide(color: AppColors.divider)),
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          width: 96,
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
+              _QuickLogButton(
+                key: const Key('quick_log_dock_button'),
+                onPressed: onQuickLogPressed,
+              ),
+              const SizedBox(height: 16),
+              _DockItem(
+                icon: AppIcons.home,
+                label: 'Home',
+                isSelected: currentIndex == 0,
+                onTap: () => onDestinationSelected(0),
+              ),
+              _DockItem(
+                icon: AppIcons.subjects,
+                label: 'Subjects',
+                isSelected: currentIndex == 1,
+                onTap: () => onDestinationSelected(1),
+              ),
+              _DockItem(
+                icon: AppIcons.history,
+                label: 'History',
+                isSelected: currentIndex == 2,
+                onTap: () => onDestinationSelected(2),
+              ),
+              _DockItem(
+                icon: AppIcons.insights,
+                label: 'Insights',
+                isSelected: currentIndex == 3,
+                onTap: () => onDestinationSelected(3),
               ),
             ],
-          ),
-          alignment: Alignment.center,
-          child: const AppIcon(
-            AppIcons.add,
-            color: AppColors.pureWhite,
-            size: 24,
           ),
         ),
       ),

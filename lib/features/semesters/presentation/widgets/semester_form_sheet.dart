@@ -67,7 +67,7 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: AppColors.brandViolet,
+              primary: AppColors.inkViolet,
               onPrimary: AppColors.pureWhite,
               onSurface: AppColors.ink,
             ),
@@ -141,9 +141,12 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
           Navigator.of(context).pop();
         }
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
-        AppToast.showError(context, message: 'Error: $e');
+        AppToast.showError(
+          context,
+          message: 'The semester could not be saved. Try again.',
+        );
       }
     } finally {
       if (mounted) {
@@ -199,7 +202,7 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
                   child: Text(
                     '${_thresholdPercent.round()}%',
                     style: AppTypography.labelLarge.copyWith(
-                      color: AppColors.brandViolet,
+                      color: AppColors.inkViolet,
                     ),
                   ),
                 ),
@@ -208,10 +211,10 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
             const SizedBox(height: 6),
             SliderTheme(
               data: SliderTheme.of(context).copyWith(
-                activeTrackColor: AppColors.brandViolet,
+                activeTrackColor: AppColors.inkViolet,
                 inactiveTrackColor: AppColors.track,
-                thumbColor: AppColors.brandViolet,
-                overlayColor: AppColors.brandViolet.withOpacity(0.12),
+                thumbColor: AppColors.inkViolet,
+                overlayColor: AppColors.inkViolet.withOpacity(0.12),
                 trackHeight: 6,
                 thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
               ),
@@ -231,14 +234,16 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
             const Text('Calculation Method', style: AppTypography.labelMedium),
             const SizedBox(height: 8),
             AppSegmentedControl<AttendanceCalculationMethod>(
-              items: const [
+              items: [
                 SegmentItem(
                   value: AttendanceCalculationMethod.rawCombined,
-                  label: 'Raw Combined',
+                  label: AttendanceCalculationMethod.rawCombined.displayName,
                 ),
                 SegmentItem(
                   value: AttendanceCalculationMethod.componentAverage,
-                  label: '50/50 Average',
+                  label: AttendanceCalculationMethod
+                      .componentAverage
+                      .displayName,
                 ),
               ],
               selectedValue: _calculationMethod,
@@ -292,12 +297,23 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
                             ),
                           ),
                           if (_startDate != null)
-                            GestureDetector(
-                              onTap: () => setState(() => _startDate = null),
-                              child: const Icon(
-                                Icons.close,
-                                size: 16,
-                                color: AppColors.mutedInk,
+                            Semantics(
+                              button: true,
+                              label: 'Clear start date',
+                              child: GestureDetector(
+                                onTap: () => setState(() => _startDate = null),
+                                behavior: HitTestBehavior.opaque,
+                                child: const SizedBox(
+                                  width: 48,
+                                  height: 48,
+                                  child: Center(
+                                    child: AppIcon(
+                                      AppIcons.close,
+                                      size: 18,
+                                      color: AppColors.mutedInk,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                         ],
@@ -338,12 +354,23 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
                             ),
                           ),
                           if (_endDate != null)
-                            GestureDetector(
-                              onTap: () => setState(() => _endDate = null),
-                              child: const Icon(
-                                Icons.close,
-                                size: 16,
-                                color: AppColors.mutedInk,
+                            Semantics(
+                              button: true,
+                              label: 'Clear end date',
+                              child: GestureDetector(
+                                onTap: () => setState(() => _endDate = null),
+                                behavior: HitTestBehavior.opaque,
+                                child: const SizedBox(
+                                  width: 48,
+                                  height: 48,
+                                  child: Center(
+                                    child: AppIcon(
+                                      AppIcons.close,
+                                      size: 18,
+                                      color: AppColors.mutedInk,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                         ],

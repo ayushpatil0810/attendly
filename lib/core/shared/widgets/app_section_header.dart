@@ -51,7 +51,7 @@ class AppSectionHeader extends StatelessWidget {
                 child: Text(
                   actionLabel!,
                   style: AppTypography.labelLarge.copyWith(
-                    color: AppColors.brandViolet,
+                    color: AppColors.inkViolet,
                   ),
                 ),
               ),

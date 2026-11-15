@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:attendly/core/database/app_database.dart';
-import 'package:attendly/core/errors/app_failure.dart';
 import 'package:attendly/core/providers/database_provider.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_status.dart';
 import 'package:attendly/features/attendance/domain/entities/session_component.dart';
@@ -243,7 +242,7 @@ void main() {
       sub1.close();
     });
 
-    test('duplicate session error propagates properly to controller', () async {
+    test('a second lecture on the same day is recorded', () async {
       final container = createContainer();
       final sub1 = container.listen(activeSemestersStreamProvider, (_, _) {});
 
@@ -270,14 +269,17 @@ void main() {
         status: AttendanceStatus.present,
       );
 
+      final secondId = await controller.recordSession(
+        subjectId: subId,
+        sessionDate: dateStr,
+        component: SessionComponent.lecture,
+        status: AttendanceStatus.absent,
+      );
+      expect(secondId, isNot(equals(0)));
+      final rows = await db.select(db.attendanceSessions).get();
       expect(
-        () async => await controller.recordSession(
-          subjectId: subId,
-          sessionDate: dateStr,
-          component: SessionComponent.lecture,
-          status: AttendanceStatus.present,
-        ),
-        throwsA(isA<DuplicateSessionFailure>()),
+        rows.where((row) => row.sessionDate == dateStr).length,
+        equals(2),
       );
 
       sub1.close();

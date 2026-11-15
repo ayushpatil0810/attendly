@@ -81,7 +81,7 @@ class InsightObservationGenerator {
       observations.add(
         const InsightObservation(
           title: 'Provisional Attendance Policy',
-          message: 'Component Average (50/50) requires both Lecture and Lab to have conducted sessions before computing final combined attendance.',
+          message: 'Both a lecture and a lab need to be logged before the split total can be calculated.',
           type: InsightObservationType.info,
           badgeText: 'Provisional',
         ),

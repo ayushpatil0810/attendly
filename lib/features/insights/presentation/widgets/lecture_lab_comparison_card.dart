@@ -38,7 +38,13 @@ class LectureLabComparisonCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.pureWhite,
             borderRadius: AppRadius.xlBorder,
-            border: Border.all(color: AppColors.border),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.ink.withAlpha(6),
+                blurRadius: 14,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: ListView.separated(
             shrinkWrap: true,
@@ -81,22 +87,22 @@ class _SubjectComponentComparison extends StatelessWidget {
 
     String? diffText;
     Color diffBg = AppColors.softLavender;
-    Color diffFg = AppColors.brandViolet;
+    Color diffFg = AppColors.inkViolet;
 
     if (lecPct != null && labPct != null) {
       final diff = labPct - lecPct;
       if (diff.abs() < 0.05) {
         diffText = 'Equal (${lecPct.toStringAsFixed(0)}%)';
         diffBg = AppColors.softMint;
-        diffFg = const Color(0xFF1E826D);
+        diffFg = AppColors.inkMint;
       } else if (diff > 0) {
         diffText = 'Lab +${diff.toStringAsFixed(0)}% vs Lecture';
         diffBg = AppColors.softMint;
-        diffFg = const Color(0xFF1E826D);
+        diffFg = AppColors.inkMint;
       } else {
         diffText = 'Lecture +${(-diff).toStringAsFixed(0)}% vs Lab';
         diffBg = AppColors.softCoral;
-        diffFg = const Color(0xFFD63B48);
+        diffFg = AppColors.inkCoral;
       }
     }
 
@@ -126,7 +132,7 @@ class _SubjectComponentComparison extends StatelessWidget {
                   style: AppTypography.labelSmall.copyWith(
                     color: diffFg,
                     fontWeight: FontWeight.w700,
-                    fontSize: 10,
+                    fontSize: 12,
                   ),
                 ),
               ),
@@ -178,36 +184,43 @@ class _ComponentBarRow extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                Text(
-                  label,
-                  style: AppTypography.bodySmall.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
+            Expanded(
+              child: Row(
+                children: [
+                  Text(
+                    label,
+                    style: AppTypography.bodySmall.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  hasData
-                      ? '(${summary.presentCount}P / ${summary.absentCount}A • ${summary.conductedCount} total)'
-                      : '(No sessions)',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.mutedInk,
-                    fontSize: 10,
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      hasData
+                          ? '(${summary.presentCount}P / ${summary.absentCount}A • ${summary.conductedCount} total)'
+                          : '(No sessions)',
+                      style: AppTypography.labelSmall.copyWith(
+                        color: AppColors.mutedInk,
+                        fontSize: 12,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
+            const SizedBox(width: 8),
             Text(
               hasData ? '${pct!.toStringAsFixed(1)}%' : 'Not available',
               style: AppTypography.labelSmall.copyWith(
                 fontWeight: FontWeight.w700,
                 fontSize: 11,
+                fontFeatures: const [FontFeature.tabularFigures()],
                 color: hasData
                     ? (meetsTarget
-                          ? const Color(0xFF1E826D)
-                          : const Color(0xFFD63B48))
+                          ? AppColors.inkMint
+                          : AppColors.inkCoral)
                     : AppColors.mutedInk,
               ),
             ),

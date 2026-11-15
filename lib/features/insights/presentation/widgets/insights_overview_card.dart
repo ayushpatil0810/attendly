@@ -6,7 +6,6 @@ import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
-import 'package:attendly/features/attendance/domain/entities/attendance_calculation_method.dart';
 import 'package:attendly/features/attendance/domain/entities/semester_attendance_summary.dart';
 import 'package:attendly/features/attendance/domain/entities/threshold_status.dart';
 
@@ -46,38 +45,47 @@ class InsightsOverviewCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppRadius.xlBorder,
-        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.ink.withAlpha(6),
+            blurRadius: 14,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Attendance Overview', style: AppTypography.itemTitle),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: 3,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.softLavender,
-                  borderRadius: AppRadius.pillBorder,
-                ),
-                child: Text(
-                  summary.calculationMethod ==
-                          AttendanceCalculationMethod.rawCombined
-                      ? 'Raw Combined'
-                      : 'Component Average (50/50)',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.brandViolet,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 11,
+          // Header Row: Wrap ensures narrow screens do not overflow
+          SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: [
+                Text('Attendance Overview', style: AppTypography.itemTitle),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.softLavender,
+                    borderRadius: AppRadius.pillBorder,
+                  ),
+                  child: Text(
+                    summary.calculationMethod.displayName,
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.inkViolet,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 11,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
 
@@ -104,6 +112,7 @@ class InsightsOverviewCard extends StatelessWidget {
                           style: AppTypography.itemTitle.copyWith(
                             fontWeight: FontWeight.w800,
                             fontSize: 16,
+                            fontFeatures: const [FontFeature.tabularFigures()],
                             color: isAvailable
                                 ? AppColors.ink
                                 : AppColors.mutedInk,
@@ -113,8 +122,8 @@ class InsightsOverviewCard extends StatelessWidget {
                           Text(
                             'Prov.',
                             style: AppTypography.labelSmall.copyWith(
-                              fontSize: 9,
-                              color: AppColors.brandPeach,
+                              fontSize: 12,
+                              color: AppColors.inkPeach,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -168,9 +177,9 @@ class InsightsOverviewCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               style: AppTypography.labelSmall.copyWith(
                                 color: summary.meetsThreshold
-                                    ? const Color(0xFF1E826D)
+                                    ? AppColors.inkMint
                                     : (summary.isBelowThreshold
-                                          ? const Color(0xFFD63B48)
+                                          ? AppColors.inkCoral
                                           : AppColors.mutedInk),
                                 fontWeight: FontWeight.w700,
                               ),
@@ -183,14 +192,14 @@ class InsightsOverviewCard extends StatelessWidget {
 
                     // Present & Absent Breakdown Rows
                     _CountRow(
-                      color: AppColors.brandMint,
+                      color: AppColors.inkMint,
                       label: 'Present',
                       count: summary.totalPresent,
                       percentage: presentPct,
                     ),
                     const SizedBox(height: 4),
                     _CountRow(
-                      color: AppColors.brandCoral,
+                      color: AppColors.inkCoral,
                       label: 'Absent',
                       count: summary.totalAbsent,
                       percentage: absentPct,
@@ -198,6 +207,8 @@ class InsightsOverviewCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       'Total Conducted: ${summary.totalConducted} classes',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: AppTypography.labelSmall.copyWith(
                         color: AppColors.mutedInk,
                         fontSize: 11,
@@ -223,15 +234,15 @@ class InsightsOverviewCard extends StatelessWidget {
                     const AppIcon(
                       AppIcons.alert,
                       size: 16,
-                      color: AppColors.brandPeach,
+                      color: AppColors.inkPeach,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Component Average requires sessions in both Lecture and Lab to form a final combined percentage.',
+                        'Both a lecture and a lab need to be logged before the split total can be calculated.',
                         style: AppTypography.bodySmall.copyWith(
                           fontSize: 11,
-                          color: const Color(0xFF9E5742),
+                          color: AppColors.inkPeach,
                         ),
                       ),
                     ),
@@ -261,6 +272,7 @@ class _CountRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           width: 8,
@@ -268,27 +280,38 @@ class _CountRow extends StatelessWidget {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 6),
-        Text(
-          '$label: ',
-          style: AppTypography.bodySmall.copyWith(
-            color: AppColors.mutedInk,
-            fontSize: 12,
-          ),
-        ),
-        Text(
-          '$count',
-          style: AppTypography.bodySmall.copyWith(
-            fontWeight: FontWeight.w700,
-            fontSize: 12,
-            color: AppColors.ink,
-          ),
-        ),
-        const SizedBox(width: 4),
-        Text(
-          '(${percentage.toStringAsFixed(0)}%)',
-          style: AppTypography.labelSmall.copyWith(
-            color: AppColors.mutedInk,
-            fontSize: 11,
+        Flexible(
+          child: Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: '$label: ',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.mutedInk,
+                    fontSize: 12,
+                  ),
+                ),
+                TextSpan(
+                  text: '$count ',
+                  style: AppTypography.bodySmall.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                    color: AppColors.ink,
+                  ),
+                ),
+                TextSpan(
+                  text: '(${percentage.toStringAsFixed(0)}%)',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.mutedInk,
+                    fontSize: 11,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

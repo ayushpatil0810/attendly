@@ -31,14 +31,20 @@ class DashboardEmptyState extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppRadius.xlBorder,
-        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.ink.withAlpha(6),
+            blurRadius: 16,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 64,
-            height: 64,
+            width: 56,
+            height: 56,
             decoration: const BoxDecoration(
               color: AppColors.softLavender,
               shape: BoxShape.circle,
@@ -46,14 +52,17 @@ class DashboardEmptyState extends StatelessWidget {
             alignment: Alignment.center,
             child: const AppIcon(
               AppIcons.calendar,
-              size: 32,
+              size: 28,
               color: AppColors.brandViolet,
             ),
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
             hasSubjects ? 'No Classes Recorded Yet' : 'Start Semester Setup',
-            style: AppTypography.screenTitle.copyWith(fontSize: 20),
+            style: AppTypography.screenTitle.copyWith(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 6),

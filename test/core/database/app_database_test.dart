@@ -21,8 +21,8 @@ void main() {
   });
 
   group('Database initialization & schema', () {
-    test('database opens and schemaVersion is 2', () {
-      expect(db.schemaVersion, equals(2));
+    test('database opens and schemaVersion is 3', () {
+      expect(db.schemaVersion, equals(3));
     });
 
     test('can insert and retrieve a semester', () async {
@@ -340,7 +340,7 @@ void main() {
     );
 
     test(
-      'rejects duplicate session for same subject, date, and component',
+      'allows another session for the same subject, date, and component',
       () async {
         final now = DateTime.now().millisecondsSinceEpoch;
 
@@ -379,22 +379,19 @@ void main() {
               ),
             );
 
-        // Inserting second session for same subject, date, and component must fail
-        expect(
-          () async => await db
-              .into(db.attendanceSessions)
-              .insert(
-                AttendanceSessionsCompanion.insert(
-                  subjectId: subjId,
-                  sessionDate: '2026-03-10',
-                  component: 'lecture',
-                  status: 'absent',
-                  createdAt: now,
-                  updatedAt: now,
-                ),
+        final secondId = await db
+            .into(db.attendanceSessions)
+            .insert(
+              AttendanceSessionsCompanion.insert(
+                subjectId: subjId,
+                sessionDate: '2026-03-10',
+                component: 'lecture',
+                status: 'absent',
+                createdAt: now,
+                updatedAt: now,
               ),
-          throwsA(isA<SqliteException>()),
-        );
+            );
+        expect(secondId, greaterThan(0));
       },
     );
 
@@ -432,8 +429,8 @@ void main() {
     });
   });
 
-  group('Database migrations (v1 -> v2)', () {
-    test('migrates database from v1 to v2 preserving data and enforcing uniqueness', () async {
+  group('Database migrations (v1 -> v3)', () {
+    test('migrates database from v1 to v3 and keeps same-day sessions', () async {
       final tempDir = await Directory.systemTemp.createTemp(
         'attendly_migration_test_',
       );
@@ -510,7 +507,7 @@ void main() {
 
       // 2. Open with AppDatabase v2, triggering onUpgrade from v1 to v2
       final upgradedDb = AppDatabase.forTesting(NativeDatabase(dbFile));
-      expect(upgradedDb.schemaVersion, equals(2));
+      expect(upgradedDb.schemaVersion, equals(3));
 
       // 3. Verify existing data preserved
       final semesters = await upgradedDb.select(upgradedDb.semesters).get();
@@ -528,22 +525,19 @@ void main() {
       expect(sessions.first.sessionDate, equals('2026-03-01'));
       expect(sessions.first.status, equals('present'));
 
-      // 4. Verify uniqueness constraint on (subject_id, session_date, component) is now enforced
-      expect(
-        () async => await upgradedDb
-            .into(upgradedDb.attendanceSessions)
-            .insert(
-              AttendanceSessionsCompanion.insert(
-                subjectId: 1,
-                sessionDate: '2026-03-01',
-                component: 'lecture',
-                status: 'absent',
-                createdAt: now,
-                updatedAt: now,
-              ),
+      final sameDayId = await upgradedDb
+          .into(upgradedDb.attendanceSessions)
+          .insert(
+            AttendanceSessionsCompanion.insert(
+              subjectId: 1,
+              sessionDate: '2026-03-01',
+              component: 'lecture',
+              status: 'absent',
+              createdAt: now,
+              updatedAt: now,
             ),
-        throwsA(isA<SqliteException>()),
-      );
+          );
+      expect(sameDayId, greaterThan(0));
 
       // 5. Valid session on different component or date succeeds
       final newSessId = await upgradedDb

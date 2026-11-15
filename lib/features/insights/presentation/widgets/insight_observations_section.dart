@@ -45,13 +45,13 @@ class _ObservationTile extends StatelessWidget {
   Color get _accentColor {
     switch (observation.type) {
       case InsightObservationType.positive:
-        return AppColors.brandMint;
+        return AppColors.inkMint;
       case InsightObservationType.warning:
-        return AppColors.brandCoral;
+        return AppColors.inkCoral;
       case InsightObservationType.info:
         return AppColors.brandViolet;
       case InsightObservationType.neutral:
-        return AppColors.brandPeach;
+        return AppColors.inkPeach;
     }
   }
 
@@ -89,7 +89,13 @@ class _ObservationTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.ink.withAlpha(5),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,7 +138,7 @@ class _ObservationTile extends StatelessWidget {
                           style: AppTypography.labelSmall.copyWith(
                             color: _accentColor,
                             fontWeight: FontWeight.w700,
-                            fontSize: 10,
+                            fontSize: 12,
                           ),
                         ),
                       ),

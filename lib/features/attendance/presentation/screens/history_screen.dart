@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/errors/app_failure.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
+import 'package:attendly/core/shared/widgets/app_error_state.dart';
 import 'package:attendly/core/shared/widgets/app_toast.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
@@ -44,6 +45,9 @@ class HistoryScreen extends ConsumerWidget {
       backgroundColor: AppColors.warmWhite,
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           padding: const EdgeInsets.only(
             left: AppSpacing.screenHorizontal,
             right: AppSpacing.screenHorizontal,
@@ -56,9 +60,11 @@ class HistoryScreen extends ConsumerWidget {
               // Screen header
               const Text('History', style: AppTypography.screenTitle),
               const SizedBox(height: 4),
-              const Text(
+              Text(
                 'Calendar & Attendance Timeline',
-                style: AppTypography.bodySmall,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.mutedInk,
+                ),
               ),
               const SizedBox(height: 20),
 
@@ -69,28 +75,20 @@ class HistoryScreen extends ConsumerWidget {
               // Selected Date Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isToday ? 'Today' : 'Selected Date',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.brandViolet,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          formattedSelectedDate,
-                          style: AppTypography.sectionTitle.copyWith(
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      isToday
+                          ? 'Today, ${DateFormat('d MMMM yyyy').format(selectedDate)}'
+                          : formattedSelectedDate,
+                      style: AppTypography.sectionTitle.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 12),
                   AppButton(
                     label: 'Add Session',
                     icon: const AppIcon(
@@ -120,25 +118,14 @@ class HistoryScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-                error: (err, _) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Text(
-                    'Failed to load sessions: $err',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.brandCoral,
-                    ),
-                  ),
+                error: (err, _) => AppErrorState(
+                  message: 'Sessions for this day could not load.',
+                  onRetry: () =>
+                      ref.invalidate(sessionsForSelectedDateProvider),
                 ),
                 data: (sessions) {
                   if (sessions.isEmpty) {
-                    return _NoSessionsPlaceholder(
-                      onAddSession: () {
-                        showSessionFormSheet(
-                          context: context,
-                          prefilledDate: selectedDate,
-                        );
-                      },
-                    );
+                    return const _NoSessionsPlaceholder();
                   }
 
                   return Column(
@@ -196,7 +183,7 @@ class HistoryScreen extends ConsumerWidget {
                                     context,
                                     message: e is AppFailure
                                         ? e.message
-                                        : 'Failed to delete session',
+                                        : 'The session could not be deleted. Try again.',
                                   );
                                 }
                               }
@@ -217,9 +204,7 @@ class HistoryScreen extends ConsumerWidget {
 }
 
 class _NoSessionsPlaceholder extends StatelessWidget {
-  const _NoSessionsPlaceholder({required this.onAddSession});
-
-  final VoidCallback onAddSession;
+  const _NoSessionsPlaceholder();
 
   @override
   Widget build(BuildContext context) {
@@ -229,22 +214,28 @@ class _NoSessionsPlaceholder extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.ink.withAlpha(6),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 48,
+            height: 48,
             decoration: const BoxDecoration(
-              color: AppColors.track,
+              color: AppColors.softLavender,
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
             child: const AppIcon(
               AppIcons.calendar,
-              size: 22,
-              color: AppColors.mutedInk,
+              size: 24,
+              color: AppColors.brandViolet,
             ),
           ),
           const SizedBox(height: 12),
@@ -260,13 +251,6 @@ class _NoSessionsPlaceholder extends StatelessWidget {
             'Classes not entered are unrecorded and never treated as absences.',
             style: AppTypography.bodySmall,
             textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          AppButton(
-            label: 'Record Session',
-            icon: const AppIcon(AppIcons.add, size: 16, color: AppColors.ink),
-            variant: AppButtonVariant.outline,
-            onPressed: onAddSession,
           ),
         ],
       ),
@@ -290,126 +274,144 @@ class _SessionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isPresent = session.status == AttendanceStatus.present;
+    final statusColor = isPresent
+        ? AppColors.inkMint
+        : AppColors.inkCoral;
+    final statusBg = isPresent ? AppColors.softMint : AppColors.softCoral;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.pureWhite,
-        borderRadius: AppRadius.lgBorder,
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Status indicator pill
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: isPresent ? AppColors.softMint : AppColors.softCoral,
-              borderRadius: AppRadius.mdBorder,
-              border: Border.all(
-                color: isPresent
-                    ? AppColors.brandMint.withValues(alpha: 0.5)
-                    : AppColors.brandCoral.withValues(alpha: 0.5),
+    final semanticLabel = StringBuffer(session.status.displayName)
+      ..write(' session for ')
+      ..write(subjectName)
+      ..write(', ')
+      ..write(session.component.displayName);
+    if (session.note != null && session.note!.isNotEmpty) {
+      semanticLabel.write('. Note: ${session.note}');
+    }
+
+    return Semantics(
+      container: true,
+      label: semanticLabel.toString(),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.pureWhite,
+          borderRadius: AppRadius.lgBorder,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.ink.withAlpha(6),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Status indicator pill with high contrast
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: statusBg,
+                borderRadius: AppRadius.mdBorder,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AppIcon(
+                    isPresent ? AppIcons.check : AppIcons.close,
+                    size: 15,
+                    color: statusColor,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    session.status.displayName,
+                    style: AppTypography.labelSmall.copyWith(
+                      color: statusColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AppIcon(
-                  isPresent ? AppIcons.check : AppIcons.close,
-                  size: 16,
-                  color: isPresent ? AppColors.ink : AppColors.brandCoral,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  session.status.displayName,
-                  style: AppTypography.labelSmall.copyWith(
-                    color: isPresent ? AppColors.ink : AppColors.brandCoral,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
+            const SizedBox(width: 12),
 
-          // Subject & component info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  subjectName,
-                  style: AppTypography.itemTitle.copyWith(
-                    fontWeight: FontWeight.w600,
+            // Subject & component info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    subjectName,
+                    style: AppTypography.itemTitle.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: const BoxDecoration(
-                        color: AppColors.softLavender,
-                        borderRadius: AppRadius.smBorder,
-                      ),
-                      child: Text(
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      Text(
                         session.component.displayName,
                         style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.brandViolet,
+                          color: AppColors.mutedInk,
                           fontWeight: FontWeight.w600,
-                          fontSize: 10,
                         ),
                       ),
-                    ),
-                    if (session.note != null && session.note!.isNotEmpty) ...[
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          session.note!,
+                      if (session.note != null && session.note!.isNotEmpty) ...[
+                        Text(
+                          ' · ',
                           style: AppTypography.labelSmall.copyWith(
                             color: AppColors.mutedInk,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
+                        Expanded(
+                          child: Text(
+                            session.note!,
+                            style: AppTypography.labelSmall.copyWith(
+                              color: AppColors.mutedInk,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          // Edit button
-          IconButton(
-            key: Key('edit_session_${session.id}'),
-            icon: const AppIcon(AppIcons.edit, size: 18, color: AppColors.ink),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            onPressed: onEdit,
-          ),
-
-          // Delete button
-          IconButton(
-            key: Key('delete_session_${session.id}'),
-            icon: const AppIcon(
-              AppIcons.delete,
-              size: 18,
-              color: AppColors.brandCoral,
+            // Edit button (comfortable 44x44 touch target, muted color)
+            IconButton(
+              key: Key('edit_session_${session.id}'),
+              tooltip: 'Edit session',
+              icon: const AppIcon(
+                AppIcons.edit,
+                size: 18,
+                color: AppColors.mutedInk,
+              ),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              onPressed: onEdit,
             ),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            onPressed: onDelete,
-          ),
-        ],
+
+            // Delete button (comfortable 44x44 touch target, muted color)
+            IconButton(
+              key: Key('delete_session_${session.id}'),
+              tooltip: 'Delete session',
+              icon: const AppIcon(
+                AppIcons.delete,
+                size: 18,
+                color: AppColors.mutedInk,
+              ),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              onPressed: onDelete,
+            ),
+          ],
+        ),
       ),
     );
   }

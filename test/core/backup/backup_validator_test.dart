@@ -327,22 +327,20 @@ void main() {
       );
     });
 
-    test('rejects duplicate session for same subject, date, and component', () {
+    test('accepts a second lecture for the same subject on the same day', () {
       final map = createValidBackupMap();
       final sessions = (map['data'] as Map)['attendanceSessions'] as List;
-      // Add a third session with same (subjectId, sessionDate, component) as first
       sessions.add({
         'id': 1003,
         'subjectId': 101,
         'sessionDate': '2026-09-01',
-        'component': 'lecture', // duplicate of session 1001
+        'component': 'lecture',
         'status': 'absent',
         'createdAt': 1700000000000,
         'updatedAt': 1700000000000,
       });
       final res = BackupValidator.validate(jsonEncode(map));
-      expect(res.isValid, isFalse);
-      expect(res.error, contains('Duplicate session in backup'));
+      expect(res.isValid, isTrue);
     });
   });
 }

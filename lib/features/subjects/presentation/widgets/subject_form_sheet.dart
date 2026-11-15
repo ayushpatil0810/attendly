@@ -94,9 +94,12 @@ class _SubjectFormSheetState extends ConsumerState<SubjectFormSheet> {
           Navigator.of(context).pop();
         }
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
-        AppToast.showError(context, message: 'Error: $e');
+        AppToast.showError(
+          context,
+          message: 'The subject could not be saved. Try again.',
+        );
       }
     } finally {
       if (mounted) {
@@ -168,7 +171,7 @@ class _SubjectFormSheetState extends ConsumerState<SubjectFormSheet> {
             AppSwitchTile(
               title: 'Practical Lab',
               subtitle: 'Track laboratory or workshop sessions',
-              icon: const AppIcon(AppIcons.lab, color: AppColors.brandMint),
+              icon: const AppIcon(AppIcons.lab, color: AppColors.inkMint),
               value: _labEnabled,
               onChanged: (val) {
                 if (!val && !_lectureEnabled) {

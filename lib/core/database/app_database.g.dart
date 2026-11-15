@@ -1262,9 +1262,7 @@ class $AttendanceSessionsTable extends AttendanceSessions
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  List<Set<GeneratedColumn>> get uniqueKeys => [
-    {subjectId, sessionDate, component},
-  ];
+  List<Set<GeneratedColumn>> get uniqueKeys => const [];
   @override
   AttendanceSessionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';

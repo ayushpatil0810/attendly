@@ -30,15 +30,13 @@ void main() {
     await db.close();
   });
 
-  Widget createWidgetUnderTest({int initialTabIndex = 0}) {
+  Widget createWidgetUnderTest() {
     return ProviderScope(
       overrides: [
         databaseProvider.overrideWithValue(db),
         sharedPreferencesProvider.overrideWithValue(prefs),
       ],
-      child: MaterialApp(
-        home: InsightsScreen(initialTabIndex: initialTabIndex),
-      ),
+      child: const MaterialApp(home: InsightsScreen()),
     );
   }
 
@@ -133,7 +131,7 @@ void main() {
 
         // Check Header & Overview
         expect(find.text('Attendance Overview'), findsOneWidget);
-        expect(find.text('Raw Combined'), findsWidgets);
+        expect(find.text('Equal weight'), findsWidgets);
         expect(find.text('Subject Comparison'), findsOneWidget);
         expect(find.text('Lecture vs. Lab Breakdown'), findsOneWidget);
         expect(find.text('Attendance History & Trend'), findsOneWidget);
@@ -147,43 +145,40 @@ void main() {
       },
     );
 
-    testWidgets(
-      'switches between Insights and Simulator tabs via segmented control',
-      (tester) async {
-        final semRepo = SemesterRepositoryImpl(db);
-        final semId = await semRepo.createSemester(
-          name: 'Fall 2026',
-          attendanceThreshold: 0.75,
-        );
-        prefs.setInt('selected_active_semester_id_v1', semId);
+    testWidgets('keeps the simulator on its own screen', (tester) async {
+      final semRepo = SemesterRepositoryImpl(db);
+      final semId = await semRepo.createSemester(
+        name: 'Fall 2026',
+        attendanceThreshold: 0.75,
+      );
+      prefs.setInt('selected_active_semester_id_v1', semId);
 
-        final subRepo = SubjectRepositoryImpl(db);
-        await subRepo.createSubject(
-          semesterId: semId,
-          name: 'Networks',
-          lectureEnabled: true,
-          labEnabled: true,
-        );
+      final subRepo = SubjectRepositoryImpl(db);
+      final subjectId = await subRepo.createSubject(
+        semesterId: semId,
+        name: 'Networks',
+        lectureEnabled: true,
+        labEnabled: true,
+      );
+      final attRepo = AttendanceRepositoryImpl(db);
+      await attRepo.createSession(
+        subjectId: subjectId,
+        sessionDate: '2026-11-14',
+        component: SessionComponent.lecture,
+        status: AttendanceStatus.present,
+      );
 
-        await tester.pumpWidget(createWidgetUnderTest());
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
 
-        // Tap on Simulator tab in segmented control
-        final simTab = find.text('Simulator');
-        expect(simTab, findsOneWidget);
-        await tester.tap(simTab);
-        await tester.pumpAndSettle();
+      expect(find.text('What-if'), findsOneWidget);
+      expect(find.text('Add Hypothetical Classes'), findsNothing);
+      expect(find.text('All classes'), findsOneWidget);
+      expect(find.text('All Subjects'), findsNothing);
 
-        // Simulator view rendered!
-        expect(find.text('Projected Outcome'), findsOneWidget);
-        expect(find.text('Actual Baseline'), findsOneWidget);
-        expect(find.text('Add Hypothetical Classes'), findsOneWidget);
-        expect(find.text('Simulated Classes (0)'), findsOneWidget);
-
-        await tester.pumpWidget(const SizedBox());
-        await tester.pump(Duration.zero);
-      },
-    );
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(Duration.zero);
+    });
 
     testWidgets('filtering by Last 7 Days updates filter chips', (
       tester,
@@ -264,7 +259,52 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Provisional'), findsWidgets);
-        expect(find.text('Component Average (50/50)'), findsWidgets);
+        expect(find.text('Split in half'), findsWidgets);
+
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(Duration.zero);
+      },
+    );
+
+    testWidgets(
+      'renders without RenderFlex overflow in narrow viewport (286px-320px)',
+      (tester) async {
+        final semRepo = SemesterRepositoryImpl(db);
+        final semId = await semRepo.createSemester(
+          name: 'Spring 2026',
+          attendanceThreshold: 0.75,
+          calculationMethod: AttendanceCalculationMethod.componentAverage,
+        );
+        prefs.setInt('selected_active_semester_id_v1', semId);
+
+        final subRepo = SubjectRepositoryImpl(db);
+        final s1 = await subRepo.createSubject(
+          semesterId: semId,
+          name: 'Networks',
+          lectureEnabled: true,
+          labEnabled: true,
+        );
+
+        final attRepo = AttendanceRepositoryImpl(db);
+        await attRepo.createSession(
+          subjectId: s1,
+          sessionDate: '2026-11-14',
+          component: SessionComponent.lecture,
+          status: AttendanceStatus.present,
+        );
+
+        // Constrain to narrow device size (320px width)
+        tester.view.physicalSize = const Size(320, 700);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('Attendance Overview'), findsOneWidget);
+        expect(find.text('Split in half'), findsOneWidget);
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);

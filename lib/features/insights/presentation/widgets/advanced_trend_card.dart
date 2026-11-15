@@ -30,7 +30,13 @@ class AdvancedTrendCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.pureWhite,
             borderRadius: AppRadius.xlBorder,
-            border: Border.all(color: AppColors.border),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.ink.withAlpha(6),
+                blurRadius: 14,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: trendPoints.length < 2
               ? _buildEmptyState()
@@ -108,7 +114,7 @@ class AdvancedTrendCard extends StatelessWidget {
                   '${trendPoints.length} active recording dates',
                   style: AppTypography.labelSmall.copyWith(
                     color: AppColors.mutedInk,
-                    fontSize: 10,
+                    fontSize: 12,
                   ),
                 ),
               ],
@@ -126,16 +132,17 @@ class AdvancedTrendCard extends StatelessWidget {
                     'Latest: ',
                     style: AppTypography.labelSmall.copyWith(
                       color: AppColors.mutedInk,
-                      fontSize: 10,
+                      fontSize: 12,
                     ),
                   ),
                   Text(
                     '${latestPct.toStringAsFixed(1)}%',
                     style: AppTypography.labelSmall.copyWith(
                       color: meetsTarget
-                          ? const Color(0xFF1E826D)
-                          : const Color(0xFFD63B48),
+                          ? AppColors.inkMint
+                          : AppColors.inkCoral,
                       fontWeight: FontWeight.w700,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                 ],
@@ -162,14 +169,19 @@ class AdvancedTrendCard extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Chronological cumulative attendance',
-              style: AppTypography.labelSmall.copyWith(
-                color: AppColors.mutedInk,
-                fontSize: 10,
+            Expanded(
+              child: Text(
+                'Chronological cumulative attendance',
+                style: AppTypography.labelSmall.copyWith(
+                  color: AppColors.mutedInk,
+                  fontSize: 12,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
+            const SizedBox(width: AppSpacing.xs),
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   width: 12,
@@ -181,7 +193,7 @@ class AdvancedTrendCard extends StatelessWidget {
                   '${(threshold * 100).round()}% Target',
                   style: AppTypography.labelSmall.copyWith(
                     color: AppColors.mutedInk,
-                    fontSize: 10,
+                    fontSize: 12,
                   ),
                 ),
               ],

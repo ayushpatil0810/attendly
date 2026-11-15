@@ -65,7 +65,7 @@ Use these initial design tokens. They may be tuned during implementation for con
 
 | Token | Hex | Role |
 |---|---|---|
-| `brandViolet` | `#9278F2` | Primary brand accent, selected navigation, primary interactive states |
+| `brandViolet` | `#9278F2` | Brand accent for fills, charts, and large controls |
 | `brandMint` | `#8BE4D0` | Positive attendance, healthy progress, positive chart series |
 | `brandCoral` | `#FF929B` | Absence, attention-needed states, selected emphasis |
 | `brandPeach` | `#FFB49F` | Secondary highlight, supporting chart series |
@@ -75,7 +75,12 @@ Use these initial design tokens. They may be tuned during implementation for con
 | `softMint` | `#F0FAF7` | Positive tinted surface |
 | `softCoral` | `#FFF1F1` | Warning/absence tinted surface |
 | `ink` | `#30263F` | Primary text |
-| `mutedInk` | `#827B8D` | Secondary text |
+| `mutedInk` | `#6E6778` | Secondary text, darkened so body copy clears 4.5:1 |
+| `subtleInk` | `#756C84` | Placeholder text |
+| `inkViolet` | `#704EEE` | Violet text, links, and filled actions that carry white type |
+| `inkMint` | `#166151` | Present text and small icons on white or mint |
+| `inkCoral` | `#7D1A22` | Absent text, error text, and small icons on white or coral |
+| `inkPeach` | `#7F4026` | Provisional text on white or peach |
 | `divider` | `#EEE6EB` | Subtle separators |
 | `track` | `#EEEAF2` | Progress track and chart guides |
 

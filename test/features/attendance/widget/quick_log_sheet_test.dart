@@ -161,12 +161,11 @@ void main() {
     });
 
     testWidgets(
-      'shows duplicate feedback and view/edit action when session already exists',
+      'keeps Present and Absent available when a lecture is already logged',
       (tester) async {
         final testDate = DateTime(2026, 3, 10);
         final dateStr = '2026-03-10';
 
-        // Pre-seed an existing session
         final repo = AttendanceRepositoryImpl(db);
         await repo.createSession(
           subjectId: bothComponentsSubId,
@@ -178,16 +177,20 @@ void main() {
         await tester.pumpWidget(createWidgetUnderTest(initialDate: testDate));
         await tester.pumpAndSettle();
 
-        // Computer Networks + Lecture selected -> duplicate detected!
-        expect(find.text('Record already exists'), findsOneWidget);
         expect(
-          find.text('This session is currently recorded as Present.'),
+          find.text(
+            '1 Lecture is already logged for this day. This save adds another.',
+          ),
           findsOneWidget,
         );
-        expect(find.text('View / Edit Existing Record'), findsOneWidget);
+        expect(find.text('Present'), findsOneWidget);
+        expect(find.text('Absent'), findsOneWidget);
 
-        // Present / Absent action buttons should be hidden to prevent duplicate submit
-        expect(find.text('Mark Attendance (saves immediately)'), findsNothing);
+        await tester.tap(find.text('Absent'));
+        await tester.pumpAndSettle();
+
+        final sessions = await repo.getSessionsForDate(semesterId, dateStr);
+        expect(sessions.length, equals(2));
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);

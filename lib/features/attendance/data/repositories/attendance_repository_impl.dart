@@ -249,19 +249,6 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       throw const ValidationFailure('Lab is not enabled for this subject.');
     }
 
-    // Check duplicate explicitly before insert
-    final existing = await getSessionBySubjectDateComponent(
-      subjectId,
-      sessionDate,
-      component,
-    );
-    if (existing != null) {
-      throw DuplicateSessionFailure(
-        'An attendance session already exists for ${subjectRow.name} (${component.displayName}) on $sessionDate.',
-        existingSessionId: existing.id,
-      );
-    }
-
     final now = DateTime.now().toUtc().millisecondsSinceEpoch;
 
     try {
@@ -281,18 +268,6 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       return id;
     } catch (e) {
       if (e is AppFailure) rethrow;
-      final errorStr = e.toString();
-      if (errorStr.contains('UNIQUE') || errorStr.contains('unique')) {
-        final conflict = await getSessionBySubjectDateComponent(
-          subjectId,
-          sessionDate,
-          component,
-        );
-        throw DuplicateSessionFailure(
-          'An attendance session already exists for ${subjectRow.name} (${component.displayName}) on $sessionDate.',
-          existingSessionId: conflict?.id,
-        );
-      }
       throw DatabaseFailure('Failed to record attendance session: $e');
     }
   }
@@ -314,23 +289,6 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       throw const NotFoundFailure('Subject not found.');
     }
 
-    // Check collision if date, subject, or component changed
-    if (existing.subjectId != session.subjectId ||
-        existing.sessionDate != session.sessionDate ||
-        existing.component != session.component) {
-      final conflict = await getSessionBySubjectDateComponent(
-        session.subjectId,
-        session.sessionDate,
-        session.component,
-      );
-      if (conflict != null && conflict.id != session.id) {
-        throw DuplicateSessionFailure(
-          'An attendance session already exists for ${subjectRow.name} (${session.component.displayName}) on ${session.sessionDate}.',
-          existingSessionId: conflict.id,
-        );
-      }
-    }
-
     final now = DateTime.now().toUtc().millisecondsSinceEpoch;
 
     try {
@@ -348,12 +306,6 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       );
     } catch (e) {
       if (e is AppFailure) rethrow;
-      final errorStr = e.toString();
-      if (errorStr.contains('UNIQUE') || errorStr.contains('unique')) {
-        throw DuplicateSessionFailure(
-          'An attendance session already exists for ${subjectRow.name} (${session.component.displayName}) on ${session.sessionDate}.',
-        );
-      }
       throw DatabaseFailure('Failed to update attendance session: $e');
     }
   }

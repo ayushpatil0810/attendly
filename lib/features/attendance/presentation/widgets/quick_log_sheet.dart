@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/errors/app_failure.dart';
 import 'package:attendly/core/services/preferences_service.dart';
+import 'package:attendly/core/shared/widgets/app_bottom_sheet.dart';
+import 'package:attendly/core/shared/widgets/app_error_state.dart';
+import 'package:attendly/core/theme/app_motion.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/shared/widgets/app_segmented_control.dart';
 import 'package:attendly/core/shared/widgets/app_toast.dart';
@@ -9,7 +12,6 @@ import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_typography.dart';
-import 'package:attendly/features/attendance/domain/entities/attendance_session.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_status.dart';
 import 'package:attendly/features/attendance/domain/entities/session_component.dart';
 import 'package:attendly/features/attendance/presentation/providers/attendance_providers.dart';
@@ -17,12 +19,11 @@ import 'package:attendly/features/subjects/domain/entities/subject.dart';
 import 'package:attendly/features/subjects/presentation/providers/subjects_provider.dart';
 import 'package:intl/intl.dart';
 
-import 'session_form_sheet.dart';
-
 class QuickLogSheet extends ConsumerStatefulWidget {
-  const QuickLogSheet({super.key, this.initialDate});
+  const QuickLogSheet({super.key, this.initialDate, this.initialSubjectId});
 
   final DateTime? initialDate;
+  final int? initialSubjectId;
 
   @override
   ConsumerState<QuickLogSheet> createState() => _QuickLogSheetState();
@@ -40,6 +41,9 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
     final now = DateTime.now();
     _selectedDate =
         widget.initialDate ?? DateTime(now.year, now.month, now.day);
+    if (widget.initialSubjectId != null) {
+      _selectedSubjectId = widget.initialSubjectId;
+    }
   }
 
   void _syncComponentForSubject(Subject subject) {
@@ -66,7 +70,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: AppColors.brandViolet,
+              primary: AppColors.inkViolet,
               onPrimary: AppColors.pureWhite,
               onSurface: AppColors.ink,
             ),
@@ -137,11 +141,6 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
     }
   }
 
-  void _openEditExistingRecord(AttendanceSession session) {
-    Navigator.of(context).pop();
-    showSessionFormSheet(context: context, sessionToEdit: session);
-  }
-
   @override
   Widget build(BuildContext context) {
     final subjectsAsync = ref.watch(activeSemesterSubjectsProvider);
@@ -153,12 +152,9 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
           child: CircularProgressIndicator(color: AppColors.brandViolet),
         ),
       ),
-      error: (err, _) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Text(
-          'Failed to load subjects: $err',
-          style: AppTypography.bodySmall.copyWith(color: AppColors.brandCoral),
-        ),
+      error: (err, _) => AppErrorState(
+        message: 'Subjects could not load.',
+        onRetry: () => ref.invalidate(activeSemesterSubjectsProvider),
       ),
       data: (subjects) {
         if (subjects.isEmpty) {
@@ -178,7 +174,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                   child: const AppIcon(
                     AppIcons.subjects,
                     size: 28,
-                    color: AppColors.brandPeach,
+                    color: AppColors.inkPeach,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -222,15 +218,14 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
         final sessionsForDateAsync = ref.watch(
           sessionsForDateFamilyProvider(dateStr),
         );
-        AttendanceSession? existingSession;
+        var loggedCount = 0;
 
         sessionsForDateAsync.whenData((sessions) {
           for (final s in sessions) {
             if (s.subjectId == selectedSubject.id &&
                 s.component == _selectedComponent &&
                 s.sessionDate == dateStr) {
-              existingSession = s;
-              break;
+              loggedCount++;
             }
           }
         });
@@ -268,7 +263,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                           Text(
                             isToday ? 'Today ($formattedDate)' : formattedDate,
                             style: AppTypography.itemTitle.copyWith(
-                              color: AppColors.brandViolet,
+                              color: AppColors.inkViolet,
                             ),
                           ),
                           const SizedBox(width: 4),
@@ -289,7 +284,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
               const Text('Select Subject', style: AppTypography.labelSmall),
               const SizedBox(height: 8),
               SizedBox(
-                height: 40,
+                height: 48,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: subjects.length,
@@ -307,7 +302,10 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                         });
                       },
                       child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
+                        duration: AppMotion.duration(
+                          context,
+                          const Duration(milliseconds: 180),
+                        ),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
                           vertical: 8,
@@ -329,7 +327,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                           subject.name,
                           style: AppTypography.itemTitle.copyWith(
                             color: isSelected
-                                ? AppColors.brandViolet
+                                ? AppColors.inkViolet
                                 : AppColors.ink,
                             fontWeight: isSelected
                                 ? FontWeight.w600
@@ -378,7 +376,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                       child: Text(
                         _selectedComponent.displayName,
                         style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.brandViolet,
+                          color: AppColors.inkViolet,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -388,69 +386,21 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                 const SizedBox(height: 20),
               ],
 
-              // Duplicate notice OR Immediate Present / Absent actions
-              if (existingSession != null) ...[
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.softCoral,
-                    borderRadius: AppRadius.mdBorder,
-                    border: Border.all(
-                      color: AppColors.brandCoral.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const AppIcon(
-                            AppIcons.alert,
-                            size: 18,
-                            color: AppColors.brandCoral,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Record already exists',
-                              style: AppTypography.itemTitle.copyWith(
-                                color: AppColors.brandCoral,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'This session is currently recorded as ${existingSession!.status.displayName}.',
-                        style: AppTypography.bodySmall.copyWith(
-                          color: AppColors.ink,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      AppButton(
-                        label: 'View / Edit Existing Record',
-                        icon: const AppIcon(
-                          AppIcons.edit,
-                          size: 16,
-                          color: AppColors.ink,
-                        ),
-                        variant: AppButtonVariant.outline,
-                        onPressed: () =>
-                            _openEditExistingRecord(existingSession!),
-                      ),
-                    ],
-                  ),
+              if (loggedCount > 0) ...[
+                Text(
+                  loggedCount == 1
+                      ? '1 ${_selectedComponent.displayName} is already logged for this day. This save adds another.'
+                      : '$loggedCount ${_selectedComponent.displayName}s are already logged for this day. This save adds another.',
+                  style: AppTypography.bodySmall.copyWith(color: AppColors.ink),
                 ),
-              ] else ...[
-                const Text(
-                  'Mark Attendance (saves immediately)',
-                  style: AppTypography.labelSmall,
-                ),
-                const SizedBox(height: 10),
-                Row(
+                const SizedBox(height: 12),
+              ],
+              const Text(
+                'Mark Attendance (saves immediately)',
+                style: AppTypography.labelSmall,
+              ),
+              const SizedBox(height: 10),
+              Row(
                   children: [
                     // Present Button
                     Expanded(
@@ -473,7 +423,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                         label: 'Absent',
                         icon: AppIcons.close,
                         backgroundColor: AppColors.brandCoral,
-                        textColor: AppColors.pureWhite,
+                        textColor: AppColors.ink,
                         isLoading: _isSubmitting,
                         onTap: () => _recordAttendance(
                           selectedSubject,
@@ -483,7 +433,6 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                     ),
                   ],
                 ),
-              ],
             ],
           ),
         );
@@ -521,6 +470,15 @@ class _AttendanceActionButton extends StatelessWidget {
           height: 56,
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            borderRadius: AppRadius.lgBorder,
+            border: Border.all(
+              color: backgroundColor == AppColors.brandCoral
+                  ? AppColors.inkCoral
+                  : AppColors.inkMint,
+              width: 1.5,
+            ),
+          ),
           child: isLoading
               ? SizedBox(
                   width: 24,
@@ -551,7 +509,11 @@ class _AttendanceActionButton extends StatelessWidget {
   }
 }
 
-void showQuickLogSheet({required BuildContext context, DateTime? initialDate}) {
+void showQuickLogSheet({
+  required BuildContext context,
+  DateTime? initialDate,
+  int? initialSubjectId,
+}) {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -587,27 +549,17 @@ void showQuickLogSheet({required BuildContext context, DateTime? initialDate}) {
                         style: AppTypography.sectionTitle,
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      behavior: HitTestBehavior.opaque,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
-                          color: AppColors.track,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          size: 16,
-                          color: AppColors.mutedInk,
-                        ),
-                      ),
+                    AppCloseButton(
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
                   ],
                 ),
               ),
               const Divider(color: AppColors.divider, height: 20),
-              QuickLogSheet(initialDate: initialDate),
+              QuickLogSheet(
+                initialDate: initialDate,
+                initialSubjectId: initialSubjectId,
+              ),
             ],
           ),
         ),

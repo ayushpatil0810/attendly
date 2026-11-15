@@ -137,21 +137,20 @@ Stores one explicitly recorded, conducted class.
 - A `lecture` session is allowed only when the subject has `lecture_enabled = 1`.
 - A `lab` session is allowed only when the subject has `lab_enabled = 1`.
 - `session_date` must be a valid ISO calendar date.
-- `UNIQUE (subject_id, session_date, component)` constraint: duplicate attendance sessions for the same subject, date, and component are strictly rejected at the database level.
+- Multiple lectures, or multiple labs, for the same subject on the same date are valid. There is no unique constraint on `(subject_id, session_date, component)`. Accidental double-taps are guarded in Quick Log with an in-flight lock and Undo.
 - `id` remains the primary key for auto-incrementing stable entity identification.
 
 **Indexes**
-- Unique index on `(subject_id, session_date, component)` (`idx_attendance_sessions_unique`).
 - Index on `session_date` (`idx_attendance_sessions_date`) for calendar queries.
 
-The composite unique constraint on `(subject_id, session_date, component)` enforces duplicate protection while supporting legitimate separate lecture and lab sessions on the same day. Accidental duplicate submissions are guarded in the presentation layer via debouncing, instant UI duplicate feedback, and undo actions.
+Same-day lectures and labs are separate rows. Quick Log locks the buttons while a save is in flight and offers Undo, so a double-tap does not create an accidental second row.
 
 **Important behavior**
 - Creating a row means a class was conducted and the student recorded its attendance.
 - `present` increments both conducted and attended counts.
 - `absent` increments conducted count only.
 - A class that did not happen, was not scheduled, or was not entered has no row and must not be counted as an absence.
-- Editing a historical record updates the existing row; it must not create a duplicate.
+- Editing a historical record updates that row. Moving it onto a day that already has the same component keeps both rows.
 - Deleting a row removes that session from all attendance calculations.
 
 ### 5.4 Optional future `app_metadata`
@@ -358,7 +357,8 @@ A backup format version is separate from the SQLite schema version. They must no
 ### 12.1 Migration history
 
 - **Schema Version 1 (Phase 1):** Initial database structure containing `semesters`, `subjects`, and `attendance_sessions` tables with check constraints and foreign keys.
-- **Schema Version 2 (Phase 2):** Added `UNIQUE (subject_id, session_date, component)` table constraint to `AttendanceSessions` with index `idx_attendance_sessions_unique` and added `idx_attendance_sessions_date` on `session_date` for fast calendar navigation. Upgrade migration preserves all existing v1 data.
+- **Schema Version 2 (Phase 2):** Added a unique index on `(subject_id, session_date, component)` and `idx_attendance_sessions_date`. Upgrade migration preserves all existing v1 data.
+- **Schema Version 3:** Removed that unique index so a subject can store more than one lecture, or more than one lab, on the same date. The upgrade copies every existing row into the rebuilt table.
 
 ## 13. Data integrity and validation
 

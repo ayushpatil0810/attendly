@@ -27,7 +27,13 @@ class SemesterSettingsSection extends ConsumerWidget {
         decoration: BoxDecoration(
           color: AppColors.pureWhite,
           borderRadius: AppRadius.lgBorder,
-          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.ink.withAlpha(6),
+              blurRadius: 14,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,7 +75,13 @@ class SemesterSettingsSection extends ConsumerWidget {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.ink.withAlpha(6),
+            blurRadius: 14,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,7 +97,7 @@ class SemesterSettingsSection extends ConsumerWidget {
                     Text(
                       'ACTIVE SEMESTER',
                       style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.brandViolet,
+                        color: AppColors.inkViolet,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.8,
                       ),
@@ -153,7 +165,7 @@ class SemesterSettingsSection extends ConsumerWidget {
                   '$thresholdPercent%',
                   style: AppTypography.metricMedium.copyWith(
                     fontSize: 15,
-                    color: AppColors.brandViolet,
+                    color: AppColors.inkViolet,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -165,10 +177,10 @@ class SemesterSettingsSection extends ConsumerWidget {
           // Threshold Slider
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
-              activeTrackColor: AppColors.brandViolet,
+              activeTrackColor: AppColors.inkViolet,
               inactiveTrackColor: AppColors.track,
-              thumbColor: AppColors.brandViolet,
-              overlayColor: AppColors.brandViolet.withOpacity(0.12),
+              thumbColor: AppColors.inkViolet,
+              overlayColor: AppColors.inkViolet.withOpacity(0.12),
               trackHeight: 4,
             ),
             child: Slider(
@@ -207,12 +219,13 @@ class SemesterSettingsSection extends ConsumerWidget {
             items: [
               SegmentItem(
                 value: AttendanceCalculationMethod.rawCombined,
-                label: 'Raw Combined',
+                label: AttendanceCalculationMethod.rawCombined.displayName,
                 icon: const AppIcon(AppIcons.lecture, size: 16),
               ),
               SegmentItem(
                 value: AttendanceCalculationMethod.componentAverage,
-                label: '50/50 Average',
+                label:
+                    AttendanceCalculationMethod.componentAverage.displayName,
                 icon: const AppIcon(AppIcons.lab, size: 16),
               ),
             ],
