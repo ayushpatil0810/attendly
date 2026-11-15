@@ -24,7 +24,7 @@ class SubjectController extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
-  Future<int?> createSubject({
+  Future<int> createSubject({
     required int semesterId,
     required String name,
     bool lectureEnabled = true,
@@ -75,6 +75,6 @@ class SubjectController extends AsyncNotifier<void> {
 }
 
 final subjectControllerProvider =
-    AsyncNotifierProvider.autoDispose<SubjectController, void>(
+    AsyncNotifierProvider<SubjectController, void>(
       SubjectController.new,
     );

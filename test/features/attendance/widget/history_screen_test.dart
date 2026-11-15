@@ -125,6 +125,11 @@ void main() {
     testWidgets('opens session edit sheet when edit icon tapped', (
       tester,
     ) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final testDate = DateTime(2026, 3, 10);
       final dateStr = '2026-03-10';
 
@@ -158,6 +163,11 @@ void main() {
     testWidgets('deletes session after confirming delete dialog', (
       tester,
     ) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final testDate = DateTime(2026, 3, 10);
       final dateStr = '2026-03-10';
 

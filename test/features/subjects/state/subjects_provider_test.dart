@@ -94,7 +94,7 @@ void main() {
       // Delete subject
       await container
           .read(subjectControllerProvider.notifier)
-          .deleteSubject(subId!);
+          .deleteSubject(subId);
 
       await Future<void>.delayed(Duration.zero);
       subjects = container.read(activeSemesterSubjectsProvider).requireValue;

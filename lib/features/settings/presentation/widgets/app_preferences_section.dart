@@ -20,11 +20,14 @@ class AppPreferencesSection extends ConsumerWidget {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppRadius.lgBorder,
+        border: Border.all(
+          color: AppColors.divider.withValues(alpha: 0.8),
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.ink.withAlpha(6),
-            blurRadius: 14,
-            offset: const Offset(0, 2),
+            color: AppColors.ink.withValues(alpha: 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -34,7 +37,8 @@ class AppPreferencesSection extends ConsumerWidget {
           // Haptic Feedback Toggle
           AppSwitchTile(
             title: 'Haptic Feedback',
-            subtitle: 'Provide tactile vibration when logging classes and tapping actions',
+            subtitle:
+                'Tactile vibration when logging classes and tapping actions',
             icon: const AppIcon(
               AppIcons.device,
               size: 20,
@@ -52,36 +56,30 @@ class AppPreferencesSection extends ConsumerWidget {
 
           // Animation & Reduced Motion Note
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: AppColors.track.withAlpha(80),
+              color: AppColors.softLavender.withValues(alpha: 0.5),
               borderRadius: AppRadius.mdBorder,
+              border: Border.all(
+                color: AppColors.brandViolet.withValues(alpha: 0.15),
+              ),
             ),
             child: Row(
               children: [
                 const AppIcon(
                   AppIcons.info,
-                  size: 18,
-                  color: AppColors.mutedInk,
+                  size: 16,
+                  color: AppColors.inkViolet,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Reduced Motion',
-                        style: AppTypography.itemTitle.copyWith(fontSize: 13),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Animations automatically adapt to your device\'s system accessibility preferences.',
-                        style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.mutedInk,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    'Animations automatically adapt to your device\'s system accessibility preferences.',
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.mutedInk,
+                      fontSize: 12,
+                      height: 1.35,
+                    ),
                   ),
                 ),
               ],

@@ -17,6 +17,7 @@ class AttendanceCalendar extends ConsumerWidget {
     final currentMonth = ref.watch(currentMonthProvider);
     final selectedDate = ref.watch(selectedDateProvider);
     final sessionsAsync = ref.watch(sessionsForMonthProvider);
+    final dayNotesAsync = ref.watch(dayNotesForMonthProvider);
 
     final sessionsByDate = <String, List<AttendanceSession>>{};
     sessionsAsync.whenData((sessions) {
@@ -24,6 +25,8 @@ class AttendanceCalendar extends ConsumerWidget {
         sessionsByDate.putIfAbsent(s.sessionDate, () => []).add(s);
       }
     });
+
+    final dayNotesMap = dayNotesAsync.value ?? {};
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -150,6 +153,7 @@ class AttendanceCalendar extends ConsumerWidget {
             selectedDate: selectedDate,
             today: today,
             sessionsByDate: sessionsByDate,
+            dayNotesMap: dayNotesMap,
           ),
         ],
       ),
@@ -165,6 +169,7 @@ class AttendanceCalendar extends ConsumerWidget {
     required DateTime selectedDate,
     required DateTime today,
     required Map<String, List<AttendanceSession>> sessionsByDate,
+    required Map<String, String> dayNotesMap,
   }) {
     // Offset for Monday-based week: 1 (Mon) -> 0 blanks, 7 (Sun) -> 6 blanks
     final leadingBlanks = firstWeekday - 1;
@@ -202,6 +207,8 @@ class AttendanceCalendar extends ConsumerWidget {
               final hasAbsent = sessionsForDay.any(
                 (s) => s.status == AttendanceStatus.absent,
               );
+              final hasNote = dayNotesMap.containsKey(dateKey) &&
+                  (dayNotesMap[dateKey]?.trim().isNotEmpty ?? false);
 
               return Expanded(
                 child: _CalendarDayCell(
@@ -211,6 +218,7 @@ class AttendanceCalendar extends ConsumerWidget {
                   isFuture: isFuture,
                   hasPresent: hasPresent,
                   hasAbsent: hasAbsent,
+                  hasNote: hasNote,
                   onTap: isFuture
                       ? null
                       : () {
@@ -257,6 +265,7 @@ class _CalendarDayCell extends StatelessWidget {
     required this.isFuture,
     required this.hasPresent,
     required this.hasAbsent,
+    required this.hasNote,
     required this.onTap,
   });
 
@@ -266,6 +275,7 @@ class _CalendarDayCell extends StatelessWidget {
   final bool isFuture;
   final bool hasPresent;
   final bool hasAbsent;
+  final bool hasNote;
   final VoidCallback? onTap;
 
   @override
@@ -281,6 +291,7 @@ class _CalendarDayCell extends StatelessWidget {
       textColor = AppColors.ink;
     }
 
+    final noteText = hasNote ? ', Has note' : '';
     final statusText = hasPresent && hasAbsent
         ? ', Present and Absent recorded'
         : hasPresent
@@ -292,7 +303,7 @@ class _CalendarDayCell extends StatelessWidget {
     return Semantics(
       button: !isFuture,
       selected: isSelected,
-      label: 'Day $dayNumber$statusText',
+      label: 'Day $dayNumber$statusText$noteText',
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
@@ -330,7 +341,7 @@ class _CalendarDayCell extends StatelessWidget {
               ),
               const SizedBox(height: 2),
 
-              // Indicator dots: Mint for present, Coral for absent.
+              // Indicator dots: Mint for present, Coral for absent, Violet for note.
               // When no records exist: completely clean! Never show red for unrecorded.
               SizedBox(
                 height: 5,
@@ -354,6 +365,16 @@ class _CalendarDayCell extends StatelessWidget {
                         margin: const EdgeInsets.symmetric(horizontal: 1),
                         decoration: const BoxDecoration(
                           color: AppColors.inkCoral,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    if (hasNote)
+                      Container(
+                        width: 4,
+                        height: 4,
+                        margin: const EdgeInsets.symmetric(horizontal: 1),
+                        decoration: const BoxDecoration(
+                          color: AppColors.brandViolet,
                           shape: BoxShape.circle,
                         ),
                       ),

@@ -38,6 +38,7 @@ abstract final class AppIcons {
   static const file = HugeIcons.strokeRoundedFile01;
   static const device = HugeIcons.strokeRoundedSmartPhone01;
   static const database = HugeIcons.strokeRoundedDatabase;
+  static const note = HugeIcons.strokeRoundedNote01;
 }
 
 /// Standardized HugeIcon wrapper for uniform styling
