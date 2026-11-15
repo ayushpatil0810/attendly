@@ -64,7 +64,7 @@ void main() {
       // Tap Insights tab
       await tester.tap(find.text('Insights'));
       await tester.pumpAndSettle();
-      expect(find.text('Analytics & Simulator (Phases 3 & 4)'), findsOneWidget);
+      expect(find.text('Simulator'), findsOneWidget);
 
       // Tap Quick Log (+) button
       await tester.tap(find.byKey(const Key('quick_log_dock_button')));

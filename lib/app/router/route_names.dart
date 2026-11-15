@@ -3,9 +3,11 @@ abstract final class RouteNames {
   static const onboarding = 'onboarding';
   static const semesterSetup = 'semesterSetup';
   static const home = 'home';
+  static const simulator = 'simulator';
 
   static const splashPath = '/';
   static const onboardingPath = '/onboarding';
   static const semesterSetupPath = '/semester-setup';
   static const homePath = '/home';
+  static const simulatorPath = '/simulator';
 }

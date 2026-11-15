@@ -1,0 +1,156 @@
+import 'package:flutter/material.dart';
+import 'package:attendly/core/theme/app_colors.dart';
+import 'package:attendly/core/theme/app_icons.dart';
+import 'package:attendly/core/theme/app_radius.dart';
+import 'package:attendly/core/theme/app_spacing.dart';
+import 'package:attendly/core/theme/app_typography.dart';
+import 'package:attendly/features/attendance/domain/entities/insight_observation.dart';
+
+class InsightObservationsSection extends StatelessWidget {
+  const InsightObservationsSection({super.key, required this.observations});
+
+  final List<InsightObservation> observations;
+
+  @override
+  Widget build(BuildContext context) {
+    if (observations.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Key Observations', style: AppTypography.sectionTitle),
+        const SizedBox(height: AppSpacing.sm),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: observations.length,
+          separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.xs),
+          itemBuilder: (context, index) {
+            final obs = observations[index];
+            return _ObservationTile(observation: obs);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _ObservationTile extends StatelessWidget {
+  const _ObservationTile({required this.observation});
+
+  final InsightObservation observation;
+
+  Color get _accentColor {
+    switch (observation.type) {
+      case InsightObservationType.positive:
+        return AppColors.brandMint;
+      case InsightObservationType.warning:
+        return AppColors.brandCoral;
+      case InsightObservationType.info:
+        return AppColors.brandViolet;
+      case InsightObservationType.neutral:
+        return AppColors.brandPeach;
+    }
+  }
+
+  Color get _bgColor {
+    switch (observation.type) {
+      case InsightObservationType.positive:
+        return AppColors.softMint;
+      case InsightObservationType.warning:
+        return AppColors.softCoral;
+      case InsightObservationType.info:
+        return AppColors.softLavender;
+      case InsightObservationType.neutral:
+        return AppColors.softPeach;
+    }
+  }
+
+  dynamic get _icon {
+    switch (observation.type) {
+      case InsightObservationType.positive:
+        return AppIcons.check;
+      case InsightObservationType.warning:
+        return AppIcons.alert;
+      case InsightObservationType.info:
+        return AppIcons.insights;
+      case InsightObservationType.neutral:
+        return AppIcons.lecture;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.pureWhite,
+        borderRadius: AppRadius.lgBorder,
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: _bgColor,
+              borderRadius: AppRadius.smBorder,
+            ),
+            child: AppIcon(_icon, size: 16, color: _accentColor),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        observation.title,
+                        style: AppTypography.itemTitle.copyWith(fontSize: 13),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (observation.badgeText != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _bgColor,
+                          borderRadius: AppRadius.pillBorder,
+                        ),
+                        child: Text(
+                          observation.badgeText!,
+                          style: AppTypography.labelSmall.copyWith(
+                            color: _accentColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  observation.message,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.mutedInk,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:attendly/app/router/route_names.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_radius.dart';
@@ -101,6 +103,28 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
                     'Under 50/50 weighting, safe absences and recovery depend on future Lecture and Lab mix.',
                     style: AppTypography.bodySmall.copyWith(
                       color: AppColors.mutedInk,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  GestureDetector(
+                    onTap: () => context.push(RouteNames.simulatorPath),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Open Simulator',
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.brandViolet,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 14,
+                          color: AppColors.brandViolet,
+                        ),
+                      ],
                     ),
                   ),
                 ],

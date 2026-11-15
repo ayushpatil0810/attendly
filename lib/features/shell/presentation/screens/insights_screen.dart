@@ -1,12 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:attendly/core/shared/widgets/app_segmented_control.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
-import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
+import 'package:attendly/features/insights/presentation/widgets/insights_content.dart';
+import 'package:attendly/features/simulator/presentation/screens/simulator_screen.dart';
 
-class InsightsScreen extends StatelessWidget {
-  const InsightsScreen({super.key});
+class InsightsScreen extends StatefulWidget {
+  const InsightsScreen({super.key, this.initialTabIndex = 0});
+
+  final int initialTabIndex;
+
+  @override
+  State<InsightsScreen> createState() => _InsightsScreenState();
+}
+
+class _InsightsScreenState extends State<InsightsScreen> {
+  late int _selectedTab;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedTab = widget.initialTabIndex;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,6 +31,7 @@ class InsightsScreen extends StatelessWidget {
       backgroundColor: AppColors.warmWhite,
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.only(
             left: AppSpacing.screenHorizontal,
             right: AppSpacing.screenHorizontal,
@@ -23,95 +41,60 @@ class InsightsScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Insights', style: AppTypography.screenTitle),
-              const SizedBox(height: 4),
-              Text('Analytics & Projections', style: AppTypography.bodySmall),
-              const SizedBox(height: 32),
-
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: AppColors.pureWhite,
-                  borderRadius: AppRadius.xlBorder,
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: const BoxDecoration(
-                        color: AppColors.softMint,
-                        shape: BoxShape.circle,
+              // Screen Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _selectedTab == 0 ? 'Insights' : 'Simulator',
+                        style: AppTypography.screenTitle,
                       ),
-                      alignment: Alignment.center,
-                      child: const AppIcon(
-                        AppIcons.insights,
-                        size: 32,
-                        color: AppColors.brandMint,
+                      const SizedBox(height: 2),
+                      Text(
+                        _selectedTab == 0
+                            ? 'Attendance analytics & patterns'
+                            : 'What-if hypothetical modeling',
+                        style: AppTypography.labelSmall.copyWith(
+                          color: AppColors.mutedInk,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Analytics & Simulator (Phases 3 & 4)',
-                      style: AppTypography.sectionTitle,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'In-depth attendance visualizations, safe-absence calculators, and the What-if Simulator will be enabled once attendance logging is established.',
-                      style: AppTypography.bodyMuted,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    _InsightBullet(
-                      icon: AppIcons.insights,
-                      text: 'Overall attendance donut with threshold target indicators',
-                    ),
-                    const SizedBox(height: 12),
-                    _InsightBullet(
-                      icon: AppIcons.lecture,
-                      text:
-                          'Independent Lecture vs Lab performance comparisons',
-                    ),
-                    const SizedBox(height: 12),
-                    _InsightBullet(
-                      icon: AppIcons.check,
-                      text: 'Safe absences and required consecutive recovery days',
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
+              const SizedBox(height: AppSpacing.md),
+
+              // Segmented Switcher: [Insights] [Simulator]
+              AppSegmentedControl<int>(
+                selectedValue: _selectedTab,
+                onChanged: (val) => setState(() => _selectedTab = val),
+                items: const [
+                  SegmentItem(
+                    value: 0,
+                    label: 'Insights',
+                    icon: AppIcon(AppIcons.insights, size: 16),
+                  ),
+                  SegmentItem(
+                    value: 1,
+                    label: 'Simulator',
+                    icon: AppIcon(AppIcons.calendar, size: 16),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+
+              // Active Tab Content
+              if (_selectedTab == 0)
+                const InsightsContent()
+              else
+                const SimulatorContent(),
             ],
           ),
         ),
       ),
-    );
-  }
-}
-
-class _InsightBullet extends StatelessWidget {
-  const _InsightBullet({required this.icon, required this.text});
-
-  final dynamic icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: AppColors.track,
-            borderRadius: AppRadius.smBorder,
-          ),
-          child: AppIcon(icon, size: 16, color: AppColors.ink),
-        ),
-        const SizedBox(width: 12),
-        Expanded(child: Text(text, style: AppTypography.bodySmall)),
-      ],
     );
   }
 }

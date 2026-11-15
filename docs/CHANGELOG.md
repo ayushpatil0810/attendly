@@ -9,6 +9,33 @@ The project is currently in its pre-release development phase. Do not invent rel
 ## [Unreleased]
 
 ### Added
+- Phase 4: Insights, Advanced Analytics & What-if Attendance Simulator.
+- Domain calculation services and entities:
+  - `HypotheticalSession`: In-memory model for hypothetical future classes.
+  - `SimulatorProjection`: Comparative projection model tracking actual baseline vs projected counts, percentages, deltas, threshold status transitions, and subject/component breakdowns.
+  - `InsightsFilter`: Multi-dimensional filtering model supporting `DateRangeType` (All Time, Last 7 Days, Last 30 Days, Custom Range), subject filtering, and component filtering.
+  - `InsightObservation`: Factual observation model categorizing analytical observations into achievement, warning, and info.
+  - `ScenarioCalculator`: Pure Dart simulation service combining real recorded sessions with hypothetical sessions, projecting outcomes using `AttendanceCalculator` with 100% calculation parity.
+  - `InsightObservationGenerator`: Factual observation generator providing verifiable takeaways (component imbalances, below-threshold alerts, recent trends) while strictly avoiding speculative predictions and requiring >= 3 conducted sessions.
+- Reactive Riverpod providers:
+  - `insightsFilterProvider`, `filteredSemesterAttendanceSummaryProvider`, and `insightObservationsProvider` (`insights_providers.dart`).
+  - `simulatorControllerProvider`, `simulatorProjectionProvider`, and `scenarioCalculatorProvider` (`simulator_providers.dart`).
+- Insights presentation components:
+  - `InsightsFilterBar`: Multi-dimensional filtering pills with custom date picker sheet and clear button.
+  - `InsightsOverviewCard`: Contextual distribution donut chart, total conducted sessions, and threshold comparison.
+  - `SubjectComparisonCard`: Horizontal comparison bars across subjects with target threshold indicator and honest unavailable states.
+  - `LectureLabComparisonCard`: Side-by-side component breakdown showing Lecture vs Lab attendance, counts, and performance variances.
+  - `AdvancedTrendCard`: Chronological cumulative attendance sparkline plotting only actual recorded class dates without artificial interpolation.
+  - `InsightObservationsSection`: Transparent, factual analytical notes explaining trends and alerts.
+- Attendance Simulator presentation components:
+  - `SimulatorScreen` and `SimulatorContent`: Interactive what-if modeling workspace.
+  - `SimulatorProjectionCard`: Side-by-side comparison of actual baseline vs projected attendance, delta badges, and threshold transitions.
+  - `SimulatorInputPanel`: Subject & component picker, single-tap (+1 Present, +1 Absent), and quick batch increment buttons (+3, +5).
+  - `HypotheticalSessionList`: Interactive list of hypothetical sessions with Present/Absent toggle, individual deletion, and full simulation reset.
+  - Strict simulator isolation ensuring hypothetical sessions exist solely in memory, never writing to the Drift database or modifying actual attendance totals.
+- Navigation enhancements:
+  - Unified segmented control (`Insights` | `Simulator`) on the Insights tab.
+  - Registered `/simulator` standalone route in `GoRouter` with direct access from dashboard cards.
 - Phase 3: Dashboard & Attendance Calculations implementation.
 - Pure Dart domain calculation services:
   - `AttendanceCalculator`: Authoritative engine for Raw Combined and Component Average (50/50) attendance percentages, provisional states, and threshold evaluations.
