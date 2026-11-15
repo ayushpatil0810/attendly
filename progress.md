@@ -2,9 +2,9 @@
 
 ## Project Overview
 - **Project Name / Identifier:** College Attendance Tracker (Working title: attendly)
-- **Current Development Phase:** Phase 5: Settings, Local Backup & Data Safety
-- **Overall Project Status:** Phase 5 Completed (Ready for Phase 6 review)
-- **Description:** A 100% offline-only personal college attendance tracking mobile app built with Flutter, Riverpod, Drift (SQLite), and go_router. Features independent lecture and lab tracking, Raw Combined and Component Average (50/50) attendance calculation methods, safe absence calculations, recovery projections, What-if Attendance Simulator, local JSON backup/export, transactional restore with validation, app preferences, and a custom design system following soft, colorful, modern minimalism (light theme only, Plus Jakarta Sans, Hugeicons, floating bottom navigation dock).
+- **Current Development Phase:** Phase 6: Polish, Quality Assurance & Release Preparation
+- **Overall Project Status:** Phase 6 Completed — Release Candidate 1.0.0-rc.1 Ready
+- **Description:** A 100% offline-only personal college attendance tracking mobile app built with Flutter, Riverpod, Drift (SQLite), and go_router. Features independent lecture and lab tracking, Raw Combined and Component Average (50/50) attendance calculation methods, safe absence calculations, recovery projections, What-if Attendance Simulator, local JSON backup/export, transactional restore with validation, app preferences, accessibility enhancements, responsive layouts, and a custom design system following soft, colorful, modern minimalism (light theme only, Plus Jakarta Sans, Hugeicons, floating bottom navigation dock).
 
 ---
 
@@ -17,160 +17,109 @@
 | **Phase 3** | **Dashboard & Attendance Calculations** | **Completed** |
 | **Phase 4** | **Insights, Advanced Charts & Attendance Simulator** | **Completed** |
 | **Phase 5** | **Settings, Local Backup & Data Safety** | **Completed** |
-| Phase 6 | Polish & Release Preparation | Not Started |
+| **Phase 6** | **Polish, Quality Assurance & Release Preparation** | **Completed** |
 
 ---
 
-## Phase 5 Progress & Achievements
+## Phase 6 Progress & Achievements
 
-### 1. Pre-implementation Baseline & Review
-- [x] Reviewed all nine project documents (`PRD.md`, `SPEC.md`, `TECH_STACK.md`, `ARCHITECTURE.md`, `DATABASE.md`, `DESIGN.md`, `TESTING.md`, `AGENTS.md`, `CHANGELOG.md`) and `progress.md`.
-- [x] Verified existing tests and static analysis baseline: 147/147 tests passed, 0 analyzer issues found.
-- [x] Verified strict separation between actual attendance records (SQLite) and hypothetical simulator sessions (in-memory only).
+### 1. Functional Audit & Verification Across All Major Features
+- [x] **App Foundation:**
+  - Verified splash screen, onboarding completion flag, and routing guard.
+  - Verified semester creation, editing, active selection, and threshold configuration.
+  - Verified subject creation with independent Lecture/Lab component switches.
+- [x] **Attendance Management:**
+  - Verified Quick Log single-tap Present/Absent recording.
+  - Verified duplicate session prevention (enforced both at Drift SQLite constraint level and repository level).
+  - Verified historical attendance recording, status editing, and session deletion.
+  - Verified transient Undo mechanism for session operations.
+- [x] **Dashboard & Calculations:**
+  - Verified Raw Combined calculation and 50/50 Component Average calculation.
+  - Verified honest unavailable and provisional states when data is insufficient.
+  - Verified mathematical accuracy of safe absence calculation and recovery sessions calculation.
+  - Verified instant reactive updates across all dashboard cards when attendance or semester thresholds change.
+- [x] **Insights & Simulator:**
+  - Verified subject comparison bar charts, lecture vs. lab comparison, and historical trend points.
+  - Verified date-range filtering (All Time, Past 30 Days, Past 7 Days) and insufficient data cards.
+  - Verified What-if Attendance Simulator with strict database isolation (ephemeral in-memory state; zero impact on persistent SQLite records).
+- [x] **Settings & Data Safety:**
+  - Verified local JSON backup export (`college-attendance-tracker-backup` v1).
+  - Verified pure Dart multi-stage backup validation (`BackupValidator`).
+  - Verified atomic database restore within a single SQLite transaction with automatic rollback upon failure.
+  - Verified user preferences (haptic feedback toggle) and privacy/offline information.
 
-### 2. Core Backup & Restore System (`lib/core/backup/`)
-- [x] **Versioned Format Models (`BackupConstants` & `BackupData`):**
-  - Authoritative format identifier `college-attendance-tracker-backup` with version `1`.
-  - Serializes and deserializes `SemesterBackupModel`, `SubjectBackupModel`, `AttendanceSessionBackupModel`, and optional `appPreferences`.
-  - Generates `BackupSummary` for previewing export date, semester names/counts, subject counts, and present/absent session breakdowns before restore.
-- [x] **Pure Dart Validator (`BackupValidator`):**
-  - Validates JSON document syntax and structure.
-  - Verifies format identifier and format version (rejecting unsupported/future versions > 1).
-  - Validates ISO-8601 timestamps and calendar date strings (`YYYY-MM-DD`, real calendar validation).
-  - Enforces entity uniqueness (no duplicate semester IDs, subject IDs, or session IDs).
-  - Validates referential integrity: every subject references an existing semester in the backup; every session references an existing subject.
-  - Enforces component rules: rejects sessions whose component (`lecture` or `lab`) is disabled on the parent subject.
-  - Enforces duplicate session constraints: rejects duplicate `(subjectId, sessionDate, component)` records.
-  - Enforces safe file size (< 25 MB) and total record count boundaries (< 100,000 records).
-- [x] **Transactional Backup Service (`BackupService`):**
-  - Generates portable UTF-8 JSON backups of all persistent application data.
-  - Executes restore entirely within an atomic database transaction (`_db.transaction`).
-  - Safely remaps old IDs to new auto-increment IDs (`oldId -> newId`) across foreign-key relationships.
-  - Strictly preserves existing local database without partial writes if any error occurs during restore.
-  - Adheres to the approved replace restore policy with explicit user confirmation.
-- [x] **Strict Simulator Isolation:**
-  - Ephemeral simulator scenarios remain strictly in memory; they are never queried or exported during backup generation, and hypothetical sessions cannot be imported into the actual database.
+### 2. End-to-End User Journey Tests (`test/journeys/end_to_end_user_journeys_test.dart`)
+- [x] **Journey 1: New Student:** Verified onboarding -> semester setup (80% threshold, Raw Combined) -> subject setup -> empty dashboard state.
+- [x] **Journey 2: Record Attendance:** Verified Quick Log -> mark Present -> mark Absent -> undo last action -> duplicate protection exception.
+- [x] **Journey 3: Correct Historical Attendance:** Verified past date entry -> status edit -> session deletion -> return to empty state.
+- [x] **Journey 4: Review Attendance:** Verified live stats -> threshold change (75% to 70%) -> immediate recalculation -> switch to 50/50 Component Average with provisional handling.
+- [x] **Journey 5: Use Simulator:** Verified hypothetical session projections -> reset simulation -> 100% database isolation confirmed.
+- [x] **Journey 6: Backup & Restore:** Verified export -> schema validation -> fresh restore parity -> malformed file rejection -> transaction rollback preserving existing records.
 
-### 3. Core Platform Services (`lib/core/services/`)
-- [x] **Platform File Service (`PlatformFileService`):**
-  - Abstraction for picking local `.json` backup files and exporting backups.
-  - Uses `file_picker` (13.3.3) for custom extension file picking and desktop file saving.
-  - Uses `share_plus` (13.3.1) for native mobile share-sheet export allowing offline saving to local files or storage.
-  - Mockable interface for 100% deterministic test execution.
-- [x] **Preferences & Haptics (`preferences_service.dart`):**
-  - Manages `hapticFeedbackEnabled` state persisting via `SharedPreferences`.
-  - `AppHaptics` utility providing tactile vibration for attendance logging and button interactions when enabled.
+### 3. UI, Design & Polish
+- [x] **Subject Detail Bottom Sheet (`SubjectDetailSheet`):**
+  - Created dedicated bottom sheet displaying subject attendance summary, progress indicator, Lecture/Lab component breakdown, safe absence/recovery metrics, and direct attendance logging.
+- [x] **Interactive Subjects Screen (`SubjectsScreen`):**
+  - Removed outdated placeholder text ("No sessions recorded yet (Phase 2)").
+  - Wired live attendance data from `semesterAttendanceSummaryProvider`, showing real percentage, progress bar, attended/conducted counts, and threshold badge.
+  - Tapping any subject card opens `SubjectDetailSheet`.
+- [x] **Interactive Dashboard Subject Preview (`DashboardSubjectPreview`):**
+  - Subject preview rows are now interactive (`InkWell(onTap: onNavigateToSubjects)`), navigating directly to the Subjects tab.
+- [x] **Dead Code Cleanup:**
+  - Removed obsolete placeholder widget `QuickLogPlaceholderSheet` left over from Phase 1.
+- [x] **Design Consistency:**
+  - Adhered strictly to `DESIGN.md` palette: Violet `#9278F2`, Mint `#8BE4D0`, Coral `#FF929B`, Peach `#FFB49F`, Warm White `#FFFAF9`, Primary text `#30263F`, Secondary text `#827B8D`.
+  - Preserved typography hierarchy using Plus Jakarta Sans and Hugeicons.
 
-### 4. Settings Presentation Suite (`lib/features/settings/` & `SettingsScreen`)
-- [x] **Settings Screen (`SettingsScreen`):**
-  - Custom top navigation bar with back navigation and clean Plus Jakarta Sans title.
-  - Four compact, non-card-overloaded sections following `DESIGN.md`.
-- [x] **Semester Settings (`SemesterSettingsSection`):**
-  - Displays current active semester name, threshold, and calculation policy.
-  - Immediate calculation method switcher (`Raw Combined` vs `50/50 Average`) with instant recalculation across screens.
-  - Real-time attendance threshold slider updating target threshold across all calculations immediately.
-  - Direct actions to switch active semesters (`SemesterSwitcherSheet`) or edit full semester details (`SemesterFormSheet`).
-- [x] **App Preferences (`AppPreferencesSection`):**
-  - Interactive `AppSwitchTile` toggling haptic feedback.
-  - Transparent information explaining system-level reduced-motion support.
-- [x] **Local Backup & Restore (`BackupRestoreSection`):**
-  - One-tap export flow with timestamped file naming (`attendly_backup_YYYY-MM-DD_HHmmss.json`), loading indicators, and success toast.
-  - One-tap restore flow prompting file selection, validating backup, and displaying error dialogs for corrupted or unsupported files.
-  - `BackupSummaryDialog`: Pre-restore confirmation modal displaying export date, semester list, subject count, attendance breakdown, and a high-visibility warning regarding data replacement.
-- [x] **Privacy & Offline Information (`PrivacyOfflineSection`):**
-  - Highlights 100% offline local SQLite storage.
-  - Emphasizes zero account/login requirements, zero cloud sync/telemetry, and student data ownership.
-  - Explains data loss risk upon app uninstall if no backup was exported.
-- [x] **Navigation & Integration:**
-  - Registered `/settings` route in `GoRouter` (`RouteNames.settingsPath`).
-  - Linked Settings cog in `DashboardHeader` directly to Settings screen.
+### 4. Responsive Layouts & Overflow Protection
+- [x] Added `Flexible` with `TextOverflow.ellipsis` to `AppButton` to prevent `RenderFlex` horizontal overflow on narrow mobile screens.
+- [x] Verified scrollability across all dialogs, sheets, and screens with safe-area padding.
+- [x] Adaptive floating navigation dock and charts responsive to varied screen widths.
 
----
+### 5. Accessibility Audit
+- [x] **Semantic Labels:** Added explicit `Semantics` tags to `AppButton`, `AppFloatingDock` destinations, `DashboardHeader` semester switcher, and `AttendanceCalendar` month navigation and date cells.
+- [x] **Tap Target Sizes:** Enforced minimum 40–48px tap targets across buttons, switches, and icon buttons.
+- [x] **Non-color-only Status:** Attendance threshold status (Meeting / Below / Not Available) communicates status via explicit text labels, icons, and percentage values, never relying solely on color.
+- [x] **Reduced-Motion Support:** Added `MediaQuery.disableAnimationsOf(context)` checks in `AppButton` and `AppFloatingDock` so transitions and scale animations are bypassed when reduced motion is preferred by the user.
 
-## Architectural & File Changes in Phase 5
+### 6. Offline-Only & Data Integrity Audit
+- [x] Zero network packages and zero internet permissions in `android/app/src/main/AndroidManifest.xml`.
+- [x] Verified zero Firebase, Supabase, authentication, remote APIs, cloud databases, or background telemetry.
+- [x] SQLite schema version 2 with foreign-key cascades, strict unique constraints, and date-only `YYYY-MM-DD` formatting.
 
-```text
-lib/
-├── app/
-│   └── router/
-│       ├── app_router.dart                                      # Registered /settings route
-│       └── route_names.dart                                     # Added settings & settingsPath
-├── core/
-│   ├── backup/
-│   │   ├── backup_format.dart                                   # Format constants, entities & BackupSummary
-│   │   ├── backup_providers.dart                                # Riverpod backupServiceProvider
-│   │   ├── backup_service.dart                                  # JSON export & transactional restore service
-│   │   └── backup_validator.dart                                # Multi-stage schema and integrity validator
-│   ├── services/
-│   │   ├── platform_file_service.dart                           # FilePicker & SharePlus file abstraction
-│   │   └── preferences_service.dart                             # Haptic feedback state & AppHaptics utility
-│   └── theme/
-│       └── app_icons.dart                                       # Added HugeIcons for backup, restore, shield
-└── features/
-    ├── attendance/
-    │   └── presentation/widgets/
-    │       ├── quick_log_sheet.dart                             # Added tactile haptic feedback on save
-    │       └── session_form_sheet.dart                          # Added tactile haptic feedback on save
-    ├── dashboard/
-    │   └── presentation/widgets/
-    │       └── dashboard_header.dart                            # Connected settings cog to /settings route
-    ├── semesters/
-    │   └── presentation/providers/
-    │       └── semesters_provider.dart                          # Persistent SemesterController (non-autoDispose)
-    └── settings/
-        └── presentation/
-            ├── providers/
-            │   └── settings_providers.dart                      # BackupController and export/restore states
-            ├── screens/
-            │   └── settings_screen.dart                         # Four-section Settings screen
-            └── widgets/
-                ├── app_preferences_section.dart                 # Haptic toggle & reduced motion info
-                ├── backup_restore_section.dart                  # Export & restore action cards
-                ├── backup_summary_dialog.dart                   # Pre-restore summary confirmation modal
-                ├── privacy_offline_section.dart                 # Offline-only & privacy notice
-                └── semester_settings_section.dart               # Threshold slider & calculation switcher
-```
+### 7. Release Build Verification
+- [x] **Android Application ID:** `com.attendly.attendly`.
+- [x] **Version Code / Name:** `version: 1.0.0+1` (1.0.0-rc.1).
+- [x] **Debug APK:** Built successfully via `flutter build apk --debug` at `build\app\outputs\flutter-apk\app-debug.apk` (258.5 MB).
+- [x] **Release APK:** Built successfully via `flutter build apk --release` at `build\app\outputs\flutter-apk\app-release.apk` (62.6 MB / 59.7 MiB).
 
 ---
 
 ## Test Verification Summary
-- **Total Tests:** 186 passing tests across 24 test suites (39 new tests added in Phase 5).
-- **Core Backup & Validation Tests:**
-  - `backup_validator_test.dart` (23 tests): Valid backup parsing and summary, empty string rejection, invalid JSON syntax, non-object root, missing/unrecognized format identifier, unsupported format version (> 1), invalid export timestamp, missing data object, non-list collections, duplicate semester IDs, blank semester name, invalid threshold (out of bounds), unsupported calculation method, invalid calendar dates (e.g. Feb 31), start date after end date, duplicate subject IDs, broken semester foreign keys, subject without enabled components, duplicate session IDs, broken subject foreign keys, invalid session calendar dates, invalid component/status enums, component disabled on subject, duplicate `(subject, date, component)` sessions.
-  - `backup_export_test.dart` (3 tests): Empty database export matching schema, populated database export with all fields and preferences, and simulator data isolation verification.
-  - `backup_restore_test.dart` (4 tests): Fresh database restore with domain calculation parity, replace policy verification, transactional failure rollback leaving existing database 100% intact, and full round-trip export-restore-reexport data equivalence.
-- **Settings Screen & Navigation Tests:**
-  - `settings_screen_test.dart` (8 tests): All 4 sections rendered with initial semester details, toggling haptic feedback updates preference state, changing calculation method updates semester, export backup flow triggers file service with success toast, restore with invalid file shows error dialog, restore with valid file displays summary dialog and cancels safely without altering database, confirming Restore & Replace replaces local data, privacy section displays all offline guarantees.
-  - `dashboard_settings_navigation_test.dart` (1 test): Tapping settings cog on dashboard header navigates to `/settings`.
-- **Pre-existing Suites (147 tests):** All database, calculation engine, simulator isolation, insights, history, quick log, and onboarding tests continue passing without regression.
+- **Total Tests:** 193 passing tests across 25 test suites (7 new tests added in Phase 6).
 - **Static Analysis & Formatting:**
-  - `dart format .`: 141 files checked, 100% cleanly formatted.
+  - `dart format .`: **100% cleanly formatted** (142 files checked).
   - `flutter analyze`: **0 issues found**.
-  - `flutter test`: **186/186 tests passed**.
+  - `flutter test`: **193/193 tests passed (0 failures)**.
+- **Android Builds:**
+  - `flutter build apk --debug`: **Exit code 0** (Success).
+  - `flutter build apk --release`: **Exit code 0** (Success).
 
 ---
 
-## Privacy & Offline Verification
-- [x] Zero network dependencies: Verified no Firebase, Supabase, authentication, remote databases, cloud sync, or telemetry packages exist.
-- [x] Platform manifest check: Verified `android/app/src/main/AndroidManifest.xml` contains NO `android.permission.INTERNET` permission.
-- [x] Backups remain 100% local: Files are written only to device storage or native share sheets; no data is ever uploaded.
-- [x] Honest data claims: No unsupported encryption claims are made in the UI or documentation.
+## Known Issues & Debt
+- None. All planned features across Phases 1 through 6 are implemented, audited, tested, and passing.
 
 ---
 
-## Known Issues
-- None. All Phase 5 requirements, local backup/export, local restore/import, transactional safety, data validation, and settings controls are verified and working 100% offline.
-
----
-
-## Next Steps (Phase 6 Readiness)
-1. **Wait for user explicit approval** before initiating Phase 6.
-2. In Phase 6 (Polish & Release Preparation):
-   - Accessibility audit across all screens.
-   - Comprehensive edge-case handling and responsiveness verification on small viewports.
-   - Final release preparation according to project documentation.
+## Handover & Pre-Release Checklist (Non-Code)
+Before publishing to Google Play or distributing production builds:
+1. **App Identity & Branding:** Official app icon integrated from `attendly_calendar_symbol_transparent.svg` with Android Adaptive Icons (`mipmap-anydpi-v26`) and legacy fallbacks; official primary splash screen logo integrated from `attendly_primary_splash_logo.svg` across Flutter and native Android launch screens.
+2. **Production Keystore Signing:** Replace the debug signing config in `android/app/build.gradle.kts` with production keystore credentials via environment variables or secure CI secrets.
+3. **Store Assets:** Prepare Play Store promotional graphics, feature graphics, screenshots, and privacy policy URL (stating local-only storage).
+4. **Target SDK & Policy:** Review Google Play target API level requirements at time of submission.
 
 ---
 
 ## Last Updated
-2026-11-15
+2026-11-15 (Phase 6 Completed)

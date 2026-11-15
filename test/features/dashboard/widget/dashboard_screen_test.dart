@@ -355,7 +355,7 @@ void main() {
         find.text('Combined available when both components have sessions.'),
         findsOneWidget,
       );
-      expect(find.text('Component Average Policy'), findsOneWidget);
+      expect(find.text('Depends on the next classes'), findsOneWidget);
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);
@@ -387,6 +387,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('View All'), findsOneWidget);
+      await tester.ensureVisible(find.text('View All'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('View All'));
       await tester.pumpAndSettle();
 
@@ -577,7 +579,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Verify widgets rendered cleanly without throwing RenderFlex overflow
-        expect(find.text('Component Average (50/50)'), findsOneWidget);
+        expect(find.text('Split in half'), findsOneWidget);
         expect(find.text('Provisional: Lecture only'), findsOneWidget);
         expect(find.text('Target: 75%'), findsOneWidget);
 

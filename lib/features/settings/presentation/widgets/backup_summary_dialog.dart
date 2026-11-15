@@ -112,7 +112,7 @@ class BackupSummaryDialog extends StatelessWidget {
                 color: AppColors.softCoral,
                 borderRadius: AppRadius.mdBorder,
                 border: Border.all(
-                  color: AppColors.brandCoral.withOpacity(0.4),
+                  color: AppColors.inkCoral.withOpacity(0.4),
                 ),
               ),
               child: Row(
@@ -122,7 +122,7 @@ class BackupSummaryDialog extends StatelessWidget {
                     padding: EdgeInsets.only(top: 2),
                     child: AppIcon(
                       AppIcons.alert,
-                      color: AppColors.brandCoral,
+                      color: AppColors.inkCoral,
                       size: 18,
                     ),
                   ),

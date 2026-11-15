@@ -84,24 +84,30 @@ void main() {
     });
 
     test(
-      'rejects duplicate session for same subject, date, and component',
+      'allows another lecture for the same subject on the same date',
       () async {
-        await repo.createSession(
+        final firstId = await repo.createSession(
           subjectId: subjectBothId,
           sessionDate: '2026-03-10',
           component: SessionComponent.lecture,
           status: AttendanceStatus.present,
         );
 
-        expect(
-          () async => await repo.createSession(
-            subjectId: subjectBothId,
-            sessionDate: '2026-03-10',
-            component: SessionComponent.lecture,
-            status: AttendanceStatus.absent,
-          ),
-          throwsA(isA<DuplicateSessionFailure>()),
+        final secondId = await repo.createSession(
+          subjectId: subjectBothId,
+          sessionDate: '2026-03-10',
+          component: SessionComponent.lecture,
+          status: AttendanceStatus.absent,
         );
+
+        expect(secondId, isNot(equals(firstId)));
+        final sessions = await repo.getSessionsForSubject(subjectBothId);
+        final sameDay = sessions.where(
+          (session) =>
+              session.sessionDate == '2026-03-10' &&
+              session.component == SessionComponent.lecture,
+        );
+        expect(sameDay.length, equals(2));
       },
     );
 
@@ -263,8 +269,7 @@ void main() {
       expect(fetched.sessionDate, equals('2026-03-09'));
     });
 
-    test('rejects update creating duplicate session', () async {
-      // First session on 2026-03-10
+    test('allows an update onto a day that already has that component', () async {
       await repo.createSession(
         subjectId: subjectBothId,
         sessionDate: '2026-03-10',
@@ -272,7 +277,6 @@ void main() {
         status: AttendanceStatus.present,
       );
 
-      // Second session on 2026-03-11
       final id2 = await repo.createSession(
         subjectId: subjectBothId,
         sessionDate: '2026-03-11',
@@ -280,14 +284,12 @@ void main() {
         status: AttendanceStatus.present,
       );
 
-      // Trying to update second session's date to 2026-03-10 should fail (duplicate)
       final session2 = (await repo.getSessionById(id2))!;
-      final conflictingUpdate = session2.copyWith(sessionDate: '2026-03-10');
+      final moved = session2.copyWith(sessionDate: '2026-03-10');
+      await repo.updateSession(moved);
 
-      expect(
-        () async => await repo.updateSession(conflictingUpdate),
-        throwsA(isA<DuplicateSessionFailure>()),
-      );
+      final fetched = (await repo.getSessionById(id2))!;
+      expect(fetched.sessionDate, equals('2026-03-10'));
     });
 
     test('deletes a session and confirms it is removed', () async {

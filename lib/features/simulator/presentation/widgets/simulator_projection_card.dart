@@ -4,7 +4,6 @@ import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
-import 'package:attendly/features/attendance/domain/entities/attendance_calculation_method.dart';
 import 'package:attendly/features/attendance/domain/entities/simulator_projection.dart';
 
 class SimulatorProjectionCard extends StatelessWidget {
@@ -25,12 +24,15 @@ class SimulatorProjectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppRadius.xlBorder,
-        border: Border.all(
-          color: hasSimulated
-              ? AppColors.brandViolet.withOpacity(0.4)
-              : AppColors.border,
-          width: hasSimulated ? 1.5 : 1.0,
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: hasSimulated
+                ? AppColors.brandViolet.withAlpha(20)
+                : AppColors.ink.withAlpha(6),
+            blurRadius: 14,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,9 +60,9 @@ class SimulatorProjectionCard extends StatelessWidget {
                     Text(
                       'Hypothetical',
                       style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.brandViolet,
+                        color: AppColors.inkViolet,
                         fontWeight: FontWeight.w700,
-                        fontSize: 10,
+                        fontSize: 12,
                       ),
                     ),
                   ],
@@ -95,8 +97,8 @@ class SimulatorProjectionCard extends StatelessWidget {
                     color: AppColors.track,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.arrow_forward_rounded,
+                  child: const AppIcon(
+                    AppIcons.forward,
                     size: 14,
                     color: AppColors.mutedInk,
                   ),
@@ -150,10 +152,10 @@ class SimulatorProjectionCard extends StatelessWidget {
                       _getDeltaMessage(projection, delta),
                       style: AppTypography.labelSmall.copyWith(
                         color: delta > 0.05
-                            ? const Color(0xFF1E826D)
+                            ? AppColors.inkMint
                             : (delta < -0.05
-                                  ? const Color(0xFFD63B48)
-                                  : AppColors.brandViolet),
+                                  ? AppColors.inkCoral
+                                  : AppColors.inkViolet),
                         fontWeight: FontWeight.w700,
                         fontSize: 12,
                       ),
@@ -167,13 +169,10 @@ class SimulatorProjectionCard extends StatelessWidget {
 
           // Calculation Policy Note
           Text(
-            baseline.calculationMethod ==
-                    AttendanceCalculationMethod.rawCombined
-                ? 'Raw Combined: All sessions carry equal weight. Target: ${baseline.thresholdPercent}%.'
-                : 'Component Average: Lecture and Lab are averaged 50/50. Target: ${baseline.thresholdPercent}%.',
+            '${baseline.calculationMethod.displayName}. ${baseline.calculationMethod.description} Target: ${baseline.thresholdPercent}%.',
             style: AppTypography.labelSmall.copyWith(
               color: AppColors.mutedInk,
-              fontSize: 10,
+              fontSize: 12,
             ),
           ),
         ],
@@ -228,13 +227,8 @@ class _MetricColumn extends StatelessWidget {
       decoration: BoxDecoration(
         color: highlight
             ? AppColors.softLavender
-            : AppColors.track.withOpacity(0.5),
+            : AppColors.track.withAlpha(80),
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(
-          color: highlight
-              ? AppColors.brandViolet.withOpacity(0.3)
-              : AppColors.border,
-        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,7 +237,7 @@ class _MetricColumn extends StatelessWidget {
             title,
             style: AppTypography.labelSmall.copyWith(
               color: AppColors.mutedInk,
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -254,7 +248,8 @@ class _MetricColumn extends StatelessWidget {
               percentage,
               style: AppTypography.heroNumber.copyWith(
                 fontSize: 24,
-                color: meetsTarget ? const Color(0xFF1E826D) : AppColors.ink,
+                fontFeatures: const [FontFeature.tabularFigures()],
+                color: meetsTarget ? AppColors.inkMint : AppColors.ink,
               ),
             ),
           ),
@@ -263,7 +258,7 @@ class _MetricColumn extends StatelessWidget {
             '$present/$conducted classes',
             style: AppTypography.labelSmall.copyWith(
               color: AppColors.mutedInk,
-              fontSize: 10,
+              fontSize: 12,
             ),
           ),
           if (isProvisional)
@@ -272,8 +267,8 @@ class _MetricColumn extends StatelessWidget {
               child: Text(
                 'Provisional',
                 style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.brandPeach,
-                  fontSize: 9,
+                  color: AppColors.inkPeach,
+                  fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
               ),

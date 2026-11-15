@@ -29,6 +29,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Page 1
+    expect(find.byType(Image), findsOneWidget);
     expect(find.text('Track Lectures & Labs'), findsOneWidget);
     expect(find.text('Next'), findsOneWidget);
     expect(find.text('Skip'), findsOneWidget);

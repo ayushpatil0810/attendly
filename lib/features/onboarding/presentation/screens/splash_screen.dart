@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:attendly/app/router/route_names.dart';
 import 'package:attendly/core/theme/app_colors.dart';
-import 'package:attendly/core/theme/app_radius.dart';
+import 'package:attendly/core/theme/app_motion.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:attendly/features/semesters/presentation/providers/semesters_provider.dart';
@@ -20,6 +21,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late final Animation<double> _scaleAnimation;
   late final Animation<double> _fadeAnimation;
   String? _errorMessage;
+  bool _reducedMotionApplied = false;
 
   @override
   void initState() {
@@ -38,7 +40,21 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeIn));
 
     _animController.forward();
-    _initializeApp();
+    // The router is still applying the initial splash route during initState.
+    // Navigating now is ignored, which leaves a fresh or restored install
+    // on this screen.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _initializeApp();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_reducedMotionApplied || !AppMotion.reduced(context)) return;
+    _reducedMotionApplied = true;
+    _animController.duration = Duration.zero;
+    _animController.value = 1;
   }
 
   @override
@@ -49,14 +65,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   Future<void> _initializeApp() async {
     try {
-      // Ensure the initial animation has displayed for at least a brief moment
-      await Future.delayed(const Duration(milliseconds: 400));
-      if (!mounted) return;
-
       final hasCompletedOnboarding = ref.read(onboardingCompletedProvider);
 
       if (!hasCompletedOnboarding) {
-        if (mounted) context.go('/onboarding');
+        if (mounted) context.go(RouteNames.onboardingPath);
         return;
       }
 
@@ -67,14 +79,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       if (!mounted) return;
 
       if (semesters.isEmpty) {
-        context.go('/semester-setup');
+        context.go(RouteNames.semesterSetupPath);
       } else {
-        context.go('/home');
+        context.go(RouteNames.homePath);
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'Failed to load app data: $e';
+          _errorMessage = 'Attendly could not open your data.';
         });
       }
     }
@@ -96,50 +108,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Geometric brandmark placeholder (no final brand logo invented)
-              Container(
-                width: 76,
-                height: 76,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.brandViolet, AppColors.lavender],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: AppRadius.xxlBorder,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.brandViolet.withOpacity(0.28),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                alignment: Alignment.center,
-                child: Container(
-                  width: 34,
-                  height: 34,
-                  decoration: const BoxDecoration(
-                    color: AppColors.pureWhite,
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: Container(
-                    width: 14,
-                    height: 14,
-                    decoration: const BoxDecoration(
-                      color: AppColors.brandMint,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
+              // Official Attendly primary splash logo
+              Semantics(
+                label: 'Attendly Logo',
+                child: Image.asset(
+                  'assets/images/app_logo.png',
+                  width: 280,
+                  fit: BoxFit.contain,
                 ),
               ),
-              const SizedBox(height: 24),
-              const Text(
-                'Attendance Tracker',
-                style: AppTypography.screenTitle,
-              ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 12),
               Text(
                 'Personal & Offline',
                 style: AppTypography.bodySmall.copyWith(
@@ -154,7 +132,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   child: Text(
                     _errorMessage!,
                     style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.brandCoral,
+                      color: AppColors.inkCoral,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -165,7 +143,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     setState(() => _errorMessage = null);
                     _initializeApp();
                   },
-                  child: const Text('Try Again'),
+                  child: const Text('Retry'),
                 ),
               ],
             ],

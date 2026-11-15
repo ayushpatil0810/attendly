@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/shared/widgets/app_bottom_sheet.dart';
+import 'package:attendly/core/shared/widgets/app_error_state.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/shared/widgets/app_toast.dart';
 import 'package:attendly/core/theme/app_colors.dart';
@@ -80,9 +81,12 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
             message: willArchive ? 'Semester archived.' : 'Semester restored.',
           );
         }
-      } catch (e) {
+      } catch (_) {
         if (mounted) {
-          AppToast.showError(context, message: 'Failed: $e');
+          AppToast.showError(
+            context,
+            message: 'The semester could not be updated. Try again.',
+          );
         }
       }
     }
@@ -119,9 +123,12 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
         if (mounted) {
           AppToast.showSuccess(context, message: 'Semester deleted.');
         }
-      } catch (e) {
+      } catch (_) {
         if (mounted) {
-          AppToast.showError(context, message: 'Failed to delete: $e');
+          AppToast.showError(
+            context,
+            message: 'The semester could not be deleted. Try again.',
+          );
         }
       }
     }
@@ -156,7 +163,7 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
                   child: Text(
                     _showArchived ? 'Show Active Only' : 'Show Archived',
                     style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.brandViolet,
+                      color: AppColors.inkViolet,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -250,7 +257,7 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
                                           style: AppTypography.labelSmall
                                               .copyWith(
                                                 color: AppColors.mutedInk,
-                                                fontSize: 10,
+                                                fontSize: 12,
                                               ),
                                         ),
                                       ),
@@ -290,7 +297,7 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
                               icon: const AppIcon(
                                 AppIcons.delete,
                                 size: 18,
-                                color: AppColors.brandCoral,
+                                color: AppColors.inkCoral,
                               ),
                               onPressed: () => _confirmDelete(semester),
                               tooltip: 'Delete',
@@ -309,7 +316,13 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
                 child: CircularProgressIndicator(),
               ),
             ),
-            error: (e, _) => Text('Error loading semesters: $e'),
+            error: (e, _) => AppErrorState(
+              message: 'Semesters could not load.',
+              onRetry: () {
+                ref.invalidate(allSemestersStreamProvider);
+                ref.invalidate(activeSemestersStreamProvider);
+              },
+            ),
           ),
 
           const SizedBox(height: 24),

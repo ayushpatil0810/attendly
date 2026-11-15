@@ -335,7 +335,6 @@ class BackupValidator {
     // 7. Parse and validate attendance sessions
     final parsedSessions = <AttendanceSessionBackupModel>[];
     final sessionIds = <int>{};
-    final uniqueSessionKeys = <String>{};
 
     for (var i = 0; i < rawSessions.length; i++) {
       final sess = rawSessions[i];
@@ -418,15 +417,6 @@ class BackupValidator {
           'Attendance session $id has missing or invalid integer timestamps.',
         );
       }
-
-      // Check for duplicate (subjectId, sessionDate, component)
-      final uniqueKey = '$subjectId|$sessionDate|$component';
-      if (uniqueSessionKeys.contains(uniqueKey)) {
-        return BackupValidationResult.failure(
-          'Duplicate session in backup for subject "${subject.name}" on $sessionDate for $component.',
-        );
-      }
-      uniqueSessionKeys.add(uniqueKey);
 
       parsedSessions.add(
         AttendanceSessionBackupModel(

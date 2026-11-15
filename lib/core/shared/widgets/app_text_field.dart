@@ -98,18 +98,18 @@ class AppTextField extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
               borderRadius: AppRadius.mdBorder,
               borderSide: const BorderSide(
-                color: AppColors.brandViolet,
+                color: AppColors.inkViolet,
                 width: 1.5,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: AppRadius.mdBorder,
-              borderSide: const BorderSide(color: AppColors.brandCoral),
+              borderSide: const BorderSide(color: AppColors.inkCoral),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: AppRadius.mdBorder,
               borderSide: const BorderSide(
-                color: AppColors.brandCoral,
+                color: AppColors.inkCoral,
                 width: 1.5,
               ),
             ),

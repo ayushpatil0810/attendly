@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
+import '../../theme/app_motion.dart';
 import '../../theme/app_radius.dart';
 
 class AppProgressBar extends StatelessWidget {
@@ -31,7 +32,10 @@ class AppProgressBar extends StatelessWidget {
             return Align(
               alignment: Alignment.centerLeft,
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
+                duration: AppMotion.duration(
+                  context,
+                  const Duration(milliseconds: 300),
+                ),
                 curve: Curves.easeOutCubic,
                 width: constraints.maxWidth * clamped,
                 height: height,

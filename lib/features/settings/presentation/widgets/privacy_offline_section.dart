@@ -15,7 +15,13 @@ class PrivacyOfflineSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.ink.withAlpha(6),
+            blurRadius: 14,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -30,7 +36,7 @@ class PrivacyOfflineSection extends StatelessWidget {
                 ),
                 child: const AppIcon(
                   AppIcons.shield,
-                  color: AppColors.brandMint,
+                  color: AppColors.inkMint,
                   size: 18,
                 ),
               ),

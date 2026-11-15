@@ -1,13 +1,13 @@
 enum AttendanceCalculationMethod {
   rawCombined(
     'raw_combined',
-    'Raw Combined',
-    'All lecture and lab sessions carry equal weight.',
+    'Equal weight',
+    'Every lecture and lab counts the same.',
   ),
   componentAverage(
     'component_average',
-    'Component Average (50/50)',
-    'Lecture and Lab percentages are calculated separately and averaged.',
+    'Split in half',
+    'Lecture and lab each count for half.',
   );
 
   const AttendanceCalculationMethod(

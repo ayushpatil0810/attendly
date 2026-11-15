@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600" role="img" aria-labelledby="title desc">
+  <title id="title">Attendly primary logo</title>
+  <desc id="desc">A violet calendar icon with a mint attendance check and coral corner accent, beside the Attendly wordmark, centered on a warm-white splash-screen background.</desc>
+
+  <!-- Splash-screen background -->
+  <rect width="1200" height="600" fill="#FFFAF9"/>
+
+  <!-- Centered logo lockup -->
+  <g transform="translate(190 170)">
+    <!-- Calendar body -->
+    <rect x="0" y="36" width="240" height="240" rx="50" fill="#9278F2"/>
+
+    <!-- Binding tabs -->
+    <rect x="42" y="0" width="34" height="74" rx="17" fill="#9278F2"/>
+    <rect x="164" y="0" width="34" height="74" rx="17" fill="#9278F2"/>
+
+    <!-- Calendar page -->
+    <rect x="22" y="100" width="196" height="154" rx="30" fill="#FFFAF9"/>
+
+    <!-- Coral folded-corner accent -->
+    <path d="M190 214
+             C190 200 201 189 215 189
+             H240 V226
+             C240 254 218 276 190 276
+             H146
+             C172 260 190 239 190 214Z"
+          fill="#FF929B"/>
+
+    <!-- Attendance check -->
+    <path d="M66 176 L104 213 L176 140"
+          fill="none" stroke="#8BE4D0" stroke-width="25"
+          stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- Warm-white binding highlights -->
+    <rect x="49" y="0" width="20" height="62" rx="10" fill="#FFFAF9"/>
+    <rect x="171" y="0" width="20" height="62" rx="10" fill="#FFFAF9"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="485" y="352"
+        fill="#35104F"
+        font-family="Inter, Manrope, Nunito Sans, Arial, sans-serif"
+        font-size="142"
+        font-weight="750"
+        letter-spacing="-6"
+        dominant-baseline="middle">Attendly</text>
+</svg>

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
+import 'package:attendly/core/shared/widgets/app_frame.dart';
 import 'package:attendly/core/shared/widgets/app_segmented_control.dart';
 import 'package:attendly/core/shared/widgets/app_text_field.dart';
 import 'package:attendly/core/shared/widgets/app_toast.dart';
@@ -55,9 +56,12 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
         );
         context.go('/home');
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
-        AppToast.showError(context, message: 'Error: $e');
+        AppToast.showError(
+          context,
+          message: 'The semester could not be created. Try again.',
+        );
       }
     } finally {
       if (mounted) {
@@ -71,7 +75,8 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
     return Scaffold(
       backgroundColor: AppColors.warmWhite,
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: AppFrame(
+          child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Form(
             key: _formKey,
@@ -126,7 +131,7 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                       child: Text(
                         '${_thresholdPercent.round()}%',
                         style: AppTypography.labelLarge.copyWith(
-                          color: AppColors.brandViolet,
+                          color: AppColors.inkViolet,
                         ),
                       ),
                     ),
@@ -135,10 +140,10 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                 const SizedBox(height: 8),
                 SliderTheme(
                   data: SliderTheme.of(context).copyWith(
-                    activeTrackColor: AppColors.brandViolet,
+                    activeTrackColor: AppColors.inkViolet,
                     inactiveTrackColor: AppColors.track,
-                    thumbColor: AppColors.brandViolet,
-                    overlayColor: AppColors.brandViolet.withOpacity(0.12),
+                    thumbColor: AppColors.inkViolet,
+                    overlayColor: AppColors.inkViolet.withOpacity(0.12),
                     trackHeight: 6,
                     thumbShape: const RoundSliderThumbShape(
                       enabledThumbRadius: 10,
@@ -169,14 +174,17 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                 ),
                 const SizedBox(height: 8),
                 AppSegmentedControl<AttendanceCalculationMethod>(
-                  items: const [
+                  items: [
                     SegmentItem(
                       value: AttendanceCalculationMethod.rawCombined,
-                      label: 'Raw Combined',
+                      label:
+                          AttendanceCalculationMethod.rawCombined.displayName,
                     ),
                     SegmentItem(
                       value: AttendanceCalculationMethod.componentAverage,
-                      label: '50/50 Average',
+                      label: AttendanceCalculationMethod
+                          .componentAverage
+                          .displayName,
                     ),
                   ],
                   selectedValue: _calculationMethod,
@@ -205,6 +213,7 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
               ],
             ),
           ),
+        ),
         ),
       ),
     );

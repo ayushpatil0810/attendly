@@ -18,119 +18,130 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (summary.totalConducted == 0) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: AppColors.softLavender,
-          borderRadius: AppRadius.lgBorder,
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                color: AppColors.pureWhite,
-                shape: BoxShape.circle,
+      return Semantics(
+        container: true,
+        label: 'Attendance Insights: Safe absence and recovery insights will appear once classes are recorded.',
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.softLavender,
+            borderRadius: AppRadius.lgBorder,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 2),
+                child: AppIcon(
+                  AppIcons.info,
+                  size: 20,
+                  color: AppColors.brandViolet,
+                ),
               ),
-              child: const AppIcon(
-                AppIcons.info,
-                size: 20,
-                color: AppColors.brandViolet,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Attendance Insights',
-                    style: AppTypography.itemTitle,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Safe absence and recovery insights will appear once classes are recorded.',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.mutedInk,
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Attendance Insights',
+                      style: AppTypography.itemTitle,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 2),
+                    Text(
+                      'Safe absence and recovery insights will appear once classes are recorded.',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.mutedInk,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
 
     if (summary.calculationMethod ==
         AttendanceCalculationMethod.componentAverage) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: AppColors.softLavender,
-          borderRadius: AppRadius.lgBorder,
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                color: AppColors.pureWhite,
-                shape: BoxShape.circle,
+      return Semantics(
+        container: true,
+        label:
+            'Depends on the next classes. Lecture and lab each count for half, so how many you can miss depends on whether those classes are lectures or labs.',
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.softLavender,
+            borderRadius: AppRadius.lgBorder,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 2),
+                child: AppIcon(
+                  AppIcons.info,
+                  size: 20,
+                  color: AppColors.brandViolet,
+                ),
               ),
-              child: const AppIcon(
-                AppIcons.info,
-                size: 20,
-                color: AppColors.brandViolet,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Component Average Policy',
-                    style: AppTypography.itemTitle,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Under 50/50 weighting, safe absences and recovery depend on future Lecture and Lab mix.',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.mutedInk,
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Depends on the next classes',
+                      style: AppTypography.itemTitle,
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  GestureDetector(
-                    onTap: () => context.push(RouteNames.simulatorPath),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Open Simulator',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.brandViolet,
-                            fontWeight: FontWeight.w700,
+                    const SizedBox(height: 2),
+                    Text(
+                      'Lecture and lab each count for half, so how many you can miss depends on whether those classes are lectures or labs.',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.mutedInk,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Semantics(
+                      button: true,
+                      label: 'Open Attendance Simulator',
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => context.push(RouteNames.simulatorPath),
+                          borderRadius: BorderRadius.circular(6),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Open Simulator',
+                                  style: AppTypography.labelSmall.copyWith(
+                                    color: AppColors.inkViolet,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const AppIcon(
+                                  AppIcons.forward,
+                                  size: 14,
+                                  color: AppColors.brandViolet,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        const Icon(
-                          Icons.arrow_forward_rounded,
-                          size: 14,
-                          color: AppColors.brandViolet,
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
@@ -145,53 +156,55 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
           ? '$safe Safe Absence${safe == 1 ? '' : 's'}'
           : 'At Target Threshold';
 
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: AppColors.softMint,
-          borderRadius: AppRadius.lgBorder,
-          border: Border.all(color: const Color(0xFFC7EFE6)),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                color: AppColors.pureWhite,
-                shape: BoxShape.circle,
+      final bodyText = safe > 0
+          ? 'You can miss up to $safe $unit while maintaining your ${summary.thresholdPercent}% target.'
+          : 'Any additional absence will drop your attendance below ${summary.thresholdPercent}%.';
+
+      return Semantics(
+        container: true,
+        label: '$title: $bodyText',
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.softMint,
+            borderRadius: AppRadius.lgBorder,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 2),
+                child: AppIcon(
+                  AppIcons.check,
+                  size: 20,
+                  color: AppColors.inkMint,
+                ),
               ),
-              child: const AppIcon(
-                AppIcons.check,
-                size: 20,
-                color: Color(0xFF1E826D),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: AppTypography.itemTitle.copyWith(
-                      color: const Color(0xFF135B4C),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTypography.itemTitle.copyWith(
+                        color: const Color(0xFF135B4C),
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    safe > 0
-                        ? 'You can miss up to $safe $unit while maintaining your ${summary.thresholdPercent}% target.'
-                        : 'Any additional absence will drop your attendance below ${summary.thresholdPercent}%.',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: const Color(0xFF1E826D),
+                    const SizedBox(height: 2),
+                    Text(
+                      bodyText,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.inkMint,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     } else {
@@ -209,51 +222,51 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
           ? 'At 100% threshold, past absences make it mathematically impossible to reach 100% through attendance alone.'
           : 'Attend the next $needed $unit with zero absences to reach ${summary.thresholdPercent}% attendance.';
 
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: AppColors.softCoral,
-          borderRadius: AppRadius.lgBorder,
-          border: Border.all(color: const Color(0xFFFFD4D8)),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                color: AppColors.pureWhite,
-                shape: BoxShape.circle,
+      return Semantics(
+        container: true,
+        label: '$title: $message',
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.softCoral,
+            borderRadius: AppRadius.lgBorder,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 2),
+                child: AppIcon(
+                  AppIcons.alert,
+                  size: 20,
+                  color: AppColors.inkCoral,
+                ),
               ),
-              child: const AppIcon(
-                AppIcons.alert,
-                size: 20,
-                color: Color(0xFFD63B48),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: AppTypography.itemTitle.copyWith(
-                      color: const Color(0xFF8C1D26),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTypography.itemTitle.copyWith(
+                        color: const Color(0xFF8C1D26),
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    message,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: const Color(0xFFD63B48),
+                    const SizedBox(height: 2),
+                    Text(
+                      message,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.inkCoral,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }

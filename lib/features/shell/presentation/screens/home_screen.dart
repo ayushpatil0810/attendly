@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/shared/widgets/app_bottom_sheet.dart';
+import 'package:attendly/core/shared/widgets/app_error_state.dart';
 import 'package:attendly/core/shared/widgets/app_empty_state.dart';
 import 'package:attendly/core/shared/widgets/app_loading_state.dart';
 import 'package:attendly/core/theme/app_colors.dart';
@@ -62,6 +63,9 @@ class HomeScreen extends ConsumerWidget {
             final hasConductedSessions = summary.totalConducted > 0;
 
             return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
               padding: const EdgeInsets.only(
                 left: AppSpacing.screenHorizontal,
                 right: AppSpacing.screenHorizontal,
@@ -73,7 +77,7 @@ class HomeScreen extends ConsumerWidget {
                 children: [
                   // Header: Greeting, Semester Name, Switcher & Settings
                   DashboardHeader(semester: activeSemester),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 8),
 
                   // Overall Attendance Hero Banner (large % & progress ring)
                   OverallAttendanceHero(summary: summary),
@@ -124,13 +128,9 @@ class HomeScreen extends ConsumerWidget {
           },
           loading: () => const Center(child: AppLoadingState()),
           error: (error, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Text(
-                'Could not load dashboard data: $error',
-                style: const TextStyle(color: AppColors.brandCoral),
-                textAlign: TextAlign.center,
-              ),
+            child: AppErrorState(
+              message: 'Attendance could not load.',
+              onRetry: () => ref.invalidate(semesterAttendanceSummaryProvider),
             ),
           ),
         ),

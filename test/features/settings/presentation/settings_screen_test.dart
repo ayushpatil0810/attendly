@@ -118,8 +118,8 @@ void main() {
       // Semester details
       expect(find.text('Semester 5'), findsOneWidget);
       expect(find.text('75%'), findsOneWidget);
-      expect(find.text('Raw Combined'), findsOneWidget);
-      expect(find.text('50/50 Average'), findsOneWidget);
+      expect(find.text('Equal weight'), findsOneWidget);
+      expect(find.text('Split in half'), findsOneWidget);
 
       // Buttons
       expect(find.text('Export Backup'), findsOneWidget);
@@ -162,8 +162,7 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Tap 50/50 Average
-      await tester.tap(find.text('50/50 Average'));
+      await tester.tap(find.text('Split in half'));
       await tester.pumpAndSettle();
 
       final updatedSem = await semesterRepo.getSemesterById(activeSemId);
@@ -172,8 +171,7 @@ void main() {
         AttendanceCalculationMethod.componentAverage,
       );
 
-      // Tap back to Raw Combined
-      await tester.tap(find.text('Raw Combined'));
+      await tester.tap(find.text('Equal weight'));
       await tester.pumpAndSettle();
 
       final revertedSem = await semesterRepo.getSemesterById(activeSemId);

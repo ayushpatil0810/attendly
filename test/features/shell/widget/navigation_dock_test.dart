@@ -41,7 +41,7 @@ void main() {
   }
 
   testWidgets(
-    'Floating dock navigates between tabs and opens Quick Log placeholder',
+    'Floating dock navigates between tabs and opens Quick Log sheet',
     (tester) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
@@ -64,7 +64,7 @@ void main() {
       // Tap Insights tab
       await tester.tap(find.text('Insights'));
       await tester.pumpAndSettle();
-      expect(find.text('Simulator'), findsOneWidget);
+      expect(find.text('What-if'), findsOneWidget);
 
       // Tap Quick Log (+) button
       await tester.tap(find.byKey(const Key('quick_log_dock_button')));

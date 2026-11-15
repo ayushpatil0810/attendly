@@ -66,7 +66,7 @@ class BackupRestoreSection extends ConsumerWidget {
             children: [
               const AppIcon(
                 AppIcons.alert,
-                color: AppColors.brandCoral,
+                color: AppColors.inkCoral,
                 size: 20,
               ),
               const SizedBox(width: 8),
@@ -150,7 +150,13 @@ class BackupRestoreSection extends ConsumerWidget {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.ink.withAlpha(6),
+            blurRadius: 14,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,7 +173,7 @@ class BackupRestoreSection extends ConsumerWidget {
                 ),
                 child: const AppIcon(
                   AppIcons.exportFile,
-                  color: AppColors.brandMint,
+                  color: AppColors.inkMint,
                   size: 20,
                 ),
               ),

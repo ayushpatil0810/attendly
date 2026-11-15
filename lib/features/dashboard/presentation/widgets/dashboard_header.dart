@@ -26,38 +26,53 @@ class DashboardHeader extends StatelessWidget {
             children: [
               Text(
                 'College Attendance',
-                style: AppTypography.labelMedium.copyWith(
+                style: AppTypography.labelSmall.copyWith(
                   color: AppColors.mutedInk,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 2),
-              GestureDetector(
-                onTap: () {
-                  showAppBottomSheet(
-                    context: context,
-                    title: 'Semesters',
-                    child: const SemesterSwitcherSheet(),
-                  );
-                },
-                behavior: HitTestBehavior.opaque,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        semester.name,
-                        style: AppTypography.screenTitle.copyWith(fontSize: 22),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+              Semantics(
+                button: true,
+                label: 'Switch active semester, currently ${semester.name}',
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      showAppBottomSheet(
+                        context: context,
+                        title: 'Semesters',
+                        child: const SemesterSwitcherSheet(),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              semester.name,
+                              style: AppTypography.screenTitle.copyWith(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -0.5,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const AppIcon(
+                            AppIcons.arrowDown,
+                            size: 18,
+                            color: AppColors.brandViolet,
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    const Icon(
-                      Icons.keyboard_arrow_down,
-                      size: 22,
-                      color: AppColors.brandViolet,
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ],
@@ -67,20 +82,27 @@ class DashboardHeader extends StatelessWidget {
         Semantics(
           label: 'Open settings',
           button: true,
-          child: GestureDetector(
-            onTap: () {
-              context.pushNamed(RouteNames.settings);
-            },
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: const BoxDecoration(
-                color: AppColors.softLavender,
-                shape: BoxShape.circle,
-              ),
-              child: const AppIcon(
-                AppIcons.settings,
-                size: 20,
-                color: AppColors.brandViolet,
+          child: Tooltip(
+            message: 'Settings',
+            child: Material(
+              color: AppColors.softLavender,
+              shape: const CircleBorder(),
+              child: InkWell(
+                onTap: () {
+                  context.pushNamed(RouteNames.settings);
+                },
+                customBorder: const CircleBorder(),
+                child: const SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: Center(
+                    child: AppIcon(
+                      AppIcons.settings,
+                      size: 20,
+                      color: AppColors.brandViolet,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),

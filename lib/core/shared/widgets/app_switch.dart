@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
+import '../../theme/app_motion.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_typography.dart';
 
@@ -28,7 +29,7 @@ class AppSwitchTile extends StatelessWidget {
       onTap: enabled && onChanged != null ? () => onChanged!(!value) : null,
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
+        duration: AppMotion.duration(context, const Duration(milliseconds: 180)),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: value ? AppColors.softLavender : AppColors.pureWhite,
@@ -68,7 +69,10 @@ class AppSwitchTile extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: AppMotion.duration(
+                context,
+                const Duration(milliseconds: 200),
+              ),
               width: 44,
               height: 26,
               padding: const EdgeInsets.all(2),
@@ -77,7 +81,10 @@ class AppSwitchTile extends StatelessWidget {
                 color: value ? AppColors.brandViolet : AppColors.track,
               ),
               child: AnimatedAlign(
-                duration: const Duration(milliseconds: 200),
+                duration: AppMotion.duration(
+                  context,
+                  const Duration(milliseconds: 200),
+                ),
                 alignment: value ? Alignment.centerRight : Alignment.centerLeft,
                 child: Container(
                   width: 22,

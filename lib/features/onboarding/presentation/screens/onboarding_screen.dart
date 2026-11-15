@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/theme/app_colors.dart';
+import 'package:attendly/core/theme/app_motion.dart';
 import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_typography.dart';
@@ -62,7 +63,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void _nextPage() {
     if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 260),
+        duration: AppMotion.duration(
+          context,
+          const Duration(milliseconds: 260),
+        ),
         curve: Curves.easeOutCubic,
       );
     } else {
@@ -85,26 +89,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // App identity hint
-                  Row(
-                    children: [
-                      Container(
-                        width: 10,
-                        height: 10,
-                        decoration: const BoxDecoration(
-                          color: AppColors.brandViolet,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Attendance Tracker',
-                        style: AppTypography.labelMedium.copyWith(
-                          color: AppColors.ink,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                  // App brand logo
+                  Semantics(
+                    label: 'Attendly',
+                    child: Image.asset(
+                      'assets/images/app_logo.png',
+                      height: 34,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                   if (!isLastPage)
                     TextButton(
@@ -194,7 +186,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     children: List.generate(_pages.length, (index) {
                       final isActive = index == _currentPage;
                       return AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
+                        duration: AppMotion.duration(
+                          context,
+                          const Duration(milliseconds: 200),
+                        ),
                         margin: const EdgeInsets.only(right: 6),
                         height: 8,
                         width: isActive ? 24 : 8,
@@ -272,7 +267,15 @@ class _OnboardingVisual extends StatelessWidget {
           ],
         ),
         alignment: Alignment.center,
-        child: AppIcon(page.icon, size: 52, color: page.accentColor),
+        child: AppIcon(
+          page.icon,
+          size: 52,
+          color: page.accentColor == AppColors.brandMint
+              ? AppColors.inkMint
+              : page.accentColor == AppColors.brandPeach
+              ? AppColors.inkPeach
+              : AppColors.inkViolet,
+        ),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/shared/widgets/app_empty_state.dart';
+import 'package:attendly/core/shared/widgets/app_error_state.dart';
 import 'package:attendly/core/shared/widgets/app_loading_state.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
@@ -31,16 +32,10 @@ class InsightsContent extends ConsumerWidget {
           child: AppLoadingState(message: 'Calculating insights...'),
         ),
       ),
-      error: (e, _) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            'Unable to load analytics: $e',
-            style: AppTypography.bodySmall.copyWith(
-              color: AppColors.brandCoral,
-            ),
-          ),
-        ),
+      error: (e, _) => AppErrorState(
+        message: 'Insights could not load.',
+        onRetry: () =>
+            ref.invalidate(filteredSemesterAttendanceSummaryProvider),
       ),
       data: (summary) {
         if (summary == null) {
@@ -92,7 +87,7 @@ class InsightsContent extends ConsumerWidget {
                           child: Text(
                             'Clear Filter',
                             style: AppTypography.labelMedium.copyWith(
-                              color: AppColors.brandViolet,
+                              color: AppColors.inkViolet,
                               fontWeight: FontWeight.w700,
                             ),
                           ),

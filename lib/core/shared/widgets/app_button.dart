@@ -66,8 +66,8 @@ class _AppButtonState extends State<AppButton> {
     switch (widget.variant) {
       case AppButtonVariant.primary:
         return _isPressed
-            ? AppColors.brandViolet.withOpacity(0.85)
-            : AppColors.brandViolet;
+            ? AppColors.inkViolet.withOpacity(0.85)
+            : AppColors.inkViolet;
       case AppButtonVariant.secondary:
         return _isPressed
             ? AppColors.softLavender.withOpacity(0.8)
@@ -84,14 +84,15 @@ class _AppButtonState extends State<AppButton> {
 
   Color get _textColor {
     if (!_isEnabled) {
-      return AppColors.subtleInk;
+      return AppColors.mutedInk;
     }
     switch (widget.variant) {
       case AppButtonVariant.primary:
-      case AppButtonVariant.destructive:
         return AppColors.pureWhite;
+      case AppButtonVariant.destructive:
+        return AppColors.ink;
       case AppButtonVariant.secondary:
-        return AppColors.brandViolet;
+        return AppColors.inkViolet;
       case AppButtonVariant.outline:
       case AppButtonVariant.text:
         return AppColors.ink;
@@ -103,6 +104,9 @@ class _AppButtonState extends State<AppButton> {
       return BorderSide(
         color: _isEnabled ? AppColors.border : AppColors.divider,
       );
+    }
+    if (widget.variant == AppButtonVariant.destructive && _isEnabled) {
+      return const BorderSide(color: AppColors.inkCoral, width: 1.5);
     }
     return null;
   }
@@ -127,33 +131,50 @@ class _AppButtonState extends State<AppButton> {
           widget.icon!,
           const SizedBox(width: 8),
         ],
-        Text(
-          widget.label,
-          style: AppTypography.labelLarge.copyWith(
-            color: _textColor,
-            fontSize: _fontSize,
+        Flexible(
+          child: Text(
+            widget.label,
+            style: AppTypography.labelLarge.copyWith(
+              color: _textColor,
+              fontSize: _fontSize,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
     );
 
-    return GestureDetector(
-      onTapDown: _isEnabled ? (_) => setState(() => _isPressed = true) : null,
-      onTapUp: _isEnabled ? (_) => setState(() => _isPressed = false) : null,
-      onTapCancel: _isEnabled ? () => setState(() => _isPressed = false) : null,
-      onTap: _isEnabled ? widget.onPressed : null,
-      child: AnimatedScale(
-        scale: _isPressed ? 0.98 : 1.0,
-        duration: const Duration(milliseconds: 100),
-        child: Container(
-          width: widget.isFullWidth ? double.infinity : null,
-          padding: _padding,
-          decoration: BoxDecoration(
-            color: _backgroundColor,
-            borderRadius: AppRadius.mdBorder,
-            border: _border != null ? Border.fromBorderSide(_border!) : null,
+    final disableAnimations =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+
+    return Semantics(
+      button: true,
+      label: widget.label,
+      enabled: _isEnabled,
+      child: GestureDetector(
+        onTapDown: _isEnabled ? (_) => setState(() => _isPressed = true) : null,
+        onTapUp: _isEnabled ? (_) => setState(() => _isPressed = false) : null,
+        onTapCancel: _isEnabled
+            ? () => setState(() => _isPressed = false)
+            : null,
+        onTap: _isEnabled ? widget.onPressed : null,
+        child: AnimatedScale(
+          scale: _isPressed ? 0.98 : 1.0,
+          duration: disableAnimations
+              ? Duration.zero
+              : const Duration(milliseconds: 100),
+          child: Container(
+            width: widget.isFullWidth ? double.infinity : null,
+            constraints: const BoxConstraints(minHeight: 48),
+            padding: _padding,
+            decoration: BoxDecoration(
+              color: _backgroundColor,
+              borderRadius: AppRadius.mdBorder,
+              border: _border != null ? Border.fromBorderSide(_border!) : null,
+            ),
+            child: content,
           ),
-          child: content,
         ),
       ),
     );

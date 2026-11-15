@@ -33,6 +33,7 @@ class DashboardSubjectPreview extends StatelessWidget {
         // Header Row
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
               child: Text(
@@ -43,12 +44,25 @@ class DashboardSubjectPreview extends StatelessWidget {
               ),
             ),
             if (subjects.isNotEmpty)
-              TextButton(
-                onPressed: onNavigateToSubjects,
-                child: Text(
-                  'View All',
-                  style: AppTypography.labelLarge.copyWith(
-                    color: AppColors.brandViolet,
+              Semantics(
+                button: true,
+                label: 'View all subjects',
+                child: TextButton(
+                  onPressed: onNavigateToSubjects,
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
+                    minimumSize: const Size(48, 36),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    'View All',
+                    style: AppTypography.labelLarge.copyWith(
+                      color: AppColors.inkViolet,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -64,7 +78,13 @@ class DashboardSubjectPreview extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.pureWhite,
               borderRadius: AppRadius.lgBorder,
-              border: Border.all(color: AppColors.border),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.ink.withAlpha(6),
+                  blurRadius: 12,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               children: [
@@ -109,7 +129,13 @@ class DashboardSubjectPreview extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.pureWhite,
               borderRadius: AppRadius.lgBorder,
-              border: Border.all(color: AppColors.border),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.ink.withAlpha(6),
+                  blurRadius: 12,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               children: [
@@ -119,9 +145,21 @@ class DashboardSubjectPreview extends StatelessWidget {
                       subject == subjects.take(4).last && subjects.length <= 4;
                   return Column(
                     children: [
-                      _SubjectPreviewRow(
-                        subject: subject,
-                        threshold: threshold,
+                      InkWell(
+                        onTap: onNavigateToSubjects,
+                        borderRadius: isLast
+                            ? const BorderRadius.vertical(
+                                bottom: Radius.circular(16),
+                              )
+                            : (subject == subjects.first
+                                  ? const BorderRadius.vertical(
+                                      top: Radius.circular(16),
+                                    )
+                                  : BorderRadius.zero),
+                        child: _SubjectPreviewRow(
+                          subject: subject,
+                          threshold: threshold,
+                        ),
                       ),
                       if (!isLast)
                         const Divider(
@@ -135,19 +173,23 @@ class DashboardSubjectPreview extends StatelessWidget {
                 }),
                 if (subjects.length > 4) ...[
                   const Divider(height: 1, color: AppColors.divider),
-                  InkWell(
-                    onTap: onNavigateToSubjects,
-                    borderRadius: const BorderRadius.vertical(
-                      bottom: Radius.circular(16),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Center(
-                        child: Text(
-                          '+ ${subjects.length - 4} more subjects',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.brandViolet,
-                            fontWeight: FontWeight.w600,
+                  Semantics(
+                    button: true,
+                    label: 'View ${subjects.length - 4} more subjects',
+                    child: InkWell(
+                      onTap: onNavigateToSubjects,
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Center(
+                          child: Text(
+                            '+ ${subjects.length - 4} more subjects',
+                            style: AppTypography.labelSmall.copyWith(
+                              color: AppColors.inkViolet,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
@@ -201,97 +243,104 @@ class _SubjectPreviewRow extends StatelessWidget {
     final progress = subject.percentage != null
         ? (subject.percentage! / 100.0).clamp(0.0, 1.0)
         : 0.0;
+    final formattedPct = _formatPct();
 
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title & Percentage Row
-          Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: Text(
-                  subject.subjectName,
-                  style: AppTypography.itemTitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+    return Semantics(
+      button: true,
+      label:
+          '${subject.subjectName}, $formattedPct. ${subject.totalConducted > 0 ? '${subject.totalPresent} of ${subject.totalConducted} attended' : 'No sessions recorded yet'}',
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Title & Percentage Row
+            Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    subject.subjectName,
+                    style: AppTypography.itemTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              Expanded(
-                flex: 2,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      _formatPct(),
-                      style: AppTypography.labelLarge.copyWith(
-                        color: subject.isNotAvailable
-                            ? AppColors.mutedInk
-                            : (subject.thresholdStatus ==
-                                      ThresholdStatus.meeting
-                                  ? const Color(0xFF1E826D)
-                                  : (subject.thresholdStatus ==
-                                            ThresholdStatus.below
-                                        ? const Color(0xFFD63B48)
-                                        : AppColors.ink)),
-                        fontFeatures: const [FontFeature.tabularFigures()],
-                        fontSize: 13,
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  flex: 2,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        formattedPct,
+                        style: AppTypography.labelLarge.copyWith(
+                          color: subject.isNotAvailable
+                              ? AppColors.mutedInk
+                              : (subject.thresholdStatus ==
+                                        ThresholdStatus.meeting
+                                    ? AppColors.inkMint
+                                    : (subject.thresholdStatus ==
+                                              ThresholdStatus.below
+                                          ? AppColors.inkCoral
+                                          : AppColors.ink)),
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
+              ],
+            ),
+            const SizedBox(height: 6),
 
-          // Progress bar
-          AppProgressBar(
-            progress: progress,
-            height: 6,
-            color: progressColor,
-            trackColor: AppColors.track,
-          ),
-          const SizedBox(height: 8),
+            // Progress bar
+            AppProgressBar(
+              progress: progress,
+              height: 5,
+              color: progressColor,
+              trackColor: AppColors.track,
+            ),
+            const SizedBox(height: 8),
 
-          // Metadata row (Components & Counts)
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  [
-                    if (subject.lectureEnabled) 'Lecture',
-                    if (subject.labEnabled) 'Lab',
-                  ].join(' • '),
-                  style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.mutedInk,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  subject.totalConducted > 0
-                      ? '${subject.totalPresent}/${subject.totalConducted} attended'
-                      : 'No sessions yet',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.mutedInk,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                    fontStyle: subject.totalConducted > 0
-                        ? FontStyle.normal
-                        : FontStyle.italic,
+            // Metadata row (Components & Counts)
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    [
+                      if (subject.lectureEnabled) 'Lecture',
+                      if (subject.labEnabled) 'Lab',
+                    ].join(' • '),
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.mutedInk,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+                const SizedBox(width: AppSpacing.xs),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    subject.totalConducted > 0
+                        ? '${subject.totalPresent}/${subject.totalConducted} attended'
+                        : 'No sessions yet',
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.mutedInk,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                      fontStyle: subject.totalConducted > 0
+                          ? FontStyle.normal
+                          : FontStyle.italic,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

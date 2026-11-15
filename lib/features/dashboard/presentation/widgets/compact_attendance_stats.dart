@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:attendly/core/theme/app_colors.dart';
-import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
@@ -16,79 +15,70 @@ class CompactAttendanceStats extends StatelessWidget {
     final hasBothComponents =
         summary.lectureConducted > 0 && summary.labConducted > 0;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.pureWhite,
-        borderRadius: AppRadius.lgBorder,
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        children: [
-          // Primary Session Counts Row
-          Row(
-            children: [
-              Expanded(
-                child: _StatColumn(
-                  label: 'Conducted',
-                  value: summary.totalConducted.toString(),
-                  color: AppColors.ink,
-                  icon: AppIcons.calendar,
-                ),
-              ),
-              Container(width: 1, height: 32, color: AppColors.divider),
-              Expanded(
-                child: _StatColumn(
-                  label: 'Present',
-                  value: summary.totalPresent.toString(),
-                  color: AppColors.brandMint,
-                  icon: AppIcons.check,
-                ),
-              ),
-              Container(width: 1, height: 32, color: AppColors.divider),
-              Expanded(
-                child: _StatColumn(
-                  label: 'Absent',
-                  value: summary.totalAbsent.toString(),
-                  color: AppColors.brandCoral,
-                  icon: AppIcons.close,
-                ),
-              ),
-            ],
-          ),
-
-          // Component Breakdown Row (if both Lecture and Lab exist)
-          if (hasBothComponents) ...[
-            const SizedBox(height: AppSpacing.sm),
-            const Divider(height: 1, color: AppColors.divider),
-            const SizedBox(height: AppSpacing.sm),
-            Wrap(
-              alignment: WrapAlignment.spaceAround,
-              spacing: AppSpacing.md,
-              runSpacing: AppSpacing.xs,
+    return Semantics(
+      container: true,
+      label:
+          'Attendance session summary: ${summary.totalConducted} conducted, ${summary.totalPresent} present, ${summary.totalAbsent} absent',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        child: Column(
+          children: [
+            // Primary Session Counts Row — Open, clean, uncluttered
+            Row(
               children: [
-                _ComponentBadge(
-                  label: 'Lecture',
-                  present: summary.lecturePresent,
-                  conducted: summary.lectureConducted,
-                  pct: summary.lecturePercentage,
-                  icon: AppIcons.lecture,
+                Expanded(
+                  child: _StatColumn(
+                    label: 'Conducted',
+                    value: summary.totalConducted.toString(),
+                    valueColor: AppColors.ink,
+                  ),
                 ),
-                _ComponentBadge(
-                  label: 'Lab',
-                  present: summary.labPresent,
-                  conducted: summary.labConducted,
-                  pct: summary.labPercentage,
-                  icon: AppIcons.lab,
+                Container(width: 1, height: 28, color: AppColors.divider),
+                Expanded(
+                  child: _StatColumn(
+                    label: 'Present',
+                    value: summary.totalPresent.toString(),
+                    valueColor: AppColors.inkMint,
+                  ),
+                ),
+                Container(width: 1, height: 28, color: AppColors.divider),
+                Expanded(
+                  child: _StatColumn(
+                    label: 'Absent',
+                    value: summary.totalAbsent.toString(),
+                    valueColor: AppColors.inkCoral,
+                  ),
                 ),
               ],
             ),
+
+            // Component Breakdown (when both Lecture and Lab exist)
+            if (hasBothComponents) ...[
+              const SizedBox(height: AppSpacing.sm),
+              const Divider(height: 1, color: AppColors.divider),
+              const SizedBox(height: AppSpacing.xs + 2),
+              Wrap(
+                alignment: WrapAlignment.spaceAround,
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.xs,
+                children: [
+                  _ComponentBadge(
+                    label: 'Lecture',
+                    present: summary.lecturePresent,
+                    conducted: summary.lectureConducted,
+                    pct: summary.lecturePercentage,
+                  ),
+                  _ComponentBadge(
+                    label: 'Lab',
+                    present: summary.labPresent,
+                    conducted: summary.labConducted,
+                    pct: summary.labPercentage,
+                  ),
+                ],
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -98,62 +88,45 @@ class _StatColumn extends StatelessWidget {
   const _StatColumn({
     required this.label,
     required this.value,
-    required this.color,
-    required this.icon,
+    required this.valueColor,
   });
 
   final String label;
   final String value;
-  final Color color;
-  final dynamic icon;
+  final Color valueColor;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AppIcon(
-                icon,
-                size: 14,
-                color: color == AppColors.brandMint
-                    ? const Color(0xFF1E826D)
-                    : (color == AppColors.brandCoral
-                          ? const Color(0xFFD63B48)
-                          : AppColors.mutedInk),
+    return Semantics(
+      label: '$label: $value',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: AppTypography.metricLarge.copyWith(
+                color: valueColor,
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.mutedInk,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 4),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            value,
-            style: AppTypography.metricLarge.copyWith(
-              color: color == AppColors.brandMint
-                  ? const Color(0xFF1E826D)
-                  : (color == AppColors.brandCoral
-                        ? const Color(0xFFD63B48)
-                        : color),
-              fontSize: 22,
             ),
           ),
-        ),
-      ],
+          const SizedBox(height: 2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              style: AppTypography.labelSmall.copyWith(
+                color: AppColors.mutedInk,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -164,14 +137,12 @@ class _ComponentBadge extends StatelessWidget {
     required this.present,
     required this.conducted,
     required this.pct,
-    required this.icon,
   });
 
   final String label;
   final int present;
   final int conducted;
   final double? pct;
-  final dynamic icon;
 
   @override
   Widget build(BuildContext context) {
@@ -181,28 +152,32 @@ class _ComponentBadge extends StatelessWidget {
               : '${pct!.toStringAsFixed(1)}%')
         : '—';
 
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AppIcon(icon, size: 16, color: AppColors.brandViolet),
-          const SizedBox(width: 6),
-          Text(
-            '$label: ',
-            style: AppTypography.labelSmall.copyWith(
-              color: AppColors.ink,
-              fontWeight: FontWeight.w600,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.softLavender,
+        borderRadius: AppRadius.pillBorder,
+      ),
+      child: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(
+              text: '$label: ',
+              style: AppTypography.labelSmall.copyWith(
+                color: AppColors.inkViolet,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-          Text(
-            '$present/$conducted ($pctStr)',
-            style: AppTypography.labelSmall.copyWith(
-              color: AppColors.mutedInk,
-              fontFeatures: const [FontFeature.tabularFigures()],
+            TextSpan(
+              text: '$present/$conducted ($pctStr)',
+              style: AppTypography.labelSmall.copyWith(
+                color: AppColors.ink,
+                fontFeatures: const [FontFeature.tabularFigures()],
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

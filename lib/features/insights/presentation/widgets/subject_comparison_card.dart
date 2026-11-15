@@ -45,7 +45,13 @@ class SubjectComparisonCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.pureWhite,
             borderRadius: AppRadius.xlBorder,
-            border: Border.all(color: AppColors.border),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.ink.withAlpha(6),
+                blurRadius: 14,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,7 +78,7 @@ class SubjectComparisonCard extends StatelessWidget {
                         '${(threshold * 100).round()}% Target',
                         style: AppTypography.labelSmall.copyWith(
                           color: AppColors.mutedInk,
-                          fontSize: 10,
+                          fontSize: 12,
                         ),
                       ),
                     ],
@@ -153,6 +159,7 @@ class _SubjectComparisonRow extends StatelessWidget {
                       style: AppTypography.labelSmall.copyWith(
                         color: AppColors.mutedInk,
                         fontSize: 11,
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                   ],
@@ -179,13 +186,14 @@ class _SubjectComparisonRow extends StatelessWidget {
                 style: AppTypography.labelSmall.copyWith(
                   color: isAvailable
                       ? (summary.meetsThreshold
-                            ? const Color(0xFF1E826D)
-                            : const Color(0xFFD63B48))
+                            ? AppColors.inkMint
+                            : AppColors.inkCoral)
                       : (isProvisional
-                            ? const Color(0xFF9E5742)
+                            ? AppColors.inkPeach
                             : AppColors.mutedInk),
                   fontWeight: FontWeight.w700,
                   fontSize: 11,
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ),
