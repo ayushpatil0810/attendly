@@ -9,15 +9,28 @@ The project is currently in its pre-release development phase. Do not invent rel
 ## [Unreleased]
 
 ### Added
-- Initial project documentation set covering product requirements, functional specification, technology stack, architecture, database, design, testing, and AI-agent working conventions.
-- Product direction for an individual-student attendance tracker.
-- Offline-only product constraint: student data is stored locally using Drift/SQLite; no login, hosted backend, or cloud synchronization.
-- Product requirements for semester and subject management, separate lecture/lab attendance, historical attendance entry and editing, attendance analytics, configurable thresholds, and a hypothetical attendance simulator.
-- Design direction for a light-theme interface with a white/warm-white background, violet/mint/coral/peach palette, Plus Jakarta Sans typography, Hugeicons, and a floating bottom navigation dock.
-- UX direction for immediate attendance saving with Undo and calendar-based historical corrections.
-- Local backup/export and restore/import requirements.
+- Phase 2: Attendance Management workflow implementation.
+- `AttendanceSession`, `SessionComponent`, and `AttendanceStatus` domain entities and enums.
+- `AttendanceRepository` and `AttendanceRepositoryImpl` supporting session creation, date querying, subject querying, month stream watching, safe updating, deletion, and duplicate session rejection.
+- Reactive Riverpod state management in `attendance_providers.dart` (`selectedDateProvider`, `currentMonthProvider`, `sessionsForSelectedDateProvider`, `sessionsForMonthProvider`, and `AttendanceController` with comprehensive Undo support).
+- Central Quick Attendance Log bottom sheet (`QuickLogSheet`):
+  - Subject selection with auto-component selection for single-component subjects.
+  - Component selector for subjects with both Lecture and Lab.
+  - Single-tap immediate save on Present or Absent (no redundant save button).
+  - Floating confirmation toast with one-tap Undo action.
+  - Duplicate session detection and protection preventing accidental duplicate logging.
+  - Date indicator defaulting to local calendar date with past-date selection.
+- Full Attendance History screen (`HistoryScreen`):
+  - Custom monthly attendance calendar (`AttendanceCalendar`) with animated month navigation, today jump, and date selection.
+  - Honest calendar indicators: mint dot for Present, coral dot for Absent, mixed dots for both, and zero dots for unrecorded dates (never assuming absence).
+  - Selected-date session list showing subject, component, status pill, and optional notes.
+  - Historical session creation and safe session editing (`SessionFormSheet`).
+  - Session deletion with confirmation dialog (`showDeleteSessionDialog`) and Undo toast.
+- Database Schema Version 2 migration adding `UNIQUE (subject_id, session_date, component)` constraint and calendar indexes (`idx_attendance_sessions_unique` and `idx_attendance_sessions_date`).
 
 ### Changed
+- Replaced Phase 1 Quick Log and History placeholders with fully functional Phase 2 implementations.
+- Upgraded local database schema from version 1 to version 2 with automated, data-preserving migration.
 - Reconciled all documentation files (`PRD.md`, `SPEC.md`, `TECH_STACK.md`, `ARCHITECTURE.md`, `DATABASE.md`, `DESIGN.md`, `TESTING.md`, `AGENTS.md`, `CHANGELOG.md`) to establish a 100% offline-only architecture using Drift/SQLite as the sole persistence source.
 - Standardized local backup and restore requirements (versioned JSON export/import with validation and transactional rollback) across all documentation.
 

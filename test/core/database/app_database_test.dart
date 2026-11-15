@@ -21,8 +21,8 @@ void main() {
   });
 
   group('Database initialization & schema', () {
-    test('database opens and schemaVersion is 1', () {
-      expect(db.schemaVersion, equals(1));
+    test('database opens and schemaVersion is 2', () {
+      expect(db.schemaVersion, equals(2));
     });
 
     test('can insert and retrieve a semester', () async {
@@ -339,6 +339,65 @@ void main() {
       },
     );
 
+    test(
+      'rejects duplicate session for same subject, date, and component',
+      () async {
+        final now = DateTime.now().millisecondsSinceEpoch;
+
+        final semId = await db
+            .into(db.semesters)
+            .insert(
+              SemestersCompanion.insert(
+                name: 'Spring 2026',
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+
+        final subjId = await db
+            .into(db.subjects)
+            .insert(
+              SubjectsCompanion.insert(
+                semesterId: semId,
+                name: 'Operating Systems',
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+
+        // Insert first session
+        await db
+            .into(db.attendanceSessions)
+            .insert(
+              AttendanceSessionsCompanion.insert(
+                subjectId: subjId,
+                sessionDate: '2026-03-10',
+                component: 'lecture',
+                status: 'present',
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+
+        // Inserting second session for same subject, date, and component must fail
+        expect(
+          () async => await db
+              .into(db.attendanceSessions)
+              .insert(
+                AttendanceSessionsCompanion.insert(
+                  subjectId: subjId,
+                  sessionDate: '2026-03-10',
+                  component: 'lecture',
+                  status: 'absent',
+                  createdAt: now,
+                  updatedAt: now,
+                ),
+              ),
+          throwsA(isA<SqliteException>()),
+        );
+      },
+    );
+
     test('data persists across database reopening', () async {
       final tempDir = await Directory.systemTemp.createTemp(
         'attendly_db_test_',
@@ -372,4 +431,151 @@ void main() {
       }
     });
   });
+
+  group('Database migrations (v1 -> v2)', () {
+    test('migrates database from v1 to v2 preserving data and enforcing uniqueness', () async {
+      final tempDir = await Directory.systemTemp.createTemp(
+        'attendly_migration_test_',
+      );
+      final dbFile = File('${tempDir.path}/migration_test.sqlite');
+
+      // 1. Manually create v1 database using raw sqlite statements
+      final rawDb = NativeDatabase(dbFile);
+      final executor = rawDb;
+      await executor.ensureOpen(_FakeQueryExecutorUser());
+
+      await executor.runCustom('PRAGMA user_version = 1;');
+      await executor.runCustom('''
+        CREATE TABLE semesters (
+          id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          start_date TEXT,
+          end_date TEXT,
+          attendance_threshold REAL NOT NULL DEFAULT 0.75,
+          calculation_method TEXT NOT NULL DEFAULT 'raw_combined',
+          is_archived INTEGER NOT NULL DEFAULT 0,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          CHECK (length(trim(name)) > 0),
+          CHECK (attendance_threshold > 0.0 AND attendance_threshold <= 1.0),
+          CHECK (calculation_method IN ('raw_combined', 'component_average')),
+          CHECK (is_archived IN (0, 1))
+        );
+      ''');
+      await executor.runCustom('''
+        CREATE TABLE subjects (
+          id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+          semester_id INTEGER NOT NULL REFERENCES semesters (id) ON DELETE CASCADE,
+          name TEXT NOT NULL,
+          lecture_enabled INTEGER NOT NULL DEFAULT 1,
+          lab_enabled INTEGER NOT NULL DEFAULT 0,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          CHECK (length(trim(name)) > 0),
+          CHECK (lecture_enabled IN (0, 1)),
+          CHECK (lab_enabled IN (0, 1)),
+          CHECK (lecture_enabled = 1 OR lab_enabled = 1)
+        );
+      ''');
+      await executor.runCustom('''
+        CREATE TABLE attendance_sessions (
+          id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+          subject_id INTEGER NOT NULL REFERENCES subjects (id) ON DELETE CASCADE,
+          session_date TEXT NOT NULL,
+          component TEXT NOT NULL,
+          status TEXT NOT NULL,
+          note TEXT,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          CHECK (component IN ('lecture', 'lab')),
+          CHECK (status IN ('present', 'absent')),
+          CHECK (length(session_date) = 10)
+        );
+      ''');
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await executor.runCustom(
+        "INSERT INTO semesters (name, created_at, updated_at) VALUES ('V1 Semester', $now, $now);",
+      );
+      await executor.runCustom(
+        "INSERT INTO subjects (semester_id, name, created_at, updated_at) VALUES (1, 'V1 Subject', $now, $now);",
+      );
+      await executor.runCustom(
+        "INSERT INTO attendance_sessions (subject_id, session_date, component, status, created_at, updated_at) "
+        "VALUES (1, '2026-03-01', 'lecture', 'present', $now, $now);",
+      );
+
+      await executor.close();
+
+      // 2. Open with AppDatabase v2, triggering onUpgrade from v1 to v2
+      final upgradedDb = AppDatabase.forTesting(NativeDatabase(dbFile));
+      expect(upgradedDb.schemaVersion, equals(2));
+
+      // 3. Verify existing data preserved
+      final semesters = await upgradedDb.select(upgradedDb.semesters).get();
+      expect(semesters.length, equals(1));
+      expect(semesters.first.name, equals('V1 Semester'));
+
+      final subjects = await upgradedDb.select(upgradedDb.subjects).get();
+      expect(subjects.length, equals(1));
+      expect(subjects.first.name, equals('V1 Subject'));
+
+      final sessions = await upgradedDb
+          .select(upgradedDb.attendanceSessions)
+          .get();
+      expect(sessions.length, equals(1));
+      expect(sessions.first.sessionDate, equals('2026-03-01'));
+      expect(sessions.first.status, equals('present'));
+
+      // 4. Verify uniqueness constraint on (subject_id, session_date, component) is now enforced
+      expect(
+        () async => await upgradedDb
+            .into(upgradedDb.attendanceSessions)
+            .insert(
+              AttendanceSessionsCompanion.insert(
+                subjectId: 1,
+                sessionDate: '2026-03-01',
+                component: 'lecture',
+                status: 'absent',
+                createdAt: now,
+                updatedAt: now,
+              ),
+            ),
+        throwsA(isA<SqliteException>()),
+      );
+
+      // 5. Valid session on different component or date succeeds
+      final newSessId = await upgradedDb
+          .into(upgradedDb.attendanceSessions)
+          .insert(
+            AttendanceSessionsCompanion.insert(
+              subjectId: 1,
+              sessionDate: '2026-03-02',
+              component: 'lecture',
+              status: 'present',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      expect(newSessId, greaterThan(0));
+
+      await upgradedDb.close();
+
+      if (await tempDir.exists()) {
+        await tempDir.delete(recursive: true);
+      }
+    });
+  });
+}
+
+class _FakeQueryExecutorUser extends QueryExecutorUser {
+  @override
+  int get schemaVersion => 1;
+
+  @override
+  Future<void> beforeOpen(
+    QueryExecutor executor,
+    OpeningDetails details,
+  ) async {}
 }

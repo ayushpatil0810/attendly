@@ -17,6 +17,11 @@ class AttendanceSessions extends Table {
   IntColumn get updatedAt => integer().named('updated_at')();
 
   @override
+  List<Set<Column>> get uniqueKeys => [
+    {subjectId, sessionDate, component},
+  ];
+
+  @override
   List<String> get customConstraints => [
     "CHECK (component IN ('lecture', 'lab'))",
     "CHECK (status IN ('present', 'absent'))",

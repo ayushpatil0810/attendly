@@ -18,3 +18,8 @@ class DatabaseFailure extends AppFailure {
 class NotFoundFailure extends AppFailure {
   const NotFoundFailure(super.message);
 }
+
+class DuplicateSessionFailure extends AppFailure {
+  const DuplicateSessionFailure(super.message, {this.existingSessionId});
+  final int? existingSessionId;
+}

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:attendly/core/shared/widgets/app_bottom_sheet.dart';
 import 'package:attendly/core/shared/widgets/app_floating_dock.dart';
 import 'package:attendly/core/theme/app_colors.dart';
+import 'package:attendly/features/attendance/presentation/widgets/quick_log_sheet.dart';
 import 'package:attendly/features/subjects/presentation/screens/subjects_screen.dart';
 
-import '../widgets/quick_log_placeholder_sheet.dart';
 import 'history_screen.dart';
 import 'home_screen.dart';
 import 'insights_screen.dart';
@@ -33,11 +32,7 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
   }
 
   void _onQuickLogPressed() {
-    showAppBottomSheet(
-      context: context,
-      title: 'Log Attendance',
-      child: const QuickLogPlaceholderSheet(),
-    );
+    showQuickLogSheet(context: context);
   }
 
   @override
