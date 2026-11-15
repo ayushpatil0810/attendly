@@ -303,14 +303,15 @@ The example is structural only. Define exact serialized field names and validati
 
 Requirements:
 - Include all user-created semesters, subjects, settings, and attendance sessions.
-- Include the backup format version.
-- Do not include generated database primary keys as the only identity mechanism if import needs to remap IDs safely. Either use stable export IDs or maintain an explicit old-to-new ID mapping during import.
-- Validate the complete file before modifying the live database.
-- Reject unsupported future format versions with a clear message.
-- Use a transaction for restore.
-- Offer a clear restore policy: replace existing local data, or merge only if a reliable duplicate-resolution strategy is implemented. Do not silently merge.
-- Preserve date-only session values exactly.
+- Include the backup format version (`formatVersion: 1`).
+- Identifiers are remapped using an explicit old-to-new ID mapping during restore to preserve full foreign-key constraints and avoid auto-increment collisions.
+- Validate the complete file before modifying the live database using `BackupValidator`.
+- Reject unsupported future format versions (> 1) with a clear message.
+- Restore executes within an atomic database transaction; any failure rolls back all operations completely, preserving existing data.
+- **Restore Policy:** Replace existing local data after explicit user confirmation. Merging is not performed to prevent silent collisions and ID ambiguity.
+- Preserve date-only session values (`YYYY-MM-DD`) exactly without timezone drift.
 - Never include secrets, credentials, or remote-service tokens.
+- Ephemeral simulator scenarios are strictly excluded from backup export.
 
 ### 11.2 Restore validation
 

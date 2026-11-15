@@ -9,6 +9,27 @@ The project is currently in its pre-release development phase. Do not invent rel
 ## [Unreleased]
 
 ### Added
+- Phase 5: Settings, Local Backup & Data Safety implementation.
+- Core Local Backup & Restore system (`lib/core/backup/`):
+  - `BackupConstants`: Versioned format identifier (`college-attendance-tracker-backup`, version 1).
+  - `BackupData`, `SemesterBackupModel`, `SubjectBackupModel`, `AttendanceSessionBackupModel`, and `BackupSummary` models with JSON serialization.
+  - `BackupValidator`: Exhaustive multi-stage pure Dart validator validating JSON syntax, schema version, required fields, date formats (`YYYY-MM-DD`), enum constraints (`lecture`/`lab`, `present`/`absent`), subject-to-semester and session-to-subject referential integrity, component enablement on subjects, duplicate session keys `(subjectId, sessionDate, component)`, and safe file-size/record-count boundaries.
+  - `BackupService`: Versioned JSON export and transactional restore with relational ID remapping (`oldId -> newId`) ensuring foreign-key integrity and complete transaction rollback on failure.
+  - Strict simulator isolation: Ephemeral simulator sessions exist exclusively in-memory and are never included in exported backups or restored attendance.
+  - Documented restore policy: Replace existing local data after explicit user confirmation in a dedicated preview summary dialog.
+- Core Platform Services & Infrastructure (`lib/core/services/`):
+  - `PlatformFileService` and `PlatformFileServiceImpl`: Abstraction for local JSON file picking and export sharing across mobile and desktop platforms using `file_picker` (13.3.3) and `share_plus` (13.3.1).
+  - `AppPreferencesNotifier` and `appPreferencesProvider`: Persistent preference state management using `shared_preferences` with `AppHaptics` tactile feedback utility for attendance logging and button taps.
+- Settings Presentation Suite (`lib/features/settings/`):
+  - `SettingsScreen`: Clean four-section configuration screen with Plus Jakarta Sans typography, Hugeicons, and responsive spacing.
+  - `SemesterSettingsSection`: Active semester display with immediate calculation method switcher (`Raw Combined` vs `50/50 Average`), attendance threshold slider with instant reactive recalculation across the app, and direct access to semester switcher and edit dialogs.
+  - `AppPreferencesSection`: Haptic feedback toggle and system reduced motion accessibility explanation.
+  - `BackupRestoreSection`: One-tap export and import flows with loading states, error dialogs, and success toasts.
+  - `BackupSummaryDialog`: Pre-restore confirmation modal displaying export date, semester count, subject count, attendance session breakdown, and clear replacement consequence warning before destructive action.
+  - `PrivacyOfflineSection`: Comprehensive offline-first transparency notice detailing 100% device-local SQLite storage, zero accounts/authentication, no cloud synchronization, student data ownership, and device data loss reminders.
+- Navigation updates:
+  - Registered `/settings` route in `GoRouter` (`RouteNames.settings` / `RouteNames.settingsPath`).
+  - Connected Settings navigation cog in `DashboardHeader` to open Settings screen.
 - Phase 4: Insights, Advanced Analytics & What-if Attendance Simulator.
 - Domain calculation services and entities:
   - `HypotheticalSession`: In-memory model for hypothetical future classes.

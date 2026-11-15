@@ -54,6 +54,8 @@ business logic. - A small, practical dependency set.
   Static analysis                     Dart analyzer + `flutter_lints`
 
   CI                                  GitHub Actions
+
+  Local file picking & export         `file_picker` & `share_plus`
   -----------------------------------------------------------------------
 
 **Version policy:** Use the latest mutually compatible stable
@@ -189,10 +191,12 @@ synchronization, and no user authentication.
 
 ### Data safety
 
--   Provide a local backup and restore mechanism (for example, database
+-   Provide a local backup and restore mechanism (versioned JSON
     file export/import) so the user can safeguard their data or migrate
     to a new device.
--   Backup files should be self-contained and portable.
+-   Backup files are self-contained and portable.
+-   `file_picker` (13.3.3) provides local file picking for backup import and platform save dialogs.
+-   `share_plus` (13.3.1) integrates with the platform-native share sheet for offline local backup export without external network access.
 
 ### Rules
 
