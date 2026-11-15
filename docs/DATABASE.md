@@ -137,14 +137,14 @@ Stores one explicitly recorded, conducted class.
 - A `lecture` session is allowed only when the subject has `lecture_enabled = 1`.
 - A `lab` session is allowed only when the subject has `lab_enabled = 1`.
 - `session_date` must be a valid ISO calendar date.
-- Multiple sessions on the same date for the same subject and component are supported (e.g., two lectures on the same day). Each session is uniquely identified by its auto-incrementing `id`.
+- `UNIQUE (subject_id, session_date, component)` constraint: duplicate attendance sessions for the same subject, date, and component are strictly rejected at the database level.
+- `id` remains the primary key for auto-incrementing stable entity identification.
 
 **Indexes**
-- Index on `(subject_id, session_date, component)`.
-- Index on `(subject_id, session_date)`.
-- Index on `session_date`.
+- Unique index on `(subject_id, session_date, component)` (`idx_attendance_sessions_unique`).
+- Index on `session_date` (`idx_attendance_sessions_date`) for calendar queries.
 
-The composite index on `(subject_id, session_date, component)` supports fast lookups by subject, date, and component while allowing legitimate repeated sessions. Accidental duplicate submissions are guarded in the presentation layer via debouncing and undo feedback.
+The composite unique constraint on `(subject_id, session_date, component)` enforces duplicate protection while supporting legitimate separate lecture and lab sessions on the same day. Accidental duplicate submissions are guarded in the presentation layer via debouncing, instant UI duplicate feedback, and undo actions.
 
 **Important behavior**
 - Creating a row means a class was conducted and the student recorded its attendance.
@@ -353,6 +353,11 @@ Potential future migration examples:
 - Changing backup serialization independently of the SQLite schema.
 
 A backup format version is separate from the SQLite schema version. They must not be conflated.
+
+### 12.1 Migration history
+
+- **Schema Version 1 (Phase 1):** Initial database structure containing `semesters`, `subjects`, and `attendance_sessions` tables with check constraints and foreign keys.
+- **Schema Version 2 (Phase 2):** Added `UNIQUE (subject_id, session_date, component)` table constraint to `AttendanceSessions` with index `idx_attendance_sessions_unique` and added `idx_attendance_sessions_date` on `session_date` for fast calendar navigation. Upgrade migration preserves all existing v1 data.
 
 ## 13. Data integrity and validation
 

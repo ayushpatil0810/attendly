@@ -18,12 +18,29 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (Migrator m) async {
       await m.createAll();
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_attendance_sessions_date '
+        'ON attendance_sessions(session_date);',
+      );
+    },
+    onUpgrade: (Migrator m, int from, int to) async {
+      if (from < 2) {
+        // Enforce uniqueness on (subject_id, session_date, component) and index session_date
+        await customStatement(
+          'CREATE UNIQUE INDEX IF NOT EXISTS idx_attendance_sessions_unique '
+          'ON attendance_sessions(subject_id, session_date, component);',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_attendance_sessions_date '
+          'ON attendance_sessions(session_date);',
+        );
+      }
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON;');

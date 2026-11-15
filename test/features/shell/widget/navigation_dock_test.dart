@@ -58,7 +58,8 @@ void main() {
       // Tap History tab
       await tester.tap(find.text('History'));
       await tester.pumpAndSettle();
-      expect(find.text('Attendance History (Phase 2)'), findsOneWidget);
+      expect(find.text('Calendar & Attendance Timeline'), findsOneWidget);
+      expect(find.text('No sessions recorded for this date'), findsOneWidget);
 
       // Tap Insights tab
       await tester.tap(find.text('Insights'));
@@ -69,13 +70,14 @@ void main() {
       await tester.tap(find.byKey(const Key('quick_log_dock_button')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Quick Log Coming in Phase 2'), findsOneWidget);
+      expect(find.text('Quick Attendance Log'), findsOneWidget);
+      expect(find.text('No subjects found'), findsOneWidget);
 
       // Dismiss bottom sheet
-      await tester.tap(find.text('Got it'));
+      await tester.tap(find.text('Close'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Quick Log Coming in Phase 2'), findsNothing);
+      expect(find.text('Quick Attendance Log'), findsNothing);
 
       // Flush any pending microtasks from Stream disposal
       await tester.pumpWidget(const SizedBox());

@@ -1,0 +1,614 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:attendly/core/errors/app_failure.dart';
+import 'package:attendly/core/shared/widgets/app_button.dart';
+import 'package:attendly/core/shared/widgets/app_segmented_control.dart';
+import 'package:attendly/core/shared/widgets/app_toast.dart';
+import 'package:attendly/core/theme/app_colors.dart';
+import 'package:attendly/core/theme/app_icons.dart';
+import 'package:attendly/core/theme/app_radius.dart';
+import 'package:attendly/core/theme/app_typography.dart';
+import 'package:attendly/features/attendance/domain/entities/attendance_session.dart';
+import 'package:attendly/features/attendance/domain/entities/attendance_status.dart';
+import 'package:attendly/features/attendance/domain/entities/session_component.dart';
+import 'package:attendly/features/attendance/presentation/providers/attendance_providers.dart';
+import 'package:attendly/features/subjects/domain/entities/subject.dart';
+import 'package:attendly/features/subjects/presentation/providers/subjects_provider.dart';
+import 'package:intl/intl.dart';
+
+import 'session_form_sheet.dart';
+
+class QuickLogSheet extends ConsumerStatefulWidget {
+  const QuickLogSheet({super.key, this.initialDate});
+
+  final DateTime? initialDate;
+
+  @override
+  ConsumerState<QuickLogSheet> createState() => _QuickLogSheetState();
+}
+
+class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
+  int? _selectedSubjectId;
+  SessionComponent _selectedComponent = SessionComponent.lecture;
+  late DateTime _selectedDate;
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _selectedDate =
+        widget.initialDate ?? DateTime(now.year, now.month, now.day);
+  }
+
+  void _syncComponentForSubject(Subject subject) {
+    if (subject.hasBothComponents) {
+      if (_selectedComponent != SessionComponent.lecture &&
+          _selectedComponent != SessionComponent.lab) {
+        _selectedComponent = SessionComponent.lecture;
+      }
+    } else if (subject.lectureEnabled) {
+      _selectedComponent = SessionComponent.lecture;
+    } else if (subject.labEnabled) {
+      _selectedComponent = SessionComponent.lab;
+    }
+  }
+
+  Future<void> _selectDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(now.year, now.month, now.day), // No future dates
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.brandViolet,
+              onPrimary: AppColors.pureWhite,
+              onSurface: AppColors.ink,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && mounted) {
+      setState(() {
+        _selectedDate = DateTime(picked.year, picked.month, picked.day);
+      });
+    }
+  }
+
+  Future<void> _recordAttendance(
+    Subject subject,
+    AttendanceStatus status,
+  ) async {
+    if (_isSubmitting) return;
+
+    setState(() => _isSubmitting = true);
+    final dateStr = formatDateOnly(_selectedDate);
+
+    try {
+      await ref
+          .read(attendanceControllerProvider.notifier)
+          .recordSession(
+            subjectId: subject.id,
+            sessionDate: dateStr,
+            component: _selectedComponent,
+            status: status,
+          );
+
+      if (!mounted) return;
+      Navigator.of(context).pop();
+
+      final statusLabel = status == AttendanceStatus.present
+          ? 'Present'
+          : 'Absent';
+      final componentLabel = _selectedComponent.displayName;
+
+      AppToast.showSuccess(
+        context,
+        message: 'Marked $statusLabel for ${subject.name} ($componentLabel)',
+        actionLabel: 'Undo',
+        onAction: () async {
+          await ref.read(attendanceControllerProvider.notifier).undo();
+          if (mounted) {
+            AppToast.showInfo(context, message: 'Attendance entry undone.');
+          }
+        },
+      );
+    } on DuplicateSessionFailure catch (e) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      AppToast.showError(context, message: e.message);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      AppToast.showError(
+        context,
+        message: e is AppFailure ? e.message : 'Could not save attendance.',
+      );
+    }
+  }
+
+  void _openEditExistingRecord(AttendanceSession session) {
+    Navigator.of(context).pop();
+    showSessionFormSheet(context: context, sessionToEdit: session);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final subjectsAsync = ref.watch(activeSemesterSubjectsProvider);
+
+    return subjectsAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.all(32),
+        child: Center(
+          child: CircularProgressIndicator(color: AppColors.brandViolet),
+        ),
+      ),
+      error: (err, _) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Text(
+          'Failed to load subjects: $err',
+          style: AppTypography.bodySmall.copyWith(color: AppColors.brandCoral),
+        ),
+      ),
+      data: (subjects) {
+        if (subjects.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: const BoxDecoration(
+                    color: AppColors.softPeach,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: const AppIcon(
+                    AppIcons.subjects,
+                    size: 28,
+                    color: AppColors.brandPeach,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'No subjects found',
+                  style: AppTypography.sectionTitle,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Please add subjects to your semester before logging attendance.',
+                  style: AppTypography.bodyMuted,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                AppButton(
+                  label: 'Close',
+                  variant: AppButtonVariant.outline,
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // Auto-select first subject if none selected or if selected is missing
+        final selectedSubject = subjects.firstWhere(
+          (s) => s.id == _selectedSubjectId,
+          orElse: () => subjects.first,
+        );
+
+        if (_selectedSubjectId != selectedSubject.id) {
+          _selectedSubjectId = selectedSubject.id;
+          _syncComponentForSubject(selectedSubject);
+        }
+
+        final dateStr = formatDateOnly(_selectedDate);
+        final isToday = dateStr == formatDateOnly(DateTime.now());
+
+        // Check if an existing session exists for this subject, component, and date
+        final sessionsForDateAsync = ref.watch(
+          sessionsForDateFamilyProvider(dateStr),
+        );
+        AttendanceSession? existingSession;
+
+        sessionsForDateAsync.whenData((sessions) {
+          for (final s in sessions) {
+            if (s.subjectId == selectedSubject.id &&
+                s.component == _selectedComponent &&
+                s.sessionDate == dateStr) {
+              existingSession = s;
+              break;
+            }
+          }
+        });
+
+        final formattedDate = DateFormat('EEE, d MMM').format(_selectedDate);
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Date selector row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Date', style: AppTypography.labelSmall),
+                  InkWell(
+                    onTap: _selectDate,
+                    borderRadius: AppRadius.smBorder,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const AppIcon(
+                            AppIcons.calendar,
+                            size: 14,
+                            color: AppColors.brandViolet,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            isToday ? 'Today ($formattedDate)' : formattedDate,
+                            style: AppTypography.itemTitle.copyWith(
+                              color: AppColors.brandViolet,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const AppIcon(
+                            AppIcons.edit,
+                            size: 12,
+                            color: AppColors.brandViolet,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Subject selection chips
+              const Text('Select Subject', style: AppTypography.labelSmall),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 40,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: subjects.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final subject = subjects[index];
+                    final isSelected = subject.id == _selectedSubjectId;
+
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedSubjectId = subject.id;
+                          _syncComponentForSubject(subject);
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppColors.softLavender
+                              : AppColors.pureWhite,
+                          borderRadius: AppRadius.pillBorder,
+                          border: Border.all(
+                            color: isSelected
+                                ? AppColors.brandViolet
+                                : AppColors.border,
+                            width: isSelected ? 1.5 : 1,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          subject.name,
+                          style: AppTypography.itemTitle.copyWith(
+                            color: isSelected
+                                ? AppColors.brandViolet
+                                : AppColors.ink,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Component selection
+              if (selectedSubject.hasBothComponents) ...[
+                const Text('Component', style: AppTypography.labelSmall),
+                const SizedBox(height: 8),
+                AppSegmentedControl<SessionComponent>(
+                  items: const [
+                    SegmentItem(
+                      value: SessionComponent.lecture,
+                      label: 'Lecture',
+                    ),
+                    SegmentItem(value: SessionComponent.lab, label: 'Lab'),
+                  ],
+                  selectedValue: _selectedComponent,
+                  onChanged: (comp) {
+                    setState(() => _selectedComponent = comp);
+                  },
+                ),
+                const SizedBox(height: 20),
+              ] else ...[
+                Row(
+                  children: [
+                    const Text('Component: ', style: AppTypography.labelSmall),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: const BoxDecoration(
+                        color: AppColors.softLavender,
+                        borderRadius: AppRadius.smBorder,
+                      ),
+                      child: Text(
+                        _selectedComponent.displayName,
+                        style: AppTypography.labelSmall.copyWith(
+                          color: AppColors.brandViolet,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+              ],
+
+              // Duplicate notice OR Immediate Present / Absent actions
+              if (existingSession != null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.softCoral,
+                    borderRadius: AppRadius.mdBorder,
+                    border: Border.all(
+                      color: AppColors.brandCoral.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const AppIcon(
+                            AppIcons.alert,
+                            size: 18,
+                            color: AppColors.brandCoral,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Record already exists',
+                              style: AppTypography.itemTitle.copyWith(
+                                color: AppColors.brandCoral,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'This session is currently recorded as ${existingSession!.status.displayName}.',
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.ink,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      AppButton(
+                        label: 'View / Edit Existing Record',
+                        icon: const AppIcon(
+                          AppIcons.edit,
+                          size: 16,
+                          color: AppColors.ink,
+                        ),
+                        variant: AppButtonVariant.outline,
+                        onPressed: () =>
+                            _openEditExistingRecord(existingSession!),
+                      ),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                const Text(
+                  'Mark Attendance (saves immediately)',
+                  style: AppTypography.labelSmall,
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    // Present Button
+                    Expanded(
+                      child: _AttendanceActionButton(
+                        label: 'Present',
+                        icon: AppIcons.check,
+                        backgroundColor: AppColors.brandMint,
+                        textColor: AppColors.ink,
+                        isLoading: _isSubmitting,
+                        onTap: () => _recordAttendance(
+                          selectedSubject,
+                          AttendanceStatus.present,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Absent Button
+                    Expanded(
+                      child: _AttendanceActionButton(
+                        label: 'Absent',
+                        icon: AppIcons.close,
+                        backgroundColor: AppColors.brandCoral,
+                        textColor: AppColors.pureWhite,
+                        isLoading: _isSubmitting,
+                        onTap: () => _recordAttendance(
+                          selectedSubject,
+                          AttendanceStatus.absent,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _AttendanceActionButton extends StatelessWidget {
+  const _AttendanceActionButton({
+    required this.label,
+    required this.icon,
+    required this.backgroundColor,
+    required this.textColor,
+    required this.onTap,
+    this.isLoading = false,
+  });
+
+  final String label;
+  final dynamic icon;
+  final Color backgroundColor;
+  final Color textColor;
+  final VoidCallback onTap;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: backgroundColor,
+      borderRadius: AppRadius.lgBorder,
+      child: InkWell(
+        onTap: isLoading ? null : onTap,
+        borderRadius: AppRadius.lgBorder,
+        child: Container(
+          height: 56,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: isLoading
+              ? SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: textColor,
+                  ),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    AppIcon(icon, size: 22, color: textColor),
+                    const SizedBox(width: 8),
+                    Text(
+                      label,
+                      style: AppTypography.labelLarge.copyWith(
+                        color: textColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+void showQuickLogSheet({required BuildContext context, DateTime? initialDate}) {
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: AppColors.pureWhite,
+    shape: const RoundedRectangleBorder(borderRadius: AppRadius.sheetTop),
+    builder: (context) {
+      return SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 36,
+                height: 4,
+                decoration: const BoxDecoration(
+                  color: AppColors.divider,
+                  borderRadius: AppRadius.pillBorder,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Quick Attendance Log',
+                        style: AppTypography.sectionTitle,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(
+                          color: AppColors.track,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          size: 16,
+                          color: AppColors.mutedInk,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(color: AppColors.divider, height: 20),
+              QuickLogSheet(initialDate: initialDate),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}

@@ -2,8 +2,8 @@
 
 ## Project Overview
 - **Project Name / Identifier:** College Attendance Tracker (Working title: attendly)
-- **Current Development Phase:** Phase 1: Foundation & Setup
-- **Overall Project Status:** Phase 1 Completed (Ready for Phase 2 review)
+- **Current Development Phase:** Phase 2: Attendance Management
+- **Overall Project Status:** Phase 2 Completed (Ready for Phase 3 review)
 - **Description:** A 100% offline-only personal college attendance tracking mobile app built with Flutter, Riverpod, Drift (SQLite), and go_router. Features independent lecture and lab tracking, Raw Combined and Component Average (50/50) attendance calculation methods, safe absence calculations, and a custom design system following soft, colorful, modern minimalism (light theme only, Plus Jakarta Sans, Hugeicons, floating bottom navigation dock).
 
 ---
@@ -13,7 +13,7 @@
 | Phase | Description | Status |
 |---|---|---|
 | **Phase 1** | **Foundation, Design System & Initial Setup** | **Completed** |
-| Phase 2 | Attendance Management | Not Started |
+| **Phase 2** | **Attendance Management** | **Completed** |
 | Phase 3 | Dashboard | Not Started |
 | Phase 4 | Analytics & Simulator | Not Started |
 | Phase 5 | Settings & Data Safety | Not Started |
@@ -21,241 +21,172 @@
 
 ---
 
-## Current Phase Progress (Phase 1)
+## Phase 2 Progress & Achievements
 
-- [x] Inspect existing repository and documentation (`PRD.md`, `SPEC.md`, `TECH_STACK.md`, `ARCHITECTURE.md`, `DATABASE.md`, `DESIGN.md`, `TESTING.md`, `AGENTS.md`, `CHANGELOG.md`)
-- [x] Create and initialize `progress.md`
-- [x] Initialize Flutter project with Android and iOS platform support
-- [x] Configure approved dependencies (`flutter_riverpod: ^3.5.0`, `go_router: ^18.1.4`, `drift: ^2.35.4`, `sqlite3_flutter_libs: ^0.6.0+eol`, `path_provider: ^2.1.6`, `path: ^1.9.1`, `intl: ^0.20.3`, `hugeicons: ^4.4.0`, `shared_preferences: ^2.5.6`, dev: `drift_dev: ^2.35.3`, `build_runner: ^2.17.1`, `flutter_lints: ^6.0.0`, `mocktail: ^1.0.5`, `sqlite3: ^3.9.1`)
-- [x] Bundle Plus Jakarta Sans locally (`assets/fonts/PlusJakartaSans-VariableFont_wght.ttf` registered in `pubspec.yaml`)
-- [x] Integrate Hugeicons package with centralized icon mapping (`AppIcons` / `AppIcon`)
-- [x] Implement Workstream B: Design system tokens & components
-  - [x] Color tokens (`brandViolet`, `brandMint`, `brandCoral`, `brandPeach`, `warmWhite`, `ink`, `mutedInk`, `divider`, `track`, tints) in `lib/core/theme/app_colors.dart`
-  - [x] Typography scale with Plus Jakarta Sans and tabular figures in `lib/core/theme/app_typography.dart`
-  - [x] Spacing scale (8-point grid) in `lib/core/theme/app_spacing.dart` and radius tokens in `lib/core/theme/app_radius.dart`
-  - [x] Reusable foundational components:
-    - [x] `AppButton` (primary, secondary, outline, text, destructive with loading states)
-    - [x] `AppTextField` (clean, non-boxed, custom borders, validation and helper styling)
-    - [x] `AppSegmentedControl` (pill toggle for calculation method selection)
-    - [x] `AppSwitchTile` (switch row with custom tinting for lecture/lab toggles)
-    - [x] `AppSectionHeader` (clean section dividers with optional action buttons)
-    - [x] `AppProgressBar` and `AppProgressRing` (smooth rounded visual progress)
-    - [x] `AppToast` (floating snackbar feedback with undo actions)
-    - [x] `AppBottomSheet` (modal bottom sheet container with drag handle)
-    - [x] `AppFloatingDock` (floating elevated pill bottom navigation bar with central quick log)
-    - [x] `AppLoadingState` and `AppEmptyState` (soft, friendly illustration/icon states)
-- [x] Implement Workstream D: Local database foundation (Drift/SQLite)
-  - [x] `Semesters` table (id, name, start_date, end_date, attendance_threshold, calculation_method, is_archived, created_at, updated_at)
-  - [x] `Subjects` table (id, semester_id, name, lecture_enabled, lab_enabled, sort_order, created_at, updated_at)
-  - [x] `AttendanceSessions` table (id, subject_id, session_date, component, status, note, created_at, updated_at)
-  - [x] Foreign keys enabled via `PRAGMA foreign_keys = ON;` with cascade deletion
-  - [x] Check constraints (name non-empty, threshold in (0, 1], valid calculation methods, at least one subject component enabled, valid session component & status)
-  - [x] Schema versioning (v1) and typed DAOs/methods in `AppDatabase`
-- [x] Implement Workstream A: Flutter project foundation & architecture
-  - [x] Feature-first modular folder structure (`app`, `core`, `features/semesters`, `features/subjects`, `features/attendance`, `features/onboarding`, `features/shell`)
-  - [x] Core bootstrap, centralized error handling (`AppFailure`, `ValidationFailure`, `DatabaseFailure`, `NotFoundFailure`), and Riverpod initialization
-  - [x] GoRouter configuration (`/`, `/onboarding`, `/semester-setup`, `/home`) with dynamic redirects
-  - [x] Clean separation: Presentation, State, Domain, and Data
-  - [x] Repository interfaces and implementations: `SemesterRepositoryImpl`, `SubjectRepositoryImpl`
-- [x] Implement Workstream C: Splash screen and onboarding
-  - [x] Splash screen (`SplashScreen`) with smooth initialization and auto-redirection
-  - [x] Onboarding (`OnboardingScreen`) with 3 screens explaining Lecture/Lab tracking, Safe Absences, and History management
-  - [x] Local persistence of onboarding completion via `SharedPreferences`
-- [x] Implement Workstream E: Semester management
-  - [x] Create semester with validation (name, optional dates, threshold default 75%, calculation method: Raw Combined or Component Average)
-  - [x] List semesters & active semester selection (`SemesterSwitcherSheet`)
-  - [x] Edit semester details (`SemesterFormSheet`)
-  - [x] Archive/Unarchive and delete semester with confirmation
-- [x] Implement Workstream F: Subject management
-  - [x] Add subject with validation (name, lecture/lab toggles, prevents disabling both)
-  - [x] View subjects in active semester (`SubjectsScreen`)
-  - [x] Edit subject details (`SubjectFormSheet`)
-  - [x] Delete subject with confirmation dialog
-- [x] Implement Workstream G: Initial application navigation
-  - [x] Main screen layout with floating bottom dock (`MainShellScreen` hosting Home, Subjects, Quick Log action, History, Insights)
-  - [x] Home setup/first-use state displaying active semester config and subject count without fake attendance statistics
-  - [x] Real Subjects screen reading and writing to the Drift database
-  - [x] Honest placeholder states for Quick Log (Phase 2), History (Phase 2), and Insights (Phase 3/4)
-- [x] Comprehensive automated test coverage:
-  - [x] 12 Database tests (`test/core/database/app_database_test.dart`)
-  - [x] 6 Semester repository tests (`test/features/semesters/data/semester_repository_test.dart`)
-  - [x] 4 Subject repository tests (`test/features/subjects/data/subject_repository_test.dart`)
-  - [x] 3 Semester state tests (`test/features/semesters/state/semesters_provider_test.dart`)
-  - [x] 1 Subject state test (`test/features/subjects/state/subjects_provider_test.dart`)
-  - [x] 1 Splash screen widget test (`test/features/onboarding/widget/splash_screen_test.dart`)
-  - [x] 1 Onboarding screen widget test (`test/features/onboarding/widget/onboarding_screen_test.dart`)
-  - [x] 2 Semester setup widget tests (`test/features/semesters/widget/semester_setup_screen_test.dart`)
-  - [x] 1 Subjects screen widget test (`test/features/subjects/widget/subjects_screen_test.dart`)
-  - [x] 1 Navigation dock widget test (`test/features/shell/widget/navigation_dock_test.dart`)
-- [x] Quality verification:
-  - [x] `dart format .` (60 files cleanly formatted)
-  - [x] `flutter analyze` (0 issues found)
-  - [x] `flutter test` (32 tests passing out of 32)
-
----
-
-## Implemented Features
-1. **Bootstrap & State Architecture:**
-   - SharedPreferences-backed initial state and Riverpod-powered dependency injection.
-   - Centralized `AppRouter` with route protection and reactive redirection.
-   - Clean domain entities with immutability, validation, and domain failures.
-2. **Custom Design System (Soft Colorful Modern Minimalism):**
-   - Centralized palette: Brand Violet (`#9278F2`), Mint (`#8BE4D0`), Coral (`#FF929B`), Peach (`#FFB49F`), Warm White (`#FFFAF9`), Deep Ink (`#30263F`), Muted Ink (`#827B8D`).
-   - Plus Jakarta Sans bundled font with tabular figures support for metrics.
-   - Unified Hugeicons iconography with consistent stroke and rounded styling.
-   - Elevated floating bottom navigation dock with central pill Quick Log trigger.
-   - Custom components: `AppButton`, `AppTextField`, `AppSegmentedControl`, `AppSwitchTile`, `AppProgressBar`, `AppProgressRing`, `AppBottomSheet`, `AppToast`, `AppEmptyState`, `AppLoadingState`.
-3. **Local Database (Drift SQLite):**
-   - Tables: `Semesters`, `Subjects`, `AttendanceSessions`.
-   - Constraints: Foreign key enforcement, cascade deletion, calculation method enum constraints, attendance threshold boundaries `(0.0, 1.0]`, and minimum component validation (at least one of lecture/lab active).
-   - In-memory testing support with custom native sqlite3 bindings.
-4. **Onboarding & Splash:**
-   - Branded splash screen with reactive initialization.
-   - 3-screen animated onboarding carousel highlighting core value propositions.
-   - First-run completion persistence avoiding repeat prompts.
-5. **Semester Management:**
-   - First semester onboarding setup screen.
-   - Bottom sheet semester switcher with active indicator, create, edit, and archive flows.
-   - Support for Raw Combined and Component Average (50/50) calculation algorithms.
-6. **Subject Management:**
-   - Subject creation and editing modal sheets.
-   - Independent Lecture and Lab toggles with validation rule preventing both from being disabled.
-   - Subject deletion with cascading session cleanup and confirmation dialog.
-7. **Main Navigation Shell:**
-   - 5-destination floating dock (Home, Subjects, Quick Log, History, Insights).
-   - Real, functional Home and Subjects screens.
-   - Honest Phase 2 / Phase 3 placeholder sheets for Quick Log, History, and Insights.
+- [x] Review project documentation (`PRD.md`, `SPEC.md`, `TECH_STACK.md`, `ARCHITECTURE.md`, `DATABASE.md`, `DESIGN.md`, `TESTING.md`, `AGENTS.md`, `CHANGELOG.md`, `progress.md`)
+- [x] Run baseline verification (`flutter analyze` - 0 issues, `flutter test` - 32/32 tests passed)
+- [x] Database Schema Upgrade (Schema Version 2):
+  - [x] Added `UNIQUE (subject_id, session_date, component)` constraint on `attendance_sessions` table
+  - [x] Added unique index `idx_attendance_sessions_unique` for hard SQLite-level duplicate rejection
+  - [x] Added calendar lookup index `idx_attendance_sessions_date` on `session_date`
+  - [x] Implemented automated forward migration from Schema Version 1 to Version 2 preserving existing data
+  - [x] Added migration verification tests
+- [x] Attendance Domain Layer:
+  - [x] `SessionComponent` enum (`lecture`, `lab`) with database mapping and display formatting
+  - [x] `AttendanceStatus` enum (`present`, `absent`) with database mapping and display formatting
+  - [x] `AttendanceSession` immutable domain entity with `isPresent`, `isAbsent`, `copyWith`, and value equality
+  - [x] `DuplicateSessionFailure` typed failure handling duplicate records
+  - [x] `AttendanceRepository` interface contract
+- [x] Attendance Data Layer:
+  - [x] `AttendanceRepositoryImpl` implementation with Drift/SQLite
+  - [x] Creation of Present and Absent sessions with date validation (rejects future dates)
+  - [x] Automatic component enablement verification against subject configuration
+  - [x] Database and application-level duplicate session protection
+  - [x] Reactive stream queries: `watchSessionsForSemester`, `watchSessionsForDate`, `watchSessionsForMonth`
+  - [x] Safe session updating (updating status, date, component with collision prevention)
+  - [x] Cascading and single-session deletion
+- [x] Attendance State Management (Riverpod):
+  - [x] `attendanceRepositoryProvider` wiring
+  - [x] `selectedDateProvider` for active calendar date navigation
+  - [x] `currentMonthProvider` for monthly timeline pagination
+  - [x] `sessionsForDateFamilyProvider` and `sessionsForSelectedDateProvider` reactive stream providers
+  - [x] `sessionsForMonthProvider` reactive stream provider
+  - [x] `activeSemesterSessionsStreamProvider` reactive stream provider
+  - [x] `AttendanceController` orchestrating session recording, editing, deletion, and full multi-step Undo actions
+- [x] Attendance UI Components:
+  - [x] `QuickLogSheet`:
+    - [x] Compact, thumb-friendly bottom sheet opened via central dock action
+    - [x] Subject selection with horizontal pill carousel
+    - [x] Automatic component selection for single-component subjects
+    - [x] Segmented pill control for subjects with both Lecture and Lab enabled
+    - [x] Single-tap immediate save on Present or Absent (no unnecessary Save button)
+    - [x] Immediate feedback with `AppToast.showSuccess` and actionable Undo
+    - [x] Duplicate detection showing informative notice and quick action to view/edit existing record
+    - [x] Date selector defaulting to today with past date selection support
+  - [x] `AttendanceCalendar`:
+    - [x] Clean, bespoke monthly calendar matching `DESIGN.md` tokens
+    - [x] Animated month navigation with previous/next and "Today" jump
+    - [x] Clear visual indicators: Mint dot for Present, Coral dot for Absent, dual dots for mixed days
+    - [x] Zero dots for unrecorded dates (honest visualization: never assuming absences)
+    - [x] Future dates disabled from selection
+  - [x] `HistoryScreen`:
+    - [x] Calendar overview at top
+    - [x] Selected date header with "+ Add Session" action
+    - [x] Selected date session list with subject name, component badge, and Present/Absent pill badge
+    - [x] Empty state for dates with no sessions explaining unrecorded classes are not counted as absences
+    - [x] Direct session editing (`SessionFormSheet`) and deletion (`showDeleteSessionDialog`)
+  - [x] `SessionFormSheet`:
+    - [x] Multi-purpose sheet for logging historical sessions and editing existing sessions
+    - [x] Status switching (Present <-> Absent)
+    - [x] Date corrections (past dates only)
+    - [x] Component changes with collision prevention
+    - [x] Optional student note support
+    - [x] Delete button with confirmation dialog
+  - [x] `showDeleteSessionDialog`:
+    - [x] Confirmation dialog preventing accidental destructive deletions
+- [x] Testing:
+  - [x] 14 Database tests (`test/core/database/app_database_test.dart`)
+  - [x] 14 Attendance repository tests (`test/features/attendance/data/attendance_repository_test.dart`)
+  - [x] 6 Attendance state/provider tests (`test/features/attendance/state/attendance_providers_test.dart`)
+  - [x] 5 Quick Log sheet widget tests (`test/features/attendance/widget/quick_log_sheet_test.dart`)
+  - [x] 4 History screen widget tests (`test/features/attendance/widget/history_screen_test.dart`)
+  - [x] Total: **63 tests passing out of 63**
+- [x] Quality & Analysis:
+  - [x] `dart format .`: 100% cleanly formatted (75 files)
+  - [x] `flutter analyze`: **0 issues found**
 
 ---
 
-## Project Structure
+## Architectural & File Changes in Phase 2
+
 ```text
 lib/
-├── main.dart                                 # Application entrypoint & ProviderScope initialization
-├── app/
-│   ├── app.dart                              # Root AttendlyApp widget with MaterialApp.router & theme
-│   ├── bootstrap/
-│   │   └── app_bootstrap.dart                # Async pre-run initialization & service wiring
-│   └── router/
-│       └── app_router.dart                   # Declarative go_router configuration & route redirection
 ├── core/
 │   ├── database/
-│   │   ├── app_database.dart                 # Drift database definition, migrations & DAOs
-│   │   ├── app_database.g.dart               # Generated Drift code
-│   │   ├── connection/
-│   │   │   └── open_connection.dart          # Platform SQLite connection (sqlite3_flutter_libs)
+│   │   ├── app_database.dart                 # Upgraded schemaVersion to 2, added v1->v2 migration & indexes
+│   │   ├── app_database.g.dart               # Regenerated Drift code with uniqueKeys
 │   │   └── tables/
-│   │       ├── semesters_table.dart          # Semesters schema & check constraints
-│   │       ├── subjects_table.dart           # Subjects schema & foreign key relationships
-│   │       └── attendance_sessions_table.dart# Attendance sessions schema & status enums
-│   ├── errors/
-│   │   └── app_failure.dart                  # Typed domain failure classes
-│   ├── shared/
-│   │   └── widgets/                          # Reusable design system UI components
-│   │       ├── app_bottom_sheet.dart
-│   │       ├── app_button.dart
-│   │       ├── app_empty_state.dart
-│   │       ├── app_floating_dock.dart
-│   │       ├── app_loading_state.dart
-│   │       ├── app_progress.dart
-│   │       ├── app_section_header.dart
-│   │       ├── app_segmented_control.dart
-│   │       ├── app_switch.dart
-│   │       ├── app_text_field.dart
-│   │       └── app_toast.dart
-│   └── theme/
-│       ├── app_colors.dart                   # Reconciled color tokens
-│       ├── app_icons.dart                    # Unified Hugeicons icon mappings
-│       ├── app_radius.dart                   # Border radius tokens
-│       ├── app_spacing.dart                  # 8-point rhythm spacing scale
-│       ├── app_theme.dart                    # Light-only custom ThemeData
-│       └── app_typography.dart               # Plus Jakarta Sans typographic scale
+│   │       └── attendance_sessions_table.dart# Added uniqueKeys on (subjectId, sessionDate, component)
+│   └── errors/
+│       └── app_failure.dart                  # Added DuplicateSessionFailure
 └── features/
     ├── attendance/
-    │   └── domain/entities/                  # AttendanceSession & enums (calculation method, component, status)
-    ├── onboarding/
-    │   └── presentation/screens/             # SplashScreen & OnboardingScreen
-    ├── semesters/
-    │   ├── data/repositories/                # SemesterRepository implementation
-    │   ├── domain/entities/ & repositories/  # Semester entity & repository contract
-    │   ├── presentation/
-    │   │   ├── screens/                      # SemesterSetupScreen
-    │   │   └── widgets/                      # SemesterSwitcherSheet, SemesterFormSheet
-    │   └── state/                            # Riverpod providers & SemesterController
-    ├── subjects/
-    │   ├── data/repositories/                # SubjectRepository implementation
-    │   ├── domain/entities/ & repositories/  # Subject entity & repository contract
-    │   ├── presentation/
-    │   │   ├── screens/                      # SubjectsScreen
-    │   │   └── widgets/                      # SubjectFormSheet
-    │   └── state/                            # Riverpod providers & SubjectController
+    │   ├── data/repositories/
+    │   │   └── attendance_repository_impl.dart# Complete Drift-backed attendance repository
+    │   ├── domain/
+    │   │   ├── entities/
+    │   │   │   ├── attendance_calculation_method.dart
+    │   │   │   ├── attendance_session.dart   # AttendanceSession domain entity
+    │   │   │   ├── attendance_status.dart    # AttendanceStatus enum (present, absent)
+    │   │   │   └── session_component.dart    # SessionComponent enum (lecture, lab)
+    │   │   └── repositories/
+    │   │       └── attendance_repository.dart# AttendanceRepository interface
+    │   └── presentation/
+    │       ├── providers/
+    │       │   └── attendance_providers.dart # Riverpod streams, notifiers & AttendanceController with Undo
+    │       ├── screens/
+    │       │   └── history_screen.dart       # History screen with calendar & selected-date session list
+    │       └── widgets/
+    │           ├── attendance_calendar.dart  # Bespoke monthly calendar with status dots
+    │           ├── delete_session_dialog.dart# Deletion confirmation dialog
+    │           ├── quick_log_sheet.dart      # Quick Log bottom sheet with 1-tap save & duplicate shield
+    │           └── session_form_sheet.dart   # Historical session creation and editing sheet
     └── shell/
-        └── presentation/screens/             # MainShellScreen, HomeScreen, HistoryPlaceholder, InsightsPlaceholder
+        └── presentation/screens/
+            ├── history_screen.dart           # Re-exports attendance HistoryScreen
+            └── main_shell_screen.dart        # Connected real QuickLogSheet and HistoryScreen
 ```
 
 ---
 
-## Technical Decisions
-- **Framework & Language:** Flutter 3.50.0 / Dart 3.14.0.
-- **Architecture:** Offline-only, feature-first Clean Architecture with Riverpod 3.5.0 (`AsyncNotifierProvider` / `StreamProvider`).
-- **Database Engine:** SQLite via Drift (`drift: ^2.35.4`, `sqlite3_flutter_libs: ^0.6.0+eol`). Fully reactive query streams for auto-updating UI.
-- **Constraints & Cascade:** Hard SQLite foreign keys (`PRAGMA foreign_keys = ON;`) and check constraints enforced at the database level to ensure zero data corruption.
-- **Routing:** `go_router` 18.1.4 with GoRoute definitions and declarative redirects based on onboarding and active semester presence.
-- **Iconography:** Hugeicons only (`hugeicons: ^4.4.0`) wrapped in an `AppIcons` centralized registry.
-- **Typography:** Plus Jakarta Sans variable font bundled locally in `assets/fonts/` with `FontFeature.tabularFigures()` for numbers.
-- **Android / Windows Build:** Configured `kotlin.incremental=false` in `android/gradle.properties` to eliminate Windows file-locking exceptions on Kotlin daemon incremental caches during Gradle builds.
-- **Zero Remote Dependencies:** Strictly no Firebase, no Supabase, no authentication, no network analytics.
-
----
-
 ## Database Status
-- **Current Schema Version:** 1
-- **Tables Implemented:**
+- **Current Schema Version:** 2
+- **Tables:**
   1. `semesters`: `id`, `name`, `start_date`, `end_date`, `attendance_threshold`, `calculation_method`, `is_archived`, `created_at`, `updated_at`.
   2. `subjects`: `id`, `semester_id`, `name`, `lecture_enabled`, `lab_enabled`, `sort_order`, `created_at`, `updated_at`.
   3. `attendance_sessions`: `id`, `subject_id`, `session_date`, `component`, `status`, `note`, `created_at`, `updated_at`.
-- **Migrations Implemented:** Initial baseline schema (Version 1).
-- **Outstanding Database Tasks for Phase 2:** Implement attendance logging DAO queries, transaction methods for batch session marking, and undo logging.
+- **Constraints & Indexes (Version 2):**
+  - Table-level `UNIQUE (subject_id, session_date, component)` constraint preventing duplicate entries.
+  - Index `idx_attendance_sessions_unique` on `(subject_id, session_date, component)`.
+  - Index `idx_attendance_sessions_date` on `session_date`.
+- **Migration Strategy:** Version 1 -> Version 2 migration executed with safety checks, zero data loss, and verified by automated integration test.
 
 ---
 
-## Tests and Validation
-- **Total Tests:** 32 passing tests across 10 test suites.
-- **Database Tests (`test/core/database/app_database_test.dart`):** 12 tests
-  - Verifies schema version 1, table insertions, retrievals, blank name rejections, threshold bounds validation, calculation method validation, lecture/lab component toggles validation, foreign key cascade deletions, invalid session status/component rejections, and disk reopening persistence.
-- **Repository Tests:** 10 tests
-  - `SemesterRepositoryImpl` (6 tests): create, get, watch, update, archive, and validation error handling.
-  - `SubjectRepositoryImpl` (4 tests): create, get, watch by semester, update, delete, and validation error handling.
-- **State Management Tests:** 4 tests
-  - `SemestersProvider` (3 tests): semester creation, active semester switching, and archive fallback.
-  - `SubjectsProvider` (1 test): subjects stream reactivity on creation.
-- **Widget & Screen Tests:** 6 tests
-  - `SplashScreen`: Initialization and auto-navigation.
-  - `OnboardingScreen`: Page scrolling, indicator updates, button text transition to "Get Started", and completion persistence.
-  - `SemesterSetupScreen` (2 tests): Validation error triggers on blank inputs, successful semester creation and transition to home.
-  - `SubjectsScreen`: Empty state rendering, subject creation via bottom sheet, and list updates.
-  - `NavigationDock`: Tab switching between Home, Subjects, History, Insights, and Quick Log bottom sheet presentation.
+## Test Verification Summary
+- **Total Tests:** 63 passing tests across 13 test suites.
+- **Database Tests:** 14 tests (`test/core/database/app_database_test.dart`)
+  - Schema v2 verification, CRUD, check constraints, foreign keys, cascade deletes, duplicate rejection, and migration from v1 to v2.
+- **Attendance Repository Tests:** 14 tests (`test/features/attendance/data/attendance_repository_test.dart`)
+  - Present/Absent creation, duplicate rejection, component enablement checks, future-date rejection, date queries, subject queries, month streams, editing, and deletion.
+- **Attendance State Management Tests:** 6 tests (`test/features/attendance/state/attendance_providers_test.dart`)
+  - `SelectedDateNotifier`, `CurrentMonthNotifier`, stream reactivity on record/edit/delete, Undo after record, Undo after delete, and duplicate error propagation.
+- **Quick Log Sheet Widget Tests:** 5 tests (`test/features/attendance/widget/quick_log_sheet_test.dart`)
+  - Multi-component selection, single-component auto-selection, immediate save on Present, immediate save on Absent, and duplicate record detection/feedback.
+- **History Screen Widget Tests:** 4 tests (`test/features/attendance/widget/history_screen_test.dart`)
+  - Calendar rendering, empty date state, recorded sessions list, edit session sheet presentation, and session deletion with confirmation dialog.
+- **Semester & Subject Tests:** 14 tests (Repository, Controller, Widget)
+- **Onboarding & Shell Tests:** 6 tests (Splash, Onboarding, Navigation Dock)
 - **Static Analysis:**
-  - `dart format .`: 60 files checked, 100% formatted.
+  - `dart format .`: 75 files checked, 100% formatted.
   - `flutter analyze`: **0 issues found**.
-  - `flutter test`: **32/32 tests passed**.
+  - `flutter test`: **63/63 tests passed**.
 
 ---
 
 ## Known Issues
-- None. All Phase 1 requirements, design constraints, and database contracts are fully implemented and verified.
+- None. All Phase 2 requirements, offline persistence contracts, duplicate protections, calendar/history workflows, and design system constraints are fully implemented and verified.
 
 ---
 
-## Next Steps (Phase 2 Readiness)
-1. **Wait for user explicit approval** before initiating Phase 2.
-2. Once Phase 2 commences:
-   - Implement Attendance Logging UI and state management (`QuickLogSheet`, timetable or direct subject session logging).
-   - Implement Single-tap Present/Absent recording with instant feedback.
-   - Implement Lecture vs. Lab attendance session segregation.
-   - Implement Bulk date marking / multi-session logs.
-   - Implement Attendance History screen with chronological session list, filters, and edit/delete capability.
-   - Implement Instant Undo functionality via `AppToast`.
+## Next Steps (Phase 3 Readiness)
+1. **Wait for user explicit approval** before initiating Phase 3.
+2. In Phase 3 (Dashboard):
+   - Implement Dashboard overall attendance percentage hero widget with circular/donut progress.
+   - Implement Raw Combined and Component Average attendance calculation domain engines.
+   - Implement Threshold comparison indicators (Above/Below target).
+   - Implement Safe absences and recovery calculations for the active semester.
+   - Implement Subject attendance cards preview on the Dashboard.
 
 ---
 
