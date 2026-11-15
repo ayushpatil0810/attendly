@@ -1,12 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/providers/database_provider.dart';
 import 'package:attendly/features/semesters/presentation/providers/semesters_provider.dart';
+import 'package:attendly/features/subjects/presentation/providers/subjects_provider.dart';
 
 import '../../data/repositories/attendance_repository_impl.dart';
 import '../../domain/entities/attendance_session.dart';
 import '../../domain/entities/attendance_status.dart';
+import '../../domain/entities/semester_attendance_summary.dart';
 import '../../domain/entities/session_component.dart';
 import '../../domain/repositories/attendance_repository.dart';
+import '../../domain/services/attendance_calculator.dart';
+import '../../domain/services/recovery_calculator.dart';
+import '../../domain/services/safe_absence_calculator.dart';
 
 String formatDateOnly(DateTime date) {
   final y = date.year.toString().padLeft(4, '0');
@@ -241,3 +246,64 @@ final attendanceControllerProvider =
     AsyncNotifierProvider<AttendanceController, UndoAction?>(
       AttendanceController.new,
     );
+
+final safeAbsenceCalculatorProvider = Provider<SafeAbsenceCalculator>((ref) {
+  return const SafeAbsenceCalculator();
+});
+
+final recoveryCalculatorProvider = Provider<RecoveryCalculator>((ref) {
+  return const RecoveryCalculator();
+});
+
+final attendanceCalculatorProvider = Provider<AttendanceCalculator>((ref) {
+  final safeAbsenceCalculator = ref.watch(safeAbsenceCalculatorProvider);
+  final recoveryCalculator = ref.watch(recoveryCalculatorProvider);
+  return AttendanceCalculator(
+    safeAbsenceCalculator: safeAbsenceCalculator,
+    recoveryCalculator: recoveryCalculator,
+  );
+});
+
+/// Reactive provider yielding the active semester's attendance summary,
+/// automatically recalculated whenever sessions, subjects, or semester settings update.
+final semesterAttendanceSummaryProvider =
+    Provider<AsyncValue<SemesterAttendanceSummary?>>((ref) {
+      final activeSemester = ref.watch(activeSemesterProvider);
+      if (activeSemester == null) {
+        return const AsyncData(null);
+      }
+
+      final subjectsAsync = ref.watch(activeSemesterSubjectsProvider);
+      final sessionsAsync = ref.watch(activeSemesterSessionsStreamProvider);
+
+      if (subjectsAsync.isLoading || sessionsAsync.isLoading) {
+        // If we already have previous data, we can keep it or show loading
+        return const AsyncLoading();
+      }
+
+      if (subjectsAsync.hasError) {
+        return AsyncError(
+          subjectsAsync.error!,
+          subjectsAsync.stackTrace ?? StackTrace.current,
+        );
+      }
+
+      if (sessionsAsync.hasError) {
+        return AsyncError(
+          sessionsAsync.error!,
+          sessionsAsync.stackTrace ?? StackTrace.current,
+        );
+      }
+
+      final subjects = subjectsAsync.value ?? [];
+      final sessions = sessionsAsync.value ?? [];
+      final calculator = ref.watch(attendanceCalculatorProvider);
+
+      final summary = calculator.calculateSemester(
+        semester: activeSemester,
+        subjects: subjects,
+        sessions: sessions,
+      );
+
+      return AsyncData(summary);
+    });

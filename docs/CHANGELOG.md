@@ -9,6 +9,22 @@ The project is currently in its pre-release development phase. Do not invent rel
 ## [Unreleased]
 
 ### Added
+- Phase 3: Dashboard & Attendance Calculations implementation.
+- Pure Dart domain calculation services:
+  - `AttendanceCalculator`: Authoritative engine for Raw Combined and Component Average (50/50) attendance percentages, provisional states, and threshold evaluations.
+  - `SafeAbsenceCalculator`: Mathematical computation of maximum safe additional absences with boundary inequality verification.
+  - `RecoveryCalculator`: Consecutive attended classes required to recover to target threshold under stated assumptions, with impossibility detection for 100% threshold.
+- Domain summary and calculation entities:
+  - `SemesterAttendanceSummary`, `SubjectAttendanceSummary`, `ComponentAttendanceSummary`, `SafeAbsenceResult`, `RecoveryResult`, `AttendanceTrendPoint`, `AttendanceAvailability`, and `ThresholdStatus`.
+- Reactive Riverpod provider `semesterAttendanceSummaryProvider` recalculating automatically on database session, subject, threshold, or policy changes.
+- Home Dashboard UI suite (`HomeScreen`):
+  - `DashboardHeader`: Contextual greeting, active semester display, quick switcher sheet, and edit shortcut.
+  - `OverallAttendanceHero`: Prominent tabular attendance figure, custom animated donut progress ring with threshold marker dot, status badge, and target percentage difference.
+  - `CompactAttendanceStats`: Breathable counts for Conducted, Present, and Absent sessions, with Lecture and Lab breakdowns.
+  - `SafeAbsenceRecoveryCard`: Contextual insight displaying safe absences, recovery requirements, or Component Average scenario requirements.
+  - `DashboardSubjectPreview`: Concise preview of enrolled subjects with compact progress bars, attendance figures, and navigation to Subjects tab.
+  - `DashboardTrendCard`: Chronological attendance sparkline based strictly on actual recorded session dates with clean empty state for insufficient history.
+  - `DashboardEmptyState`: Welcoming empty dashboard for unrecorded semesters offering immediate quick logging without fake data.
 - Phase 2: Attendance Management workflow implementation.
 - `AttendanceSession`, `SessionComponent`, and `AttendanceStatus` domain entities and enums.
 - `AttendanceRepository` and `AttendanceRepositoryImpl` supporting session creation, date querying, subject querying, month stream watching, safe updating, deletion, and duplicate session rejection.
@@ -35,6 +51,7 @@ The project is currently in its pre-release development phase. Do not invent rel
 - Standardized local backup and restore requirements (versioned JSON export/import with validation and transactional rollback) across all documentation.
 
 ### Fixed
+- Resolved RenderFlex overflow on narrow viewports (<360dp) across Dashboard widgets (`OverallAttendanceHero`, `CompactAttendanceStats`, `DashboardSubjectPreview`, and `DashboardTrendCard`) by replacing rigid `Row` layouts with responsive `Wrap`, `Flexible`, and `FittedBox` scaling patterns.
 
 ### Deprecated
 
