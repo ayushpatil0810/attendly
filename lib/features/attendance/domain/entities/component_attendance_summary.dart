@@ -20,6 +20,9 @@ class ComponentAttendanceSummary {
   final AttendanceAvailability availability;
   final bool isEnabled;
 
+  bool get isAvailable => availability.isAvailable;
+  bool get isNotAvailable => availability.isNotAvailable;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

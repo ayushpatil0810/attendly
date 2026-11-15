@@ -5,6 +5,7 @@ import 'package:attendly/features/onboarding/presentation/screens/onboarding_scr
 import 'package:attendly/features/onboarding/presentation/screens/splash_screen.dart';
 import 'package:attendly/features/semesters/presentation/screens/semester_setup_screen.dart';
 import 'package:attendly/features/shell/presentation/screens/main_shell_screen.dart';
+import 'package:attendly/features/simulator/presentation/screens/simulator_screen.dart';
 
 import 'route_names.dart';
 
@@ -32,6 +33,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RouteNames.homePath,
         name: RouteNames.home,
         builder: (context, state) => const MainShellScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.simulatorPath,
+        name: RouteNames.simulator,
+        builder: (context, state) => const SimulatorScreen(),
       ),
     ],
     errorBuilder: (context, state) =>

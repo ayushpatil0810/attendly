@@ -41,6 +41,16 @@ class SubjectAttendanceSummary {
   bool get isProvisional => availability.isProvisional;
   bool get isNotAvailable => availability.isNotAvailable;
 
+  bool get meetsThreshold => thresholdStatus == ThresholdStatus.meeting;
+  bool get isBelowThreshold => thresholdStatus == ThresholdStatus.below;
+
+  String get formattedPercentage {
+    if (percentage == null || isNotAvailable) return '—';
+    final pct = percentage!;
+    if (pct == pct.roundToDouble()) return '${pct.toInt()}%';
+    return '${pct.toStringAsFixed(1)}%';
+  }
+
   int? get roundedPercentage => percentage?.round();
 
   @override

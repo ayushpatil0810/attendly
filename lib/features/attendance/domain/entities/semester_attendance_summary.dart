@@ -61,6 +61,16 @@ class SemesterAttendanceSummary {
   bool get isProvisional => availability.isProvisional;
   bool get isNotAvailable => availability.isNotAvailable;
 
+  bool get meetsThreshold => thresholdStatus == ThresholdStatus.meeting;
+  bool get isBelowThreshold => thresholdStatus == ThresholdStatus.below;
+
+  String get formattedPercentage {
+    if (overallPercentage == null || isNotAvailable) return '—';
+    final pct = overallPercentage!;
+    if (pct == pct.roundToDouble()) return '${pct.toInt()}%';
+    return '${pct.toStringAsFixed(1)}%';
+  }
+
   int get totalSubjects => subjectSummaries.length;
 
   int get subjectsNeedingAttention => subjectSummaries
