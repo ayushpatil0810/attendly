@@ -98,166 +98,166 @@ class OverallAttendanceHero extends StatelessWidget {
       label:
           'Overall attendance: $formattedPct. Status: $statusText. Target is ${summary.thresholdPercent} percent.',
       child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top Row: Calculation Method & Status Badge
-            Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: AppSpacing.xs,
-              runSpacing: AppSpacing.xs,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: AppSpacing.xxs,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.softLavender,
-                    borderRadius: AppRadius.pillBorder,
-                  ),
-                  child: Text(
-                    summary.calculationMethod.displayName,
-                    style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.inkViolet,
-                      fontWeight: FontWeight.w600,
-                    ),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top Row: Calculation Method & Status Badge
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: AppSpacing.xs,
+            runSpacing: AppSpacing.xs,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xxs,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.softLavender,
+                  borderRadius: AppRadius.pillBorder,
+                ),
+                child: Text(
+                  summary.calculationMethod.displayName,
+                  style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.inkViolet,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: AppSpacing.xxs,
-                  ),
-                  decoration: BoxDecoration(
-                    color: badgeBg,
-                    borderRadius: AppRadius.pillBorder,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: statusColor,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 5),
-                      Flexible(
-                        child: Text(
-                          statusText,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTypography.labelSmall.copyWith(
-                            color: statusColor == AppColors.brandMint
-                                ? AppColors.inkMint
-                                : (statusColor == AppColors.brandCoral
-                                      ? AppColors.inkCoral
-                                      : (statusColor == AppColors.brandPeach
-                                            ? AppColors.inkPeach
-                                            : AppColors.mutedInk)),
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xxs,
                 ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            Center(
-              child: SizedBox(
-                width: _ringSize,
-                height: _ringSize,
-                child: Stack(
-                  alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: badgeBg,
+                  borderRadius: AppRadius.pillBorder,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    TweenAnimationBuilder<double>(
-                      tween: Tween<double>(begin: 0.0, end: progress),
-                      duration: AppMotion.duration(
-                        context,
-                        const Duration(milliseconds: 650),
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: statusColor,
+                        shape: BoxShape.circle,
                       ),
-                      curve: Curves.easeOutCubic,
-                      builder: (context, animatedProgress, _) {
-                        return CustomPaint(
-                          size: const Size.square(_ringSize),
-                          painter: _DonutProgressPainter(
-                            progress: animatedProgress,
-                            progressColor: isAvailable || isProvisional
-                                ? statusColor
-                                : AppColors.track,
-                            trackColor: AppColors.track,
-                            threshold: summary.threshold,
-                            hasData: isAvailable || isProvisional,
-                          ),
-                        );
-                      },
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(_strokeWidth + 10),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          formattedPct,
-                          style: AppTypography.heroNumber.copyWith(
-                            color: isAvailable
-                                ? AppColors.ink
-                                : AppColors.mutedInk,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
+                    const SizedBox(width: 5),
+                    Flexible(
+                      child: Text(
+                        statusText,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.labelSmall.copyWith(
+                          color: statusColor == AppColors.brandMint
+                              ? AppColors.inkMint
+                              : (statusColor == AppColors.brandCoral
+                                    ? AppColors.inkCoral
+                                    : (statusColor == AppColors.brandPeach
+                                          ? AppColors.inkPeach
+                                          : AppColors.mutedInk)),
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              alignment: WrapAlignment.center,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 8,
-              runSpacing: 2,
-              children: [
-                Text(
-                  'Target: ${summary.thresholdPercent}%',
-                  style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.mutedInk,
-                    fontWeight: FontWeight.w500,
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          Center(
+            child: SizedBox(
+              width: _ringSize,
+              height: _ringSize,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0.0, end: progress),
+                    duration: AppMotion.duration(
+                      context,
+                      const Duration(milliseconds: 650),
+                    ),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, animatedProgress, _) {
+                      return CustomPaint(
+                        size: const Size.square(_ringSize),
+                        painter: _DonutProgressPainter(
+                          progress: animatedProgress,
+                          progressColor: isAvailable || isProvisional
+                              ? statusColor
+                              : AppColors.track,
+                          trackColor: AppColors.track,
+                          threshold: summary.threshold,
+                          hasData: isAvailable || isProvisional,
+                        ),
+                      );
+                    },
                   ),
-                ),
-                if (summary.differenceFromThreshold != null)
-                  Text(
-                    summary.differenceFromThreshold! >= 0
-                        ? '+${summary.differenceFromThreshold!.toStringAsFixed(1)}%'
-                        : '${summary.differenceFromThreshold!.toStringAsFixed(1)}%',
-                    style: AppTypography.labelSmall.copyWith(
-                      color: summary.differenceFromThreshold! >= 0
-                          ? AppColors.inkMint
-                          : AppColors.inkCoral,
-                      fontWeight: FontWeight.w700,
-                      fontFeatures: const [FontFeature.tabularFigures()],
+                  Padding(
+                    padding: const EdgeInsets.all(_strokeWidth + 10),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        formattedPct,
+                        style: AppTypography.heroNumber.copyWith(
+                          color: isAvailable
+                              ? AppColors.ink
+                              : AppColors.mutedInk,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
                     ),
                   ),
-              ],
+                ],
+              ),
             ),
-            if (isProvisional)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Text(
-                  'Combined available when both components have sessions.',
-                  textAlign: TextAlign.center,
-                  style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.inkPeach,
-                  ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 2,
+            children: [
+              Text(
+                'Target: ${summary.thresholdPercent}%',
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.mutedInk,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-          ],
-        ),
+              if (summary.differenceFromThreshold != null)
+                Text(
+                  summary.differenceFromThreshold! >= 0
+                      ? '+${summary.differenceFromThreshold!.toStringAsFixed(1)}%'
+                      : '${summary.differenceFromThreshold!.toStringAsFixed(1)}%',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: summary.differenceFromThreshold! >= 0
+                        ? AppColors.inkMint
+                        : AppColors.inkCoral,
+                    fontWeight: FontWeight.w700,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+            ],
+          ),
+          if (isProvisional)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                'Combined available when both components have sessions.',
+                textAlign: TextAlign.center,
+                style: AppTypography.labelSmall.copyWith(
+                  color: AppColors.inkPeach,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

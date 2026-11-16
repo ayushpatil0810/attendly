@@ -218,9 +218,7 @@ class _ComponentBarRow extends StatelessWidget {
                 fontSize: 11,
                 fontFeatures: const [FontFeature.tabularFigures()],
                 color: hasData
-                    ? (meetsTarget
-                          ? AppColors.inkMint
-                          : AppColors.inkCoral)
+                    ? (meetsTarget ? AppColors.inkMint : AppColors.inkCoral)
                     : AppColors.mutedInk,
               ),
             ),

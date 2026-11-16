@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:attendly/features/attendance/domain/entities/attendance_calculation_method.dart';
 
 class SubjectQrPayload {
@@ -17,11 +18,11 @@ class SubjectQrPayload {
   bool get hasBothComponents => lectureEnabled && labEnabled;
 
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'lecture': lectureEnabled,
-        'lab': labEnabled,
-        'sort_order': sortOrder,
-      };
+    'name': name,
+    'lecture': lectureEnabled,
+    'lab': labEnabled,
+    'sort_order': sortOrder,
+  };
 
   factory SubjectQrPayload.fromJson(Map<String, dynamic> json) {
     final name = (json['name'] as String?)?.trim() ?? '';
@@ -33,7 +34,9 @@ class SubjectQrPayload {
       throw const FormatException('Subject name cannot be empty');
     }
     if (!lecture && !lab) {
-      throw FormatException('Subject "$name" must have at least one component enabled');
+      throw FormatException(
+        'Subject "$name" must have at least one component enabled',
+      );
     }
 
     return SubjectQrPayload(
@@ -68,6 +71,7 @@ class SemesterQrPayload {
     required this.attendanceThreshold,
     required this.calculationMethod,
     required this.subjects,
+    this.targetGoal = 0.85,
   });
 
   static const String appIdentifier = 'attendly';
@@ -78,18 +82,21 @@ class SemesterQrPayload {
   final double attendanceThreshold;
   final AttendanceCalculationMethod calculationMethod;
   final List<SubjectQrPayload> subjects;
+  final double targetGoal;
 
   int get thresholdPercent => (attendanceThreshold * 100).round();
+  int get targetGoalPercent => (targetGoal * 100).round();
 
   Map<String, dynamic> toJson() => {
-        'app': appIdentifier,
-        'v': currentVersion,
-        'type': payloadType,
-        'name': semesterName,
-        'threshold': attendanceThreshold,
-        'calc_method': calculationMethod.dbValue,
-        'subjects': subjects.map((s) => s.toJson()).toList(),
-      };
+    'app': appIdentifier,
+    'v': currentVersion,
+    'type': payloadType,
+    'name': semesterName,
+    'threshold': attendanceThreshold,
+    'calc_method': calculationMethod.dbValue,
+    'goal': targetGoal,
+    'subjects': subjects.map((s) => s.toJson()).toList(),
+  };
 
   String toEncodedString() => jsonEncode(toJson());
 
@@ -118,13 +125,17 @@ class SemesterQrPayload {
     final calcMethodStr = json['calc_method'] as String? ?? 'raw_combined';
     final calcMethod = AttendanceCalculationMethod.fromDbValue(calcMethodStr);
 
+    final goal = (json['goal'] as num?)?.toDouble() ?? 0.85;
+
     final subjectsRaw = json['subjects'];
     if (subjectsRaw is! List || subjectsRaw.isEmpty) {
       throw const FormatException('Semester has no subjects to import');
     }
 
     final subjects = subjectsRaw
-        .map((e) => SubjectQrPayload.fromJson(Map<String, dynamic>.from(e as Map)))
+        .map(
+          (e) => SubjectQrPayload.fromJson(Map<String, dynamic>.from(e as Map)),
+        )
         .toList();
 
     return SemesterQrPayload(
@@ -132,6 +143,7 @@ class SemesterQrPayload {
       attendanceThreshold: threshold,
       calculationMethod: calcMethod,
       subjects: subjects,
+      targetGoal: goal,
     );
   }
 

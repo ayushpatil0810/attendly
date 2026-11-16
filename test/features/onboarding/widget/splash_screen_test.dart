@@ -56,10 +56,7 @@ void main() {
     final router = GoRouter(
       initialLocation: '/',
       routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => const SplashScreen(),
-        ),
+        GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
         GoRoute(
           path: '/onboarding',
           builder: (context, state) => const Text('Onboarding'),
@@ -68,10 +65,7 @@ void main() {
           path: '/semester-setup',
           builder: (context, state) => const Text('Semester setup'),
         ),
-        GoRoute(
-          path: '/home',
-          builder: (context, state) => const Text('Home'),
-        ),
+        GoRoute(path: '/home', builder: (context, state) => const Text('Home')),
       ],
     );
     addTearDown(router.dispose);
@@ -104,10 +98,7 @@ void main() {
     final router = GoRouter(
       initialLocation: '/',
       routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => const SplashScreen(),
-        ),
+        GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
         GoRoute(
           path: '/onboarding',
           builder: (context, state) => const Text('Onboarding'),
@@ -116,10 +107,7 @@ void main() {
           path: '/semester-setup',
           builder: (context, state) => const Text('Semester setup'),
         ),
-        GoRoute(
-          path: '/home',
-          builder: (context, state) => const Text('Home'),
-        ),
+        GoRoute(path: '/home', builder: (context, state) => const Text('Home')),
       ],
     );
     addTearDown(router.dispose);

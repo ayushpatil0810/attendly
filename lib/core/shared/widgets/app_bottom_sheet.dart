@@ -65,7 +65,11 @@ Future<T?> showAppBottomSheet<T>({
 }
 
 class AppCloseButton extends StatelessWidget {
-  const AppCloseButton({super.key, required this.onPressed, this.label = 'Close'});
+  const AppCloseButton({
+    super.key,
+    required this.onPressed,
+    this.label = 'Close',
+  });
 
   final VoidCallback onPressed;
   final String label;

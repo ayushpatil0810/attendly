@@ -85,7 +85,7 @@ void main() {
           attendanceControllerProvider.notifier,
         );
         final sessionId = await controller.recordSession(
-          subjectId: subId!,
+          subjectId: subId,
           sessionDate: '2026-09-01',
           component: SessionComponent.lecture,
           status: AttendanceStatus.present,
@@ -152,16 +152,16 @@ void main() {
       final sem1 = (await container
           .read(semesterControllerProvider.notifier)
           .createSemester(name: 'Sem 1', attendanceThreshold: 0.75))!;
-      final sub1 = (await container
+      final sub1 = await container
           .read(subjectControllerProvider.notifier)
-          .createSubject(semesterId: sem1, name: 'Sub 1'))!;
+          .createSubject(semesterId: sem1, name: 'Sub 1');
 
       final sem2 = (await container
           .read(semesterControllerProvider.notifier)
           .createSemester(name: 'Sem 2', attendanceThreshold: 0.85))!;
-      final sub2 = (await container
+      final sub2 = await container
           .read(subjectControllerProvider.notifier)
-          .createSubject(semesterId: sem2, name: 'Sub 2'))!;
+          .createSubject(semesterId: sem2, name: 'Sub 2');
 
       final controller = container.read(attendanceControllerProvider.notifier);
 
@@ -210,9 +210,9 @@ void main() {
       final semId = (await container
           .read(semesterControllerProvider.notifier)
           .createSemester(name: 'Sem 1', attendanceThreshold: 0.75))!;
-      final subId = (await container
+      final subId = await container
           .read(subjectControllerProvider.notifier)
-          .createSubject(semesterId: semId, name: 'Sub 1'))!;
+          .createSubject(semesterId: semId, name: 'Sub 1');
 
       final controller = container.read(attendanceControllerProvider.notifier);
       // 8 present / 10 conducted = 80%
@@ -270,14 +270,14 @@ void main() {
             attendanceThreshold: 0.75,
             calculationMethod: AttendanceCalculationMethod.rawCombined,
           ))!;
-      final subId = (await container
+      final subId = await container
           .read(subjectControllerProvider.notifier)
           .createSubject(
             semesterId: semId,
             name: 'Math',
             lectureEnabled: true,
             labEnabled: true,
-          ))!;
+          );
 
       final controller = container.read(attendanceControllerProvider.notifier);
       // Lecture: 2 present, 0 absent (100%)

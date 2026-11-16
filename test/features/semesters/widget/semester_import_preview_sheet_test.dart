@@ -41,9 +41,7 @@ void main() {
         sharedPreferencesProvider.overrideWithValue(prefs),
       ],
       child: MaterialApp(
-        home: Scaffold(
-          body: SemesterImportPreviewSheet(payload: payload),
-        ),
+        home: Scaffold(body: SemesterImportPreviewSheet(payload: payload)),
       ),
     );
   }
@@ -53,13 +51,23 @@ void main() {
     attendanceThreshold: 0.80,
     calculationMethod: AttendanceCalculationMethod.componentAverage,
     subjects: [
-      SubjectQrPayload(name: 'Database Management Systems', lectureEnabled: true, labEnabled: true),
-      SubjectQrPayload(name: 'Artificial Intelligence', lectureEnabled: true, labEnabled: false),
+      SubjectQrPayload(
+        name: 'Database Management Systems',
+        lectureEnabled: true,
+        labEnabled: true,
+      ),
+      SubjectQrPayload(
+        name: 'Artificial Intelligence',
+        lectureEnabled: true,
+        labEnabled: false,
+      ),
     ],
   );
 
   group('SemesterImportPreviewSheet Widget Tests', () {
-    testWidgets('renders curriculum preview with courses and badges', (tester) async {
+    testWidgets('renders curriculum preview with courses and badges', (
+      tester,
+    ) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -68,7 +76,10 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(samplePayload));
       await tester.pumpAndSettle();
 
-      expect(find.text('Import Semester'), findsNWidgets(2)); // Title and button
+      expect(
+        find.text('Import Semester'),
+        findsNWidgets(2),
+      ); // Title and button
       expect(find.text('80% Attendance Goal'), findsOneWidget);
       expect(find.text('2 Subjects'), findsOneWidget);
       expect(find.text('Split in half'), findsOneWidget);
@@ -85,7 +96,9 @@ void main() {
       await tester.pump(Duration.zero);
     });
 
-    testWidgets('imports new semester into database and closes sheet', (tester) async {
+    testWidgets('imports new semester into database and closes sheet', (
+      tester,
+    ) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -105,45 +118,53 @@ void main() {
       expect(semesters.first.name, equals('Fall 2026'));
       expect(semesters.first.attendanceThreshold, equals(0.80));
 
-      final subjects = await subjRepo.getSubjectsForSemester(semesters.first.id);
+      final subjects = await subjRepo.getSubjectsForSemester(
+        semesters.first.id,
+      );
       expect(subjects.length, equals(2));
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);
     });
 
-    testWidgets('detects duplicate name collision and imports with (Imported) suffix', (tester) async {
-      tester.view.physicalSize = const Size(800, 1200);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'detects duplicate name collision and imports with (Imported) suffix',
+      (tester) async {
+        tester.view.physicalSize = const Size(800, 1200);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      // Pre-create existing semester
-      await semRepo.createSemester(name: 'Fall 2026');
+        // Pre-create existing semester
+        await semRepo.createSemester(name: 'Fall 2026');
 
-      await tester.pumpWidget(createWidgetUnderTest(samplePayload));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(createWidgetUnderTest(samplePayload));
+        await tester.pumpAndSettle();
 
-      // Conflict warning card appears
-      expect(find.text('Semester "Fall 2026" already exists'), findsOneWidget);
-      expect(
-        find.text('Import as a new copy ("Fall 2026 (Imported)")'),
-        findsOneWidget,
-      );
+        // Conflict warning card appears
+        expect(
+          find.text('Semester "Fall 2026" already exists'),
+          findsOneWidget,
+        );
+        expect(
+          find.text('Import as a new copy ("Fall 2026 (Imported)")'),
+          findsOneWidget,
+        );
 
-      final importBtn = find.widgetWithText(AppButton, 'Import Semester');
-      await tester.tap(importBtn);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.pumpAndSettle();
+        final importBtn = find.widgetWithText(AppButton, 'Import Semester');
+        await tester.tap(importBtn);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pumpAndSettle();
 
-      final semesters = await semRepo.getSemesters();
-      expect(semesters.length, equals(2));
-      expect(semesters.any((s) => s.name == 'Fall 2026 (Imported)'), isTrue);
+        final semesters = await semRepo.getSemesters();
+        expect(semesters.length, equals(2));
+        expect(semesters.any((s) => s.name == 'Fall 2026 (Imported)'), isTrue);
 
-      await tester.pumpWidget(const SizedBox());
-      await tester.pump(Duration.zero);
-    });
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(Duration.zero);
+      },
+    );
 
     testWidgets('allows editing semester name before import', (tester) async {
       tester.view.physicalSize = const Size(800, 1200);

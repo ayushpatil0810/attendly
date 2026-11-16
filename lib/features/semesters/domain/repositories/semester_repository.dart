@@ -13,6 +13,7 @@ abstract interface class SemesterRepository {
     DateTime? startDate,
     DateTime? endDate,
     double attendanceThreshold = 0.75,
+    double targetGoal = 0.85,
     AttendanceCalculationMethod calculationMethod =
         AttendanceCalculationMethod.rawCombined,
   });

@@ -21,8 +21,8 @@ void main() {
   });
 
   group('Database initialization & schema', () {
-    test('database opens and schemaVersion is 4', () {
-      expect(db.schemaVersion, equals(4));
+    test('database opens and schemaVersion is 5', () {
+      expect(db.schemaVersion, equals(5));
     });
 
     test('can insert and retrieve a semester', () async {
@@ -429,8 +429,8 @@ void main() {
     });
   });
 
-  group('Database migrations (v1 -> v4)', () {
-    test('migrates database from v1 to v4 and keeps same-day sessions', () async {
+  group('Database migrations (v1 -> v5)', () {
+    test('migrates database from v1 to v5 and keeps same-day sessions and adds targetGoal', () async {
       final tempDir = await Directory.systemTemp.createTemp(
         'attendly_migration_test_',
       );
@@ -505,14 +505,15 @@ void main() {
 
       await executor.close();
 
-      // 2. Open with AppDatabase v4, triggering onUpgrade from v1 to v4
+      // 2. Open with AppDatabase v5, triggering onUpgrade from v1 to v5
       final upgradedDb = AppDatabase.forTesting(NativeDatabase(dbFile));
-      expect(upgradedDb.schemaVersion, equals(4));
+      expect(upgradedDb.schemaVersion, equals(5));
 
-      // 3. Verify existing data preserved
+      // 3. Verify existing data preserved and targetGoal is defaulted to 0.85
       final semesters = await upgradedDb.select(upgradedDb.semesters).get();
       expect(semesters.length, equals(1));
       expect(semesters.first.name, equals('V1 Semester'));
+      expect(semesters.first.targetGoal, equals(0.85));
 
       final subjects = await upgradedDb.select(upgradedDb.subjects).get();
       expect(subjects.length, equals(1));

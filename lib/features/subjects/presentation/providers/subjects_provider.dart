@@ -75,6 +75,4 @@ class SubjectController extends AsyncNotifier<void> {
 }
 
 final subjectControllerProvider =
-    AsyncNotifierProvider<SubjectController, void>(
-      SubjectController.new,
-    );
+    AsyncNotifierProvider<SubjectController, void>(SubjectController.new);

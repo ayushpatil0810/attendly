@@ -6,6 +6,7 @@ import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_typography.dart';
+
 import '../providers/attendance_providers.dart';
 import 'day_note_dialog.dart';
 
@@ -33,11 +34,7 @@ class DayNoteBanner extends ConsumerWidget {
           child: InkWell(
             onTap: () {
               AppHaptics.selectionClick(ref);
-              showDayNoteDialog(
-                context: context,
-                ref: ref,
-                dateStr: dateStr,
-              );
+              showDayNoteDialog(context: context, ref: ref, dateStr: dateStr);
             },
             borderRadius: AppRadius.pillBorder,
             child: Semantics(
@@ -140,7 +137,10 @@ class DayNoteBanner extends ConsumerWidget {
                     size: 14,
                     color: AppColors.inkViolet,
                   ),
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
                   padding: EdgeInsets.zero,
                   onPressed: () {
                     AppHaptics.selectionClick(ref);
@@ -159,7 +159,10 @@ class DayNoteBanner extends ConsumerWidget {
                     size: 14,
                     color: AppColors.mutedInk,
                   ),
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
                   padding: EdgeInsets.zero,
                   onPressed: () async {
                     AppHaptics.lightImpact(ref);

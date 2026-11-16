@@ -20,6 +20,8 @@ class SubjectAttendanceSummary {
     required this.thresholdStatus,
     required this.safeAbsenceResult,
     required this.recoveryResult,
+    this.targetGoal = 0.85,
+    this.goalRecoveryResult = const RecoveryResult.notAvailable(),
   });
 
   final int subjectId;
@@ -36,6 +38,10 @@ class SubjectAttendanceSummary {
   final ThresholdStatus thresholdStatus;
   final SafeAbsenceResult safeAbsenceResult;
   final RecoveryResult recoveryResult;
+  final double targetGoal;
+  final RecoveryResult goalRecoveryResult;
+
+  int get targetGoalPercent => (targetGoal * 100).round();
 
   bool get isAvailable => availability.isAvailable;
   bool get isProvisional => availability.isProvisional;
@@ -43,6 +49,14 @@ class SubjectAttendanceSummary {
 
   bool get meetsThreshold => thresholdStatus == ThresholdStatus.meeting;
   bool get isBelowThreshold => thresholdStatus == ThresholdStatus.below;
+
+  bool get meetsGoal =>
+      percentage != null &&
+      !isNotAvailable &&
+      percentage! >= (targetGoal * 100.0 - 1e-9);
+
+  double? get differenceFromGoal =>
+      percentage != null ? percentage! - (targetGoal * 100.0) : null;
 
   String get formattedPercentage {
     if (percentage == null || isNotAvailable) return '—';
@@ -71,7 +85,9 @@ class SubjectAttendanceSummary {
           availability == other.availability &&
           thresholdStatus == other.thresholdStatus &&
           safeAbsenceResult == other.safeAbsenceResult &&
-          recoveryResult == other.recoveryResult;
+          recoveryResult == other.recoveryResult &&
+          targetGoal == other.targetGoal &&
+          goalRecoveryResult == other.goalRecoveryResult;
 
   @override
   int get hashCode =>
@@ -88,5 +104,7 @@ class SubjectAttendanceSummary {
       availability.hashCode ^
       thresholdStatus.hashCode ^
       safeAbsenceResult.hashCode ^
-      recoveryResult.hashCode;
+      recoveryResult.hashCode ^
+      targetGoal.hashCode ^
+      goalRecoveryResult.hashCode;
 }

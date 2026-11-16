@@ -4,6 +4,7 @@ import 'package:attendly/core/shared/widgets/app_progress.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_radius.dart';
+import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_calculation_method.dart';
 import 'package:attendly/features/attendance/domain/entities/subject_attendance_summary.dart';
@@ -283,6 +284,10 @@ class SubjectDetailSheet extends StatelessWidget {
 
           // Subject Safe Absences or Recovery Card
           _SubjectInsightCard(summary: summary, threshold: threshold),
+          if (summary != null && summary!.totalConducted > 0) ...[
+            const SizedBox(height: 12),
+            _SubjectGoalCard(summary: summary!),
+          ],
           const SizedBox(height: 24),
 
           // Primary Action: Log attendance for this subject
@@ -536,11 +541,7 @@ class _SubjectInsightCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const AppIcon(
-              AppIcons.alert,
-              size: 18,
-              color: AppColors.inkCoral,
-            ),
+            const AppIcon(AppIcons.alert, size: 18, color: AppColors.inkCoral),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -571,6 +572,115 @@ class _SubjectInsightCard extends StatelessWidget {
         ),
       );
     }
+  }
+}
+
+class _SubjectGoalCard extends StatelessWidget {
+  const _SubjectGoalCard({required this.summary});
+
+  final SubjectAttendanceSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final goalPercent = summary.targetGoalPercent;
+    final meetsGoal = summary.meetsGoal;
+    final goalRecovery = summary.goalRecoveryResult;
+
+    final bgColor = meetsGoal ? AppColors.softMint : AppColors.softLavender;
+    final iconColor = meetsGoal ? AppColors.inkMint : AppColors.inkViolet;
+
+    String message;
+    if (meetsGoal) {
+      message = 'Meeting your personal goal of $goalPercent% in this subject!';
+    } else if (goalRecovery.requiresScenario) {
+      message =
+          'Recovery towards your $goalPercent% goal depends on Lecture & Lab distribution.';
+    } else if (goalRecovery.isImpossible) {
+      message = '100% goal cannot be reached through attendance alone due to absences.';
+    } else if (goalRecovery.requiredConsecutivePresents != null) {
+      final n = goalRecovery.requiredConsecutivePresents!;
+      final unit = n == 1 ? 'class' : 'classes';
+      message =
+          'Attend the next $n consecutive $unit to reach your $goalPercent% goal.';
+    } else {
+      message =
+          'Track your attendance to monitor progress towards your $goalPercent% goal.';
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: AppRadius.mdBorder,
+        border: Border.all(
+          color: meetsGoal
+              ? AppColors.brandMint.withValues(alpha: 0.4)
+              : AppColors.brandViolet.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: AppIcon(
+              meetsGoal ? AppIcons.trophy : AppIcons.target,
+              size: 16,
+              color: iconColor,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'Personal Goal ($goalPercent%)',
+                      style: AppTypography.labelMedium.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: iconColor,
+                      ),
+                    ),
+                    if (meetsGoal) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.brandMint.withValues(alpha: 0.3),
+                          borderRadius: AppRadius.pillBorder,
+                        ),
+                        child: Text(
+                          'Achieved',
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.inkMint,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  message,
+                  style: AppTypography.labelSmall.copyWith(
+                    color: meetsGoal ? AppColors.inkMint : AppColors.mutedInk,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

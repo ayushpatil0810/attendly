@@ -9,6 +9,7 @@ import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_typography.dart';
+
 import '../providers/attendance_providers.dart';
 
 Future<void> showDayNoteDialog({
@@ -19,18 +20,13 @@ Future<void> showDayNoteDialog({
 }) async {
   return showDialog<void>(
     context: context,
-    builder: (ctx) => _DayNoteDialog(
-      dateStr: dateStr,
-      initialContent: initialContent,
-    ),
+    builder: (ctx) =>
+        _DayNoteDialog(dateStr: dateStr, initialContent: initialContent),
   );
 }
 
 class _DayNoteDialog extends ConsumerStatefulWidget {
-  const _DayNoteDialog({
-    required this.dateStr,
-    this.initialContent,
-  });
+  const _DayNoteDialog({required this.dateStr, this.initialContent});
 
   final String dateStr;
   final String? initialContent;
@@ -64,7 +60,8 @@ class _DayNoteDialogState extends ConsumerState<_DayNoteDialog> {
       parsedDate = DateTime.now();
     }
     final formattedDate = DateFormat('EEE, d MMM yyyy').format(parsedDate);
-    final isEditing = widget.initialContent != null &&
+    final isEditing =
+        widget.initialContent != null &&
         widget.initialContent!.trim().isNotEmpty;
 
     return AlertDialog(

@@ -2,4 +2,28 @@
 <resources>
     <color name="ic_launcher_background">#FFFAF9</color>
     <color name="splash_background">#FFFAF9</color>
+
+    <!-- Attendly Widget Design Tokens -->
+    <color name="widget_ink">#FF30263F</color>
+    <color name="widget_muted_ink">#FF6E6778</color>
+    <color name="widget_subtle_ink">#FF756C84</color>
+    <color name="widget_pure_white">#FFFFFFFF</color>
+    <color name="widget_warm_white">#FFFFFAF9</color>
+    <color name="widget_border">#FFE8E2EE</color>
+    <color name="widget_track">#FFEEEAF2</color>
+
+    <!-- Brand & Accent -->
+    <color name="widget_brand_violet">#FF9278F2</color>
+    <color name="widget_ink_violet">#FF704EEE</color>
+    <color name="widget_soft_lavender">#FFF5F1FF</color>
+
+    <!-- Semantic Present / Goal -->
+    <color name="widget_brand_mint">#FF8BE4D0</color>
+    <color name="widget_ink_mint">#FF166151</color>
+    <color name="widget_soft_mint">#FFF0FAF7</color>
+
+    <!-- Semantic Absent / Warning -->
+    <color name="widget_brand_coral">#FFFF929B</color>
+    <color name="widget_ink_coral">#FF7D1A22</color>
+    <color name="widget_soft_coral">#FFFFF1F1</color>
 </resources>

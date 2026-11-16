@@ -231,92 +231,85 @@ void main() {
       },
     );
 
-    testWidgets(
-      'deletes session when remove button on chip is tapped',
-      (tester) async {
-        setTestViewport(tester);
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets('deletes session when remove button on chip is tapped', (
+      tester,
+    ) async {
+      setTestViewport(tester);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-        final testDate = DateTime(2026, 3, 10);
-        final repo = AttendanceRepositoryImpl(db);
-        await repo.createSession(
-          subjectId: bothComponentsSubId,
-          sessionDate: '2026-03-10',
-          component: SessionComponent.lecture,
-          status: AttendanceStatus.present,
-        );
+      final testDate = DateTime(2026, 3, 10);
+      final repo = AttendanceRepositoryImpl(db);
+      await repo.createSession(
+        subjectId: bothComponentsSubId,
+        sessionDate: '2026-03-10',
+        component: SessionComponent.lecture,
+        status: AttendanceStatus.present,
+      );
 
-        await tester.pumpWidget(createWidgetUnderTest(initialDate: testDate));
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(createWidgetUnderTest(initialDate: testDate));
+      await tester.pumpAndSettle();
 
-        expect(find.text('Lec 1: Present'), findsOneWidget);
+      expect(find.text('Lec 1: Present'), findsOneWidget);
 
-        // Tap the semantics action for removing the chip
-        final removeButton = find.bySemanticsLabel('Remove Lec 1 Present');
-        expect(removeButton, findsOneWidget);
-        await tester.tap(removeButton);
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 300));
-        await tester.pumpAndSettle();
+      // Tap the semantics action for removing the chip
+      final removeButton = find.bySemanticsLabel('Remove Lec 1 Present');
+      expect(removeButton, findsOneWidget);
+      await tester.tap(removeButton);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
 
-        // Chip is removed
-        expect(find.text('Lec 1: Present'), findsNothing);
+      // Chip is removed
+      expect(find.text('Lec 1: Present'), findsNothing);
 
-        final sessions = await repo.getSessionsForDate(
-          semesterId,
-          '2026-03-10',
-        );
-        expect(sessions, isEmpty);
+      final sessions = await repo.getSessionsForDate(semesterId, '2026-03-10');
+      expect(sessions, isEmpty);
 
-        await tester.pumpWidget(const SizedBox());
-        await tester.pump(Duration.zero);
-      },
-    );
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(Duration.zero);
+    });
 
-    testWidgets(
-      'tapping Done button pops the modal sheet',
-      (tester) async {
-        setTestViewport(tester);
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets('tapping Done button pops the modal sheet', (tester) async {
+      setTestViewport(tester);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              databaseProvider.overrideWithValue(db),
-              sharedPreferencesProvider.overrideWithValue(prefs),
-            ],
-            child: MaterialApp(
-              home: Builder(
-                builder: (context) {
-                  return ElevatedButton(
-                    onPressed: () => showQuickLogSheet(context: context),
-                    child: const Text('Open Quick Log'),
-                  );
-                },
-              ),
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            databaseProvider.overrideWithValue(db),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+          ],
+          child: MaterialApp(
+            home: Builder(
+              builder: (context) {
+                return ElevatedButton(
+                  onPressed: () => showQuickLogSheet(context: context),
+                  child: const Text('Open Quick Log'),
+                );
+              },
             ),
           ),
-        );
-        await tester.pumpAndSettle();
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        // Open sheet
-        await tester.tap(find.text('Open Quick Log'));
-        await tester.pumpAndSettle();
+      // Open sheet
+      await tester.tap(find.text('Open Quick Log'));
+      await tester.pumpAndSettle();
 
-        expect(find.byType(QuickLogSheet), findsOneWidget);
+      expect(find.byType(QuickLogSheet), findsOneWidget);
 
-        // Tap Done Logging
-        await tester.tap(find.text('Done Logging'));
-        await tester.pumpAndSettle();
+      // Tap Done Logging
+      await tester.tap(find.text('Done Logging'));
+      await tester.pumpAndSettle();
 
-        // Sheet is dismissed
-        expect(find.byType(QuickLogSheet), findsNothing);
+      // Sheet is dismissed
+      expect(find.byType(QuickLogSheet), findsNothing);
 
-        await tester.pumpWidget(const SizedBox());
-        await tester.pump(Duration.zero);
-      },
-    );
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(Duration.zero);
+    });
   });
 }

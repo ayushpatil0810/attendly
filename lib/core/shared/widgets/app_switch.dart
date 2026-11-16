@@ -29,7 +29,10 @@ class AppSwitchTile extends StatelessWidget {
       onTap: enabled && onChanged != null ? () => onChanged!(!value) : null,
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: AppMotion.duration(context, const Duration(milliseconds: 180)),
+        duration: AppMotion.duration(
+          context,
+          const Duration(milliseconds: 180),
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: value ? AppColors.softLavender : AppColors.pureWhite,

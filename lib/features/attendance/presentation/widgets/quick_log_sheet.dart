@@ -14,8 +14,11 @@ import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_session.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_status.dart';
 import 'package:attendly/features/attendance/domain/entities/session_component.dart';
+import 'package:attendly/features/attendance/domain/services/milestone_service.dart';
 import 'package:attendly/features/attendance/presentation/providers/attendance_providers.dart';
 import 'package:attendly/features/attendance/presentation/widgets/day_note_banner.dart';
+import 'package:attendly/features/attendance/presentation/widgets/milestone_celebration_dialog.dart';
+import 'package:attendly/features/semesters/presentation/providers/semesters_provider.dart';
 import 'package:attendly/features/subjects/domain/entities/subject.dart';
 import 'package:attendly/features/subjects/presentation/providers/subjects_provider.dart';
 
@@ -87,7 +90,9 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
     final dateStr = formatDateOnly(_selectedDate);
 
     try {
-      await ref.read(attendanceControllerProvider.notifier).recordSession(
+      await ref
+          .read(attendanceControllerProvider.notifier)
+          .recordSession(
             subjectId: subject.id,
             sessionDate: dateStr,
             component: component,
@@ -98,8 +103,9 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
 
       if (!mounted) return;
 
-      final statusLabel =
-          status == AttendanceStatus.present ? 'Present' : 'Absent';
+      final statusLabel = status == AttendanceStatus.present
+          ? 'Present'
+          : 'Absent';
       final componentLabel = component.displayName;
 
       AppToast.showSuccess(
@@ -113,6 +119,35 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
           }
         },
       );
+
+      // Check for milestone celebration if session was present
+      if (status == AttendanceStatus.present) {
+        final semester = ref.read(activeSemesterProvider);
+        if (semester != null) {
+          final summary = ref.read(semesterAttendanceSummaryProvider).value;
+          if (summary != null && summary.overallPercentage != null) {
+            final uncelebrated = ref
+                .read(milestoneServiceProvider)
+                .getUncelebratedReachedMilestones(
+                  semesterId: semester.id,
+                  currentPercentage: summary.overallPercentage,
+                );
+            if (uncelebrated.isNotEmpty && mounted) {
+              final topMilestone = uncelebrated.last;
+              await ref
+                  .read(milestoneServiceProvider)
+                  .markMilestoneCelebrated(semester.id, topMilestone);
+              if (mounted) {
+                MilestoneCelebrationDialog.show(
+                  context,
+                  milestone: topMilestone,
+                  currentPercentage: summary.overallPercentage,
+                );
+              }
+            }
+          }
+        }
+      }
     } catch (e) {
       if (!mounted) return;
       AppToast.showError(
@@ -200,9 +235,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                   style: AppTypography.sectionTitle,
                 ),
               ),
-              AppCloseButton(
-                onPressed: () => Navigator.of(context).pop(),
-              ),
+              AppCloseButton(onPressed: () => Navigator.of(context).pop()),
             ],
           ),
         ),
@@ -400,9 +433,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
                     decoration: const BoxDecoration(
                       color: AppColors.pureWhite,
-                      border: Border(
-                        top: BorderSide(color: AppColors.divider),
-                      ),
+                      border: Border(top: BorderSide(color: AppColors.divider)),
                     ),
                     child: AppButton(
                       label: 'Done Logging',
@@ -548,10 +579,10 @@ class _ComponentSubRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isLecture = component == SessionComponent.lecture;
     final componentIcon = isLecture ? AppIcons.lecture : AppIcons.lab;
-    final componentLabel =
-        isLecture ? 'Theory Lecture' : 'Practical Lab';
-    final componentColor =
-        isLecture ? AppColors.brandViolet : AppColors.inkMint;
+    final componentLabel = isLecture ? 'Theory Lecture' : 'Practical Lab';
+    final componentColor = isLecture
+        ? AppColors.brandViolet
+        : AppColors.inkMint;
 
     final presentKey = '${subject.id}_${component.name}_present';
     final absentKey = '${subject.id}_${component.name}_absent';
@@ -598,7 +629,9 @@ class _ComponentSubRow extends StatelessWidget {
                     session: sessions[i],
                     index: i,
                     subjectName: subject.name,
-                    isDeleting: inFlightKeys.contains('delete_${sessions[i].id}'),
+                    isDeleting: inFlightKeys.contains(
+                      'delete_${sessions[i].id}',
+                    ),
                     onDelete: () => onDeleteSession(sessions[i], subject.name),
                   ),
               ],
@@ -619,11 +652,8 @@ class _ComponentSubRow extends StatelessWidget {
                   semanticLabel:
                       'Mark Present for ${subject.name} $componentLabel',
                   isLoading: inFlightKeys.contains(presentKey),
-                  onTap: () => onRecord(
-                    subject,
-                    component,
-                    AttendanceStatus.present,
-                  ),
+                  onTap: () =>
+                      onRecord(subject, component, AttendanceStatus.present),
                 ),
               ),
               const SizedBox(width: 10),
@@ -637,11 +667,8 @@ class _ComponentSubRow extends StatelessWidget {
                   semanticLabel:
                       'Mark Absent for ${subject.name} $componentLabel',
                   isLoading: inFlightKeys.contains(absentKey),
-                  onTap: () => onRecord(
-                    subject,
-                    component,
-                    AttendanceStatus.absent,
-                  ),
+                  onTap: () =>
+                      onRecord(subject, component, AttendanceStatus.absent),
                 ),
               ),
             ],
@@ -670,8 +697,9 @@ class _SessionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isPresent = session.isPresent;
-    final prefix =
-        session.component == SessionComponent.lecture ? 'Lec' : 'Lab';
+    final prefix = session.component == SessionComponent.lecture
+        ? 'Lec'
+        : 'Lab';
     final statusText = isPresent ? 'Present' : 'Absent';
     final bgColor = isPresent ? AppColors.softMint : AppColors.softCoral;
     final textColor = isPresent ? AppColors.inkMint : AppColors.inkCoral;
@@ -723,11 +751,7 @@ class _SessionChip extends StatelessWidget {
                             color: textColor,
                           ),
                         )
-                      : AppIcon(
-                          AppIcons.close,
-                          size: 13,
-                          color: textColor,
-                        ),
+                      : AppIcon(AppIcons.close, size: 13, color: textColor),
                 ),
               ),
             ),
@@ -823,15 +847,11 @@ void showQuickLogSheet({
     builder: (context) {
       final mediaQuery = MediaQuery.of(context);
       return ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: mediaQuery.size.height * 0.88,
-        ),
+        constraints: BoxConstraints(maxHeight: mediaQuery.size.height * 0.88),
         child: SafeArea(
           top: false,
           child: Padding(
-            padding: EdgeInsets.only(
-              bottom: mediaQuery.viewInsets.bottom,
-            ),
+            padding: EdgeInsets.only(bottom: mediaQuery.viewInsets.bottom),
             child: QuickLogSheet(
               initialDate: initialDate,
               initialSubjectId: initialSubjectId,

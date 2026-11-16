@@ -83,6 +83,7 @@ class SemesterController extends AsyncNotifier<void> {
     double attendanceThreshold = 0.75,
     AttendanceCalculationMethod calculationMethod =
         AttendanceCalculationMethod.rawCombined,
+    double targetGoal = 0.85,
   }) async {
     state = const AsyncLoading();
     try {
@@ -93,6 +94,7 @@ class SemesterController extends AsyncNotifier<void> {
         endDate: endDate,
         attendanceThreshold: attendanceThreshold,
         calculationMethod: calculationMethod,
+        targetGoal: targetGoal,
       );
       ref.read(selectedSemesterIdProvider.notifier).selectSemester(id);
       state = const AsyncData(null);

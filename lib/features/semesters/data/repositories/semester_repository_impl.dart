@@ -20,6 +20,7 @@ class SemesterRepositoryImpl implements SemesterRepository {
           : null,
       endDate: row.endDate != null ? DateTime.tryParse(row.endDate!) : null,
       attendanceThreshold: row.attendanceThreshold,
+      targetGoal: row.targetGoal,
       calculationMethod: AttendanceCalculationMethod.fromDbValue(
         row.calculationMethod,
       ),
@@ -88,6 +89,7 @@ class SemesterRepositoryImpl implements SemesterRepository {
     DateTime? startDate,
     DateTime? endDate,
     double attendanceThreshold = 0.75,
+    double targetGoal = 0.85,
     AttendanceCalculationMethod calculationMethod =
         AttendanceCalculationMethod.rawCombined,
   }) async {
@@ -98,6 +100,11 @@ class SemesterRepositoryImpl implements SemesterRepository {
     if (attendanceThreshold <= 0.0 || attendanceThreshold > 1.0) {
       throw const ValidationFailure(
         'Attendance threshold must be between 1% and 100%.',
+      );
+    }
+    if (targetGoal <= 0.0 || targetGoal > 1.0) {
+      throw const ValidationFailure(
+        'Personal attendance goal must be between 1% and 100%.',
       );
     }
     if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
@@ -123,6 +130,7 @@ class SemesterRepositoryImpl implements SemesterRepository {
               startDate: Value(startDateStr),
               endDate: Value(endDateStr),
               attendanceThreshold: Value(attendanceThreshold),
+              targetGoal: Value(targetGoal),
               calculationMethod: Value(calculationMethod.dbValue),
               createdAt: now,
               updatedAt: now,
@@ -144,6 +152,11 @@ class SemesterRepositoryImpl implements SemesterRepository {
         semester.attendanceThreshold > 1.0) {
       throw const ValidationFailure(
         'Attendance threshold must be between 1% and 100%.',
+      );
+    }
+    if (semester.targetGoal <= 0.0 || semester.targetGoal > 1.0) {
+      throw const ValidationFailure(
+        'Personal attendance goal must be between 1% and 100%.',
       );
     }
     if (semester.startDate != null &&
@@ -171,6 +184,7 @@ class SemesterRepositoryImpl implements SemesterRepository {
           startDate: Value(startDateStr),
           endDate: Value(endDateStr),
           attendanceThreshold: Value(semester.attendanceThreshold),
+          targetGoal: Value(semester.targetGoal),
           calculationMethod: Value(semester.calculationMethod.dbValue),
           isArchived: Value(semester.isArchived),
           updatedAt: Value(now),
@@ -214,10 +228,11 @@ class SemesterRepositoryImpl implements SemesterRepository {
       throw const NotFoundFailure('Semester not found');
     }
 
-    final subjectRows = await (_db.select(_db.subjects)
-          ..where((tbl) => tbl.semesterId.equals(semesterId))
-          ..orderBy([(tbl) => OrderingTerm(expression: tbl.sortOrder)]))
-        .get();
+    final subjectRows =
+        await (_db.select(_db.subjects)
+              ..where((tbl) => tbl.semesterId.equals(semesterId))
+              ..orderBy([(tbl) => OrderingTerm(expression: tbl.sortOrder)]))
+            .get();
 
     final subjects = subjectRows
         .map(
@@ -235,6 +250,7 @@ class SemesterRepositoryImpl implements SemesterRepository {
       attendanceThreshold: semester.attendanceThreshold,
       calculationMethod: semester.calculationMethod,
       subjects: subjects,
+      targetGoal: semester.targetGoal,
     );
   }
 
@@ -259,9 +275,9 @@ class SemesterRepositoryImpl implements SemesterRepository {
       if (match != null) {
         if (replaceExisting) {
           // Delete existing (cascade will remove its subjects & sessions)
-          await (_db.delete(_db.semesters)
-                ..where((tbl) => tbl.id.equals(match.id)))
-              .go();
+          await (_db.delete(
+            _db.semesters,
+          )..where((tbl) => tbl.id.equals(match.id))).go();
           finalName = match.name;
         } else {
           // Generate a unique non-colliding name
@@ -278,11 +294,14 @@ class SemesterRepositoryImpl implements SemesterRepository {
       }
 
       final now = DateTime.now().toUtc().millisecondsSinceEpoch;
-      final semesterId = await _db.into(_db.semesters).insert(
+      final semesterId = await _db
+          .into(_db.semesters)
+          .insert(
             SemestersCompanion.insert(
               name: finalName,
               attendanceThreshold: Value(payload.attendanceThreshold),
               calculationMethod: Value(payload.calculationMethod.dbValue),
+              targetGoal: Value(payload.targetGoal),
               createdAt: now,
               updatedAt: now,
             ),
@@ -290,7 +309,9 @@ class SemesterRepositoryImpl implements SemesterRepository {
 
       for (var i = 0; i < payload.subjects.length; i++) {
         final s = payload.subjects[i];
-        await _db.into(_db.subjects).insert(
+        await _db
+            .into(_db.subjects)
+            .insert(
               SubjectsCompanion.insert(
                 semesterId: semesterId,
                 name: s.name.trim(),

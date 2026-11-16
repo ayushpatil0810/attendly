@@ -91,7 +91,8 @@ class SettingsScreen extends ConsumerWidget {
                       // Section B: Daily Reminder
                       const AppSectionHeader(
                         title: 'Daily Reminder',
-                        subtitle: 'Automated notification to log your attendance',
+                        subtitle:
+                            'Automated notification to log your attendance',
                       ),
                       const SizedBox(height: 10),
                       const DailyReminderSection(),
@@ -118,7 +119,8 @@ class SettingsScreen extends ConsumerWidget {
                       // Section D: Data Safety & Privacy Notice
                       const AppSectionHeader(
                         title: 'Privacy & Offline Guarantee',
-                        subtitle: 'Personal offline storage without cloud tracking',
+                        subtitle:
+                            'Personal offline storage without cloud tracking',
                       ),
                       const SizedBox(height: 10),
                       const PrivacyOfflineSection(),

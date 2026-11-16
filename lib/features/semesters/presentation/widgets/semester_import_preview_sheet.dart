@@ -12,10 +12,7 @@ import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/semesters/domain/entities/semester_qr_payload.dart';
 import 'package:attendly/features/semesters/presentation/providers/semesters_provider.dart';
 
-enum _ConflictResolution {
-  importAsNew,
-  replaceExisting,
-}
+enum _ConflictResolution { importAsNew, replaceExisting }
 
 class SemesterImportPreviewSheet extends ConsumerStatefulWidget {
   const SemesterImportPreviewSheet({
@@ -60,10 +57,13 @@ class _SemesterImportPreviewSheetState
     setState(() => _isImporting = true);
 
     try {
-      final replace = hasConflict &&
+      final replace =
+          hasConflict &&
           _conflictResolution == _ConflictResolution.replaceExisting;
 
-      await ref.read(semesterControllerProvider.notifier).importSemesterFromQr(
+      await ref
+          .read(semesterControllerProvider.notifier)
+          .importSemesterFromQr(
             widget.payload,
             customName: customName,
             replaceExisting: replace,
@@ -158,7 +158,8 @@ class _SemesterImportPreviewSheetState
                       children: [
                         _BadgePill(
                           icon: AppIcons.check,
-                          label: '${widget.payload.thresholdPercent}% Attendance Goal',
+                          label:
+                              '${widget.payload.thresholdPercent}% Attendance Goal',
                           color: AppColors.inkViolet,
                           backgroundColor: AppColors.softLavender,
                         ),
@@ -172,7 +173,9 @@ class _SemesterImportPreviewSheetState
                           icon: AppIcons.insights,
                           label: widget.payload.calculationMethod.displayName,
                           color: AppColors.mutedInk,
-                          backgroundColor: AppColors.softLavender.withValues(alpha: 0.5),
+                          backgroundColor: AppColors.softLavender.withValues(
+                            alpha: 0.5,
+                          ),
                         ),
                       ],
                     ),
@@ -217,22 +220,28 @@ class _SemesterImportPreviewSheetState
                             InkWell(
                               onTap: () {
                                 setState(() {
-                                  _conflictResolution = _ConflictResolution.importAsNew;
+                                  _conflictResolution =
+                                      _ConflictResolution.importAsNew;
                                 });
                               },
                               borderRadius: AppRadius.smBorder,
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 4,
+                                ),
                                 child: Row(
                                   children: [
                                     Radio<_ConflictResolution>(
                                       value: _ConflictResolution.importAsNew,
                                       groupValue: _conflictResolution,
                                       activeColor: AppColors.brandViolet,
-                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      materialTapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
                                       onChanged: (val) {
                                         if (val != null) {
-                                          setState(() => _conflictResolution = val);
+                                          setState(
+                                            () => _conflictResolution = val,
+                                          );
                                         }
                                       },
                                     ),
@@ -241,7 +250,10 @@ class _SemesterImportPreviewSheetState
                                       child: Text(
                                         'Import as a new copy ("$currentInputName (Imported)")',
                                         style: AppTypography.bodySmall.copyWith(
-                                          fontWeight: _conflictResolution == _ConflictResolution.importAsNew
+                                          fontWeight:
+                                              _conflictResolution ==
+                                                  _ConflictResolution
+                                                      .importAsNew
                                               ? FontWeight.w600
                                               : FontWeight.w400,
                                         ),
@@ -255,22 +267,29 @@ class _SemesterImportPreviewSheetState
                             InkWell(
                               onTap: () {
                                 setState(() {
-                                  _conflictResolution = _ConflictResolution.replaceExisting;
+                                  _conflictResolution =
+                                      _ConflictResolution.replaceExisting;
                                 });
                               },
                               borderRadius: AppRadius.smBorder,
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 4,
+                                ),
                                 child: Row(
                                   children: [
                                     Radio<_ConflictResolution>(
-                                      value: _ConflictResolution.replaceExisting,
+                                      value:
+                                          _ConflictResolution.replaceExisting,
                                       groupValue: _conflictResolution,
                                       activeColor: AppColors.brandViolet,
-                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      materialTapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
                                       onChanged: (val) {
                                         if (val != null) {
-                                          setState(() => _conflictResolution = val);
+                                          setState(
+                                            () => _conflictResolution = val,
+                                          );
                                         }
                                       },
                                     ),
@@ -279,7 +298,10 @@ class _SemesterImportPreviewSheetState
                                       child: Text(
                                         'Replace existing semester and its courses',
                                         style: AppTypography.bodySmall.copyWith(
-                                          fontWeight: _conflictResolution == _ConflictResolution.replaceExisting
+                                          fontWeight:
+                                              _conflictResolution ==
+                                                  _ConflictResolution
+                                                      .replaceExisting
                                               ? FontWeight.w600
                                               : FontWeight.w400,
                                           color: AppColors.inkCoral,
@@ -296,7 +318,10 @@ class _SemesterImportPreviewSheetState
                     ],
 
                     const SizedBox(height: 20),
-                    const Text('Included Courses', style: AppTypography.labelMedium),
+                    const Text(
+                      'Included Courses',
+                      style: AppTypography.labelMedium,
+                    ),
                     const SizedBox(height: 8),
 
                     // Subjects List Preview
@@ -373,11 +398,12 @@ class _SemesterImportPreviewSheetState
                                         const SizedBox(width: 4),
                                         Text(
                                           'Theory',
-                                          style: AppTypography.labelSmall.copyWith(
-                                            color: AppColors.inkViolet,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 11,
-                                          ),
+                                          style: AppTypography.labelSmall
+                                              .copyWith(
+                                                color: AppColors.inkViolet,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 11,
+                                              ),
                                         ),
                                       ],
                                     ),
@@ -405,11 +431,12 @@ class _SemesterImportPreviewSheetState
                                         const SizedBox(width: 4),
                                         Text(
                                           'Lab',
-                                          style: AppTypography.labelSmall.copyWith(
-                                            color: AppColors.inkMint,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 11,
-                                          ),
+                                          style: AppTypography.labelSmall
+                                              .copyWith(
+                                                color: AppColors.inkMint,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 11,
+                                              ),
                                         ),
                                       ],
                                     ),

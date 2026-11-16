@@ -68,8 +68,7 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
         AttendanceCalculationMethod.componentAverage) {
       return Semantics(
         container: true,
-        label:
-            'Depends on the next classes. Lecture and lab each count for half, so how many you can miss depends on whether those classes are lectures or labs.',
+        label: 'Depends on the next classes. Lecture and lab each count for half, so how many you can miss depends on whether those classes are lectures or labs.',
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.md),

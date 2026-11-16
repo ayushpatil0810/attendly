@@ -35,7 +35,8 @@ class _ScanSemesterQrScreenState extends ConsumerState<ScanSemesterQrScreen> {
   @override
   void initState() {
     super.initState();
-    _scannerController = widget.controller ??
+    _scannerController =
+        widget.controller ??
         MobileScannerController(
           detectionSpeed: DetectionSpeed.noDuplicates,
           facing: CameraFacing.back,
@@ -71,7 +72,10 @@ class _ScanSemesterQrScreenState extends ConsumerState<ScanSemesterQrScreen> {
     if (payload == null) {
       if (mounted) {
         setState(() => _isProcessing = false);
-        AppToast.showError(context, message: 'Could not read semester QR code.');
+        AppToast.showError(
+          context,
+          message: 'Could not read semester QR code.',
+        );
       }
       return;
     }
@@ -130,9 +134,7 @@ class _ScanSemesterQrScreenState extends ConsumerState<ScanSemesterQrScreen> {
               },
             )
           else
-            _CameraDisabledPlaceholder(
-              onPasteManually: _openManualPasteDialog,
-            ),
+            _CameraDisabledPlaceholder(onPasteManually: _openManualPasteDialog),
 
           // Reticle Overlay
           SafeArea(
@@ -181,9 +183,7 @@ class _ScanSemesterQrScreenState extends ConsumerState<ScanSemesterQrScreen> {
                           ),
                           child: IconButton(
                             icon: AppIcon(
-                              _isTorchOn
-                                  ? AppIcons.flashOff
-                                  : AppIcons.flash,
+                              _isTorchOn ? AppIcons.flashOff : AppIcons.flash,
                               size: 20,
                               color: AppColors.pureWhite,
                             ),
@@ -215,10 +215,11 @@ class _ScanSemesterQrScreenState extends ConsumerState<ScanSemesterQrScreen> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: (_isProcessing
-                                  ? AppColors.inkMint
-                                  : AppColors.brandViolet)
-                              .withValues(alpha: 0.2),
+                          color:
+                              (_isProcessing
+                                      ? AppColors.inkMint
+                                      : AppColors.brandViolet)
+                                  .withValues(alpha: 0.2),
                           blurRadius: 20,
                           spreadRadius: 2,
                         ),

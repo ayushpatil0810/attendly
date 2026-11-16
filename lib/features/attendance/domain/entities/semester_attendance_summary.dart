@@ -27,6 +27,8 @@ class SemesterAttendanceSummary {
     this.differenceFromThreshold,
     required this.safeAbsenceResult,
     required this.recoveryResult,
+    this.targetGoal = 0.85,
+    this.goalRecoveryResult = const RecoveryResult.notAvailable(),
     required this.subjectSummaries,
     required this.trendPoints,
   });
@@ -50,10 +52,13 @@ class SemesterAttendanceSummary {
   final double? differenceFromThreshold;
   final SafeAbsenceResult safeAbsenceResult;
   final RecoveryResult recoveryResult;
+  final double targetGoal;
+  final RecoveryResult goalRecoveryResult;
   final List<SubjectAttendanceSummary> subjectSummaries;
   final List<AttendanceTrendPoint> trendPoints;
 
   int get thresholdPercent => (threshold * 100).round();
+  int get targetGoalPercent => (targetGoal * 100).round();
 
   int? get roundedPercentage => overallPercentage?.round();
 
@@ -63,6 +68,15 @@ class SemesterAttendanceSummary {
 
   bool get meetsThreshold => thresholdStatus == ThresholdStatus.meeting;
   bool get isBelowThreshold => thresholdStatus == ThresholdStatus.below;
+
+  bool get meetsGoal =>
+      overallPercentage != null &&
+      !isNotAvailable &&
+      overallPercentage! >= (targetGoal * 100.0 - 1e-9);
+
+  double? get differenceFromGoal => overallPercentage != null
+      ? overallPercentage! - (targetGoal * 100.0)
+      : null;
 
   String get formattedPercentage {
     if (overallPercentage == null || isNotAvailable) return '—';

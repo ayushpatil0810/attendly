@@ -34,7 +34,10 @@ class InsightsScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Insights', style: AppTypography.screenTitle),
+                        const Text(
+                          'Insights',
+                          style: AppTypography.screenTitle,
+                        ),
                         const SizedBox(height: 2),
                         Text(
                           'Attendance analytics & patterns',

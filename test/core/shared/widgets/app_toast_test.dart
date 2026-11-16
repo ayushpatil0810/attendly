@@ -4,56 +4,61 @@ import 'package:attendly/core/shared/widgets/app_toast.dart';
 
 void main() {
   group('AppToast Tests', () {
-    testWidgets('showSuccess with action sets persist to false and auto-dismisses',
-        (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Builder(
-              builder: (context) {
-                return Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      AppToast.showSuccess(
-                        context,
-                        message: 'Session recorded',
-                        actionLabel: 'Undo',
-                        duration: const Duration(seconds: 2),
-                      );
-                    },
-                    child: const Text('Show Toast'),
-                  ),
-                );
-              },
+    testWidgets(
+      'showSuccess with action sets persist to false and auto-dismisses',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) {
+                  return Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        AppToast.showSuccess(
+                          context,
+                          message: 'Session recorded',
+                          actionLabel: 'Undo',
+                          duration: const Duration(seconds: 2),
+                        );
+                      },
+                      child: const Text('Show Toast'),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Tap button to show toast
-      await tester.tap(find.text('Show Toast'));
-      await tester.pump(); // Start animation
-      await tester.pump(const Duration(milliseconds: 300)); // Finish entry animation
+        // Tap button to show toast
+        await tester.tap(find.text('Show Toast'));
+        await tester.pump(); // Start animation
+        await tester.pump(
+          const Duration(milliseconds: 300),
+        ); // Finish entry animation
 
-      // Toast is visible
-      expect(find.text('Session recorded'), findsOneWidget);
-      expect(find.text('Undo'), findsOneWidget);
+        // Toast is visible
+        expect(find.text('Session recorded'), findsOneWidget);
+        expect(find.text('Undo'), findsOneWidget);
 
-      // Verify SnackBar widget has persist == false
-      final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
-      expect(snackBar.persist, isFalse);
+        // Verify SnackBar widget has persist == false
+        final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
+        expect(snackBar.persist, isFalse);
 
-      // Advance time past the duration (2 seconds)
-      await tester.pump(const Duration(seconds: 2));
-      await tester.pump(const Duration(milliseconds: 300)); // Exit animation
+        // Advance time past the duration (2 seconds)
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pump(const Duration(milliseconds: 300)); // Exit animation
 
-      // Verify toast is now dismissed automatically
-      expect(find.text('Session recorded'), findsNothing);
-      expect(find.text('Undo'), findsNothing);
-    });
+        // Verify toast is now dismissed automatically
+        expect(find.text('Session recorded'), findsNothing);
+        expect(find.text('Undo'), findsNothing);
+      },
+    );
 
-    testWidgets('showInfo sets persist to false and auto-dismisses',
-        (tester) async {
+    testWidgets('showInfo sets persist to false and auto-dismisses', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -91,8 +96,9 @@ void main() {
       expect(find.text('Info message'), findsNothing);
     });
 
-    testWidgets('showError sets persist to false and auto-dismisses',
-        (tester) async {
+    testWidgets('showError sets persist to false and auto-dismisses', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

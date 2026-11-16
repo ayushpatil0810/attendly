@@ -60,6 +60,7 @@ class AttendanceCalculator {
     required List<AttendanceSession> sessions,
     required double threshold,
     required AttendanceCalculationMethod calculationMethod,
+    double targetGoal = 0.85,
   }) {
     // Filter sessions belonging to this subject
     final subjectSessions = sessions
@@ -188,6 +189,13 @@ class AttendanceCalculator {
       calculationMethod: calculationMethod,
     );
 
+    final goalRecovery = recoveryCalculator.calculateGoalRecovery(
+      present: totalPresent,
+      conducted: totalConducted,
+      goal: targetGoal,
+      calculationMethod: calculationMethod,
+    );
+
     return SubjectAttendanceSummary(
       subjectId: subject.id,
       subjectName: subject.name,
@@ -203,6 +211,8 @@ class AttendanceCalculator {
       thresholdStatus: thresholdStatus,
       safeAbsenceResult: safeAbsences,
       recoveryResult: recovery,
+      targetGoal: targetGoal,
+      goalRecoveryResult: goalRecovery,
     );
   }
 
@@ -219,6 +229,7 @@ class AttendanceCalculator {
             sessions: sessions,
             threshold: semester.attendanceThreshold,
             calculationMethod: semester.calculationMethod,
+            targetGoal: semester.targetGoal,
           ),
         )
         .toList();
@@ -360,6 +371,13 @@ class AttendanceCalculator {
       calculationMethod: semester.calculationMethod,
     );
 
+    final goalRecovery = recoveryCalculator.calculateGoalRecovery(
+      present: totalPresent,
+      conducted: totalConducted,
+      goal: semester.targetGoal,
+      calculationMethod: semester.calculationMethod,
+    );
+
     // Compute Trend Points from actual recorded sessions
     final trendPoints = _computeTrendPoints(sessions);
 
@@ -383,6 +401,8 @@ class AttendanceCalculator {
       differenceFromThreshold: differenceFromThreshold,
       safeAbsenceResult: safeAbsences,
       recoveryResult: recovery,
+      targetGoal: semester.targetGoal,
+      goalRecoveryResult: goalRecovery,
       subjectSummaries: subjectSummaries,
       trendPoints: trendPoints,
     );

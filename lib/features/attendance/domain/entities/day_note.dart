@@ -46,14 +46,8 @@ class DayNote {
   }
 
   @override
-  int get hashCode => Object.hash(
-        id,
-        semesterId,
-        date,
-        content,
-        createdAt,
-        updatedAt,
-      );
+  int get hashCode =>
+      Object.hash(id, semesterId, date, content, createdAt, updatedAt);
 
   @override
   String toString() =>

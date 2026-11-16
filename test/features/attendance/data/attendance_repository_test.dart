@@ -269,28 +269,31 @@ void main() {
       expect(fetched.sessionDate, equals('2026-03-09'));
     });
 
-    test('allows an update onto a day that already has that component', () async {
-      await repo.createSession(
-        subjectId: subjectBothId,
-        sessionDate: '2026-03-10',
-        component: SessionComponent.lecture,
-        status: AttendanceStatus.present,
-      );
+    test(
+      'allows an update onto a day that already has that component',
+      () async {
+        await repo.createSession(
+          subjectId: subjectBothId,
+          sessionDate: '2026-03-10',
+          component: SessionComponent.lecture,
+          status: AttendanceStatus.present,
+        );
 
-      final id2 = await repo.createSession(
-        subjectId: subjectBothId,
-        sessionDate: '2026-03-11',
-        component: SessionComponent.lecture,
-        status: AttendanceStatus.present,
-      );
+        final id2 = await repo.createSession(
+          subjectId: subjectBothId,
+          sessionDate: '2026-03-11',
+          component: SessionComponent.lecture,
+          status: AttendanceStatus.present,
+        );
 
-      final session2 = (await repo.getSessionById(id2))!;
-      final moved = session2.copyWith(sessionDate: '2026-03-10');
-      await repo.updateSession(moved);
+        final session2 = (await repo.getSessionById(id2))!;
+        final moved = session2.copyWith(sessionDate: '2026-03-10');
+        await repo.updateSession(moved);
 
-      final fetched = (await repo.getSessionById(id2))!;
-      expect(fetched.sessionDate, equals('2026-03-10'));
-    });
+        final fetched = (await repo.getSessionById(id2))!;
+        expect(fetched.sessionDate, equals('2026-03-10'));
+      },
+    );
 
     test('deletes a session and confirms it is removed', () async {
       final id = await repo.createSession(
