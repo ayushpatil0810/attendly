@@ -27,6 +27,7 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late double _thresholdPercent;
+  late double _targetGoalPercent;
   late AttendanceCalculationMethod _calculationMethod;
   DateTime? _startDate;
   DateTime? _endDate;
@@ -40,6 +41,7 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
     final sem = widget.initialSemester;
     _nameController = TextEditingController(text: sem?.name ?? '');
     _thresholdPercent = (sem?.attendanceThreshold ?? 0.75) * 100;
+    _targetGoalPercent = (sem?.targetGoal ?? 0.85) * 100;
     _calculationMethod =
         sem?.calculationMethod ?? AttendanceCalculationMethod.rawCombined;
     _startDate = sem?.startDate;
@@ -108,6 +110,7 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
 
     try {
       final threshold = _thresholdPercent / 100.0;
+      final targetGoal = _targetGoalPercent / 100.0;
       if (_isEditing) {
         final updated = widget.initialSemester!.copyWith(
           name: _nameController.text.trim(),
@@ -115,6 +118,7 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
           endDate: _endDate,
           attendanceThreshold: threshold,
           calculationMethod: _calculationMethod,
+          targetGoal: targetGoal,
         );
         await ref
             .read(semesterControllerProvider.notifier)
@@ -133,6 +137,7 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
               endDate: _endDate,
               attendanceThreshold: threshold,
               calculationMethod: _calculationMethod,
+              targetGoal: targetGoal,
             );
 
         if (mounted) {
@@ -230,6 +235,77 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
             ),
             const SizedBox(height: 16),
 
+            // Personal Attendance Goal Slider & Number
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Text(
+                      'Personal Goal',
+                      style: AppTypography.labelMedium,
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 1.5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.softMint,
+                        borderRadius: AppRadius.pillBorder,
+                      ),
+                      child: Text(
+                        'Target',
+                        style: AppTypography.labelSmall.copyWith(
+                          color: AppColors.inkMint,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.softMint,
+                    borderRadius: AppRadius.pillBorder,
+                  ),
+                  child: Text(
+                    '${_targetGoalPercent.round()}%',
+                    style: AppTypography.labelLarge.copyWith(
+                      color: AppColors.inkMint,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                activeTrackColor: AppColors.inkMint,
+                inactiveTrackColor: AppColors.track,
+                thumbColor: AppColors.inkMint,
+                overlayColor: AppColors.brandMint.withOpacity(0.15),
+                trackHeight: 6,
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+              ),
+              child: Slider(
+                value: _targetGoalPercent,
+                min: 50,
+                max: 100,
+                divisions: 50,
+                onChanged: (val) {
+                  setState(() => _targetGoalPercent = val);
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+
             // Calculation Method
             const Text('Calculation Method', style: AppTypography.labelMedium),
             const SizedBox(height: 8),
@@ -241,9 +317,8 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
                 ),
                 SegmentItem(
                   value: AttendanceCalculationMethod.componentAverage,
-                  label: AttendanceCalculationMethod
-                      .componentAverage
-                      .displayName,
+                  label:
+                      AttendanceCalculationMethod.componentAverage.displayName,
                 ),
               ],
               selectedValue: _calculationMethod,

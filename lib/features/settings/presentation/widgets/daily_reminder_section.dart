@@ -61,9 +61,7 @@ class DailyReminderSection extends ConsumerWidget {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(
-          color: AppColors.divider.withValues(alpha: 0.8),
-        ),
+        border: Border.all(color: AppColors.divider.withValues(alpha: 0.8)),
         boxShadow: [
           BoxShadow(
             color: AppColors.ink.withValues(alpha: 0.04),
@@ -103,8 +101,7 @@ class DailyReminderSection extends ConsumerWidget {
                 } else if (context.mounted) {
                   AppToast.showError(
                     context,
-                    message:
-                        'Notification permission is required to schedule daily reminders.',
+                    message: 'Notification permission is required to schedule daily reminders.',
                   );
                 }
               } else {
@@ -196,8 +193,9 @@ class DailyReminderSection extends ConsumerWidget {
                                 color: AppColors.softLavender,
                                 borderRadius: AppRadius.pillBorder,
                                 border: Border.all(
-                                  color: AppColors.brandViolet
-                                      .withValues(alpha: 0.25),
+                                  color: AppColors.brandViolet.withValues(
+                                    alpha: 0.25,
+                                  ),
                                 ),
                               ),
                               child: Row(
@@ -248,8 +246,7 @@ class DailyReminderSection extends ConsumerWidget {
                       if (context.mounted) {
                         AppToast.showSuccess(
                           context,
-                          message:
-                              'Test reminder sent! Check your notification tray.',
+                          message: 'Test reminder sent! Check your notification tray.',
                         );
                       }
                     },

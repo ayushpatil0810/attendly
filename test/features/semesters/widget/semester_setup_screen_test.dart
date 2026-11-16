@@ -46,6 +46,7 @@ void main() {
     expect(find.text('75%'), findsOneWidget);
 
     // Tap Save & Continue with blank field
+    await tester.ensureVisible(find.text('Save & Continue'));
     await tester.tap(find.text('Save & Continue'));
     await tester.pumpAndSettle();
 
@@ -63,6 +64,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap Save & Continue
+      await tester.ensureVisible(find.text('Save & Continue'));
       await tester.tap(find.text('Save & Continue'));
       await tester.pumpAndSettle();
 
@@ -75,13 +77,13 @@ void main() {
     },
   );
 
-  testWidgets(
-    'renders Scan QR to Import Semester button',
-    (tester) async {
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
+  testWidgets('renders Scan QR to Import Semester button', (tester) async {
+    await tester.pumpWidget(createWidgetUnderTest());
+    await tester.pumpAndSettle();
 
-      expect(find.widgetWithText(AppButton, 'Scan QR to Import Semester'), findsOneWidget);
-    },
-  );
+    expect(
+      find.widgetWithText(AppButton, 'Scan QR to Import Semester'),
+      findsOneWidget,
+    );
+  });
 }

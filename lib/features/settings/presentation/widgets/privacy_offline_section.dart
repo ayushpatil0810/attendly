@@ -15,9 +15,7 @@ class PrivacyOfflineSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(
-          color: AppColors.divider.withValues(alpha: 0.8),
-        ),
+        border: Border.all(color: AppColors.divider.withValues(alpha: 0.8)),
         boxShadow: [
           BoxShadow(
             color: AppColors.ink.withValues(alpha: 0.04),
@@ -77,8 +75,7 @@ class PrivacyOfflineSection extends StatelessWidget {
             iconBgColor: AppColors.softLavender,
             iconColor: AppColors.inkViolet,
             title: '100% Offline & Local Storage',
-            description:
-                'All attendance data is stored exclusively on your device in a local database.',
+            description: 'All attendance data is stored exclusively on your device in a local database.',
           ),
           const SizedBox(height: 12),
 
@@ -87,8 +84,7 @@ class PrivacyOfflineSection extends StatelessWidget {
             iconBgColor: AppColors.softMint,
             iconColor: AppColors.inkMint,
             title: 'No Account Required',
-            description:
-                'Attendly requires no sign-in, account creation, personal profile, or password.',
+            description: 'Attendly requires no sign-in, account creation, personal profile, or password.',
           ),
           const SizedBox(height: 12),
 
@@ -97,8 +93,7 @@ class PrivacyOfflineSection extends StatelessWidget {
             iconBgColor: AppColors.softLavender,
             iconColor: AppColors.inkViolet,
             title: 'No Cloud Synchronization',
-            description:
-                'Your attendance records are never automatically uploaded to any remote server or third-party service.',
+            description: 'Your attendance records are never automatically uploaded to any remote server or third-party service.',
           ),
           const SizedBox(height: 12),
 
@@ -107,8 +102,7 @@ class PrivacyOfflineSection extends StatelessWidget {
             iconBgColor: AppColors.softPeach,
             iconColor: AppColors.inkPeach,
             title: 'Student-Managed Backups',
-            description:
-                'You own your records. Backups are exported manually whenever you choose to save or migrate your data.',
+            description: 'You own your records. Backups are exported manually whenever you choose to save or migrate your data.',
           ),
           const SizedBox(height: 12),
 
@@ -117,8 +111,7 @@ class PrivacyOfflineSection extends StatelessWidget {
             iconBgColor: AppColors.softCoral,
             iconColor: AppColors.inkCoral,
             title: 'Data Safety Reminder',
-            description:
-                'Uninstalling the app or losing your device will delete local attendance records unless you have exported a backup.',
+            description: 'Uninstalling the app or losing your device will delete local attendance records unless you have exported a backup.',
           ),
           const SizedBox(height: 16),
           const Divider(height: 1, color: AppColors.divider),

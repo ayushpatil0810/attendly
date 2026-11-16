@@ -504,15 +504,11 @@ void showSessionFormSheet({
     builder: (context) {
       final mediaQuery = MediaQuery.of(context);
       return ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: mediaQuery.size.height * 0.88,
-        ),
+        constraints: BoxConstraints(maxHeight: mediaQuery.size.height * 0.88),
         child: SafeArea(
           top: false,
           child: Padding(
-            padding: EdgeInsets.only(
-              bottom: mediaQuery.viewInsets.bottom,
-            ),
+            padding: EdgeInsets.only(bottom: mediaQuery.viewInsets.bottom),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [

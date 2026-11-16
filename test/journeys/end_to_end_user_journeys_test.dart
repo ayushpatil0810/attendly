@@ -159,7 +159,7 @@ void main() {
 
         // 1-5. Mark Present for Machine Learning Lecture
         await attController.recordSession(
-          subjectId: subjId!,
+          subjectId: subjId,
           sessionDate: '2026-10-10',
           component: SessionComponent.lecture,
           status: AttendanceStatus.present,
@@ -239,7 +239,7 @@ void main() {
 
       // 1-3. Add a historical session on 2026-09-01 as Absent
       await attController.recordSession(
-        subjectId: subjId!,
+        subjectId: subjId,
         sessionDate: '2026-09-01',
         component: SessionComponent.lecture,
         status: AttendanceStatus.absent,
@@ -307,7 +307,7 @@ void main() {
       // 8 Present, 2 Absent out of 10 conducted = 80%
       for (int i = 1; i <= 8; i++) {
         await attRepo.createSession(
-          subjectId: subjId!,
+          subjectId: subjId,
           sessionDate: '2026-10-0$i',
           component: SessionComponent.lecture,
           status: AttendanceStatus.present,
@@ -315,7 +315,7 @@ void main() {
       }
       for (int i = 9; i <= 10; i++) {
         await attRepo.createSession(
-          subjectId: subjId!,
+          subjectId: subjId,
           sessionDate: i == 10 ? '2026-10-10' : '2026-10-0$i',
           component: SessionComponent.lecture,
           status: AttendanceStatus.absent,
@@ -388,7 +388,7 @@ void main() {
       // 3 Present, 2 Absent = 60% (Below threshold)
       for (int i = 1; i <= 3; i++) {
         await attRepo.createSession(
-          subjectId: subjId!,
+          subjectId: subjId,
           sessionDate: '2026-11-0$i',
           component: SessionComponent.lecture,
           status: AttendanceStatus.present,
@@ -396,7 +396,7 @@ void main() {
       }
       for (int i = 4; i <= 5; i++) {
         await attRepo.createSession(
-          subjectId: subjId!,
+          subjectId: subjId,
           sessionDate: '2026-11-0$i',
           component: SessionComponent.lecture,
           status: AttendanceStatus.absent,
@@ -410,7 +410,7 @@ void main() {
 
       // Add 3 hypothetical Presents
       simController.addMultipleSessions(
-        subjectId: subjId!,
+        subjectId: subjId,
         component: SessionComponent.lecture,
         status: AttendanceStatus.present,
         count: 3,

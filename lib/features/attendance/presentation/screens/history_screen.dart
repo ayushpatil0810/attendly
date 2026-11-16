@@ -184,9 +184,7 @@ class HistoryScreen extends ConsumerWidget {
                                 if (context.mounted) {
                                   AppToast.showError(
                                     context,
-                                    message: e is AppFailure
-                                        ? e.message
-                                        : 'The session could not be deleted. Try again.',
+                                    message: e is AppFailure ? e.message : 'The session could not be deleted. Try again.',
                                   );
                                 }
                               }
@@ -277,9 +275,7 @@ class _SessionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isPresent = session.status == AttendanceStatus.present;
-    final statusColor = isPresent
-        ? AppColors.inkMint
-        : AppColors.inkCoral;
+    final statusColor = isPresent ? AppColors.inkMint : AppColors.inkCoral;
     final statusBg = isPresent ? AppColors.softMint : AppColors.softCoral;
 
     final semanticLabel = StringBuffer(session.status.displayName)

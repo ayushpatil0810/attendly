@@ -42,11 +42,11 @@ class SimulatorScreen extends ConsumerWidget {
       body: const SafeArea(
         child: AppFrame(
           child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: AppSpacing.screenHorizontal,
-            vertical: AppSpacing.sm,
-          ),
-          child: SimulatorContent(),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.screenHorizontal,
+              vertical: AppSpacing.sm,
+            ),
+            child: SimulatorContent(),
           ),
         ),
       ),

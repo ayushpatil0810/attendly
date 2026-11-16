@@ -207,7 +207,8 @@ class AttendanceCalendar extends ConsumerWidget {
               final hasAbsent = sessionsForDay.any(
                 (s) => s.status == AttendanceStatus.absent,
               );
-              final hasNote = dayNotesMap.containsKey(dateKey) &&
+              final hasNote =
+                  dayNotesMap.containsKey(dateKey) &&
                   (dayNotesMap[dateKey]?.trim().isNotEmpty ?? false);
 
               return Expanded(

@@ -111,9 +111,7 @@ class BackupSummaryDialog extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.softCoral,
                 borderRadius: AppRadius.mdBorder,
-                border: Border.all(
-                  color: AppColors.inkCoral.withOpacity(0.4),
-                ),
+                border: Border.all(color: AppColors.inkCoral.withOpacity(0.4)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -15,17 +15,14 @@ import 'package:attendly/features/semesters/domain/entities/semester.dart';
 import 'package:attendly/features/semesters/domain/entities/semester_qr_payload.dart';
 import 'package:attendly/features/semesters/presentation/providers/semesters_provider.dart';
 
-final semesterQrPayloadProvider =
-    FutureProvider.autoDispose.family<SemesterQrPayload, int>((ref, semesterId) async {
-  final repo = ref.watch(semesterRepositoryProvider);
-  return repo.exportSemesterPayload(semesterId);
-});
+final semesterQrPayloadProvider = FutureProvider.autoDispose
+    .family<SemesterQrPayload, int>((ref, semesterId) async {
+      final repo = ref.watch(semesterRepositoryProvider);
+      return repo.exportSemesterPayload(semesterId);
+    });
 
 class ShareSemesterQrSheet extends ConsumerWidget {
-  const ShareSemesterQrSheet({
-    super.key,
-    required this.semester,
-  });
+  const ShareSemesterQrSheet({super.key, required this.semester});
 
   final Semester semester;
 
@@ -62,9 +59,7 @@ class ShareSemesterQrSheet extends ConsumerWidget {
                       style: AppTypography.sectionTitle,
                     ),
                   ),
-                  AppCloseButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
+                  AppCloseButton(onPressed: () => Navigator.of(context).pop()),
                 ],
               ),
             ),
@@ -74,14 +69,17 @@ class ShareSemesterQrSheet extends ConsumerWidget {
               loading: () => const SizedBox(
                 height: 280,
                 child: Center(
-                  child: CircularProgressIndicator(color: AppColors.brandViolet),
+                  child: CircularProgressIndicator(
+                    color: AppColors.brandViolet,
+                  ),
                 ),
               ),
               error: (err, _) => Padding(
                 padding: const EdgeInsets.all(24),
                 child: AppErrorState(
                   message: 'Could not generate QR code for this semester.',
-                  onRetry: () => ref.invalidate(semesterQrPayloadProvider(semester.id)),
+                  onRetry: () =>
+                      ref.invalidate(semesterQrPayloadProvider(semester.id)),
                 ),
               ),
               data: (payload) {
@@ -162,7 +160,8 @@ class ShareSemesterQrSheet extends ConsumerWidget {
                             ),
                             _MetaBadge(
                               icon: AppIcons.subjects,
-                              label: '${payload.subjects.length} ${payload.subjects.length == 1 ? "course" : "courses"}',
+                              label:
+                                  '${payload.subjects.length} ${payload.subjects.length == 1 ? "course" : "courses"}',
                             ),
                             _MetaBadge(
                               icon: AppIcons.insights,
@@ -178,10 +177,14 @@ class ShareSemesterQrSheet extends ConsumerWidget {
                           decoration: BoxDecoration(
                             color: AppColors.pureWhite,
                             borderRadius: AppRadius.lgBorder,
-                            border: Border.all(color: AppColors.border, width: 1.0),
+                            border: Border.all(
+                              color: AppColors.border,
+                              width: 1.0,
+                            ),
                           ),
                           child: Semantics(
-                            label: 'QR Code for semester ${payload.semesterName} with ${payload.subjects.length} courses',
+                            label:
+                                'QR Code for semester ${payload.semesterName} with ${payload.subjects.length} courses',
                             child: QrImageView(
                               data: encodedString,
                               version: QrVersions.auto,
@@ -261,7 +264,9 @@ class ShareSemesterQrSheet extends ConsumerWidget {
                           isFullWidth: true,
                           size: AppButtonSize.medium,
                           onPressed: () async {
-                            await Clipboard.setData(ClipboardData(text: encodedString));
+                            await Clipboard.setData(
+                              ClipboardData(text: encodedString),
+                            );
                             AppHaptics.lightImpact(ref);
                             if (context.mounted) {
                               AppToast.showSuccess(
@@ -285,10 +290,7 @@ class ShareSemesterQrSheet extends ConsumerWidget {
 }
 
 class _MetaBadge extends StatelessWidget {
-  const _MetaBadge({
-    required this.icon,
-    required this.label,
-  });
+  const _MetaBadge({required this.icon, required this.label});
 
   final dynamic icon;
   final String label;
@@ -304,11 +306,7 @@ class _MetaBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AppIcon(
-            icon,
-            size: 12,
-            color: AppColors.inkViolet,
-          ),
+          AppIcon(icon, size: 12, color: AppColors.inkViolet),
           const SizedBox(width: 5),
           Text(
             label,

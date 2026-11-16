@@ -13,6 +13,7 @@ import 'package:attendly/features/dashboard/presentation/widgets/dashboard_empty
 import 'package:attendly/features/dashboard/presentation/widgets/dashboard_header.dart';
 import 'package:attendly/features/dashboard/presentation/widgets/dashboard_subject_preview.dart';
 import 'package:attendly/features/dashboard/presentation/widgets/dashboard_trend_card.dart';
+import 'package:attendly/features/dashboard/presentation/widgets/goal_milestones_card.dart';
 import 'package:attendly/features/dashboard/presentation/widgets/overall_attendance_hero.dart';
 import 'package:attendly/features/dashboard/presentation/widgets/safe_absence_recovery_card.dart';
 import 'package:attendly/features/semesters/presentation/providers/semesters_provider.dart';
@@ -89,6 +90,13 @@ class HomeScreen extends ConsumerWidget {
                       semester: activeSemester,
                       hasSubjects: summary.subjectSummaries.isNotEmpty,
                     ),
+                    const SizedBox(height: 16),
+
+                    // Personal Goal and Milestones Card
+                    GoalMilestonesCard(
+                      summary: summary,
+                      semester: activeSemester,
+                    ),
                     const SizedBox(height: 24),
 
                     // Subjects Preview
@@ -105,6 +113,13 @@ class HomeScreen extends ConsumerWidget {
 
                     // Safe Absence / Recovery insight card
                     SafeAbsenceRecoveryCard(summary: summary),
+                    const SizedBox(height: 16),
+
+                    // Personal Goal and Milestones Card
+                    GoalMilestonesCard(
+                      summary: summary,
+                      semester: activeSemester,
+                    ),
                     const SizedBox(height: 24),
 
                     // Subjects overview preview

@@ -8,6 +8,8 @@ class Semesters extends Table {
   TextColumn get endDate => text().named('end_date').nullable()();
   RealColumn get attendanceThreshold =>
       real().named('attendance_threshold').withDefault(const Constant(0.75))();
+  RealColumn get targetGoal =>
+      real().named('target_goal').withDefault(const Constant(0.85))();
   TextColumn get calculationMethod => text()
       .named('calculation_method')
       .withDefault(const Constant('raw_combined'))();
@@ -20,6 +22,7 @@ class Semesters extends Table {
   List<String> get customConstraints => [
     'CHECK (length(trim(name)) > 0)',
     'CHECK (attendance_threshold > 0.0 AND attendance_threshold <= 1.0)',
+    'CHECK (target_goal > 0.0 AND target_goal <= 1.0)',
     "CHECK (calculation_method IN ('raw_combined', 'component_average'))",
     'CHECK (is_archived IN (0, 1))',
   ];

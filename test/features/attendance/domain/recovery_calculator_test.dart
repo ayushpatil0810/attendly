@@ -146,4 +146,88 @@ void main() {
       expect(result.message, contains('distribution'));
     });
   });
+
+  group('RecoveryCalculator - calculateGoalRecovery', () {
+    test('returns not available when 0 conducted', () {
+      final result = calculator.calculateGoalRecovery(
+        present: 0,
+        conducted: 0,
+        goal: 0.85,
+        calculationMethod: AttendanceCalculationMethod.rawCombined,
+      );
+
+      expect(result.isAvailable, isFalse);
+      expect(result.requiredConsecutivePresents, isNull);
+      expect(result.message, contains('appears when attendance is recorded'));
+    });
+
+    test(
+      'returns scenario required for component average calculation method',
+      () {
+        final result = calculator.calculateGoalRecovery(
+          present: 10,
+          conducted: 15,
+          goal: 0.85,
+          calculationMethod: AttendanceCalculationMethod.componentAverage,
+        );
+
+        expect(result.isAvailable, isFalse);
+        expect(result.requiresScenario, isTrue);
+        expect(result.message, contains('distribution'));
+      },
+    );
+
+    test('returns not needed when already at or above goal', () {
+      final result = calculator.calculateGoalRecovery(
+        present: 9,
+        conducted: 10,
+        goal: 0.85,
+        calculationMethod: AttendanceCalculationMethod.rawCombined,
+      );
+
+      expect(result.isAvailable, isTrue);
+      expect(result.requiredConsecutivePresents, 0);
+      expect(result.message, contains('reached your personal goal of 85%'));
+    });
+
+    test('returns impossible for 100% goal with any past absences', () {
+      final result = calculator.calculateGoalRecovery(
+        present: 9,
+        conducted: 10,
+        goal: 1.0,
+        calculationMethod: AttendanceCalculationMethod.rawCombined,
+      );
+
+      expect(result.isAvailable, isTrue);
+      expect(result.isImpossible, isTrue);
+      expect(result.requiredConsecutivePresents, isNull);
+      expect(result.message, contains('100% personal goal cannot be reached'));
+    });
+
+    test(
+      'correctly computes required consecutive presents to reach 85% goal',
+      () {
+        // 10 / 15 = 66.67%.
+        // Formula ceil((0.85 * 15 - 10) / (1 - 0.85)) = ceil((12.75 - 10) / 0.15) = ceil(2.75 / 0.15) = ceil(18.33) = 19.
+        // (10 + 19) / (15 + 19) = 29 / 34 = 85.29% >= 85%.
+        // (10 + 18) / (15 + 18) = 28 / 33 = 84.85% < 85%.
+        final result = calculator.calculateGoalRecovery(
+          present: 10,
+          conducted: 15,
+          goal: 0.85,
+          calculationMethod: AttendanceCalculationMethod.rawCombined,
+        );
+
+        expect(result.isAvailable, isTrue);
+        expect(result.isImpossible, isFalse);
+        expect(result.requiredConsecutivePresents, 19);
+        expect(
+          result.message,
+          contains(
+            'Attend the next 19 consecutive classes with no absences to reach your 85% goal.',
+          ),
+        );
+      },
+    );
+  });
 }

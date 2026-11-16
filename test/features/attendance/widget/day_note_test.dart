@@ -90,26 +90,25 @@ void main() {
   }
 
   group('DayNoteBanner Widget Tests', () {
-    testWidgets(
-      'renders "+ Add note for this day" when no note exists',
-      (tester) async {
-        setTestViewport(tester);
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets('renders "+ Add note for this day" when no note exists', (
+      tester,
+    ) async {
+      setTestViewport(tester);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-        await tester.pumpWidget(
-          createWidgetUnderTest(
-            child: const DayNoteBanner(dateStr: '2026-03-10'),
-          ),
-        );
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        createWidgetUnderTest(
+          child: const DayNoteBanner(dateStr: '2026-03-10'),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        expect(find.text('+ Add note for this day'), findsOneWidget);
+      expect(find.text('+ Add note for this day'), findsOneWidget);
 
-        await tester.pumpWidget(const SizedBox());
-        await tester.pump(Duration.zero);
-      },
-    );
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(Duration.zero);
+    });
 
     testWidgets(
       'opens dialog, saves a note, and displays the content in banner',
@@ -159,95 +158,91 @@ void main() {
       },
     );
 
-    testWidgets(
-      'edits existing note via edit button and dialog',
-      (tester) async {
-        setTestViewport(tester);
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets('edits existing note via edit button and dialog', (
+      tester,
+    ) async {
+      setTestViewport(tester);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-        final noteRepo = DayNoteRepositoryImpl(db);
-        await noteRepo.setNoteForDate(
-          semesterId: semesterId,
-          date: '2026-03-10',
-          content: 'Initial text',
-        );
+      final noteRepo = DayNoteRepositoryImpl(db);
+      await noteRepo.setNoteForDate(
+        semesterId: semesterId,
+        date: '2026-03-10',
+        content: 'Initial text',
+      );
 
-        await tester.pumpWidget(
-          createWidgetUnderTest(
-            child: const DayNoteBanner(dateStr: '2026-03-10'),
-          ),
-        );
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        createWidgetUnderTest(
+          child: const DayNoteBanner(dateStr: '2026-03-10'),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        expect(find.text('Initial text'), findsOneWidget);
+      expect(find.text('Initial text'), findsOneWidget);
 
-        // Tap edit button
-        await tester.tap(find.byTooltip('Edit day note'));
-        await tester.pumpAndSettle();
+      // Tap edit button
+      await tester.tap(find.byTooltip('Edit day note'));
+      await tester.pumpAndSettle();
 
-        expect(find.text('Edit Day Note'), findsOneWidget);
+      expect(find.text('Edit Day Note'), findsOneWidget);
 
-        // Update text
-        await tester.enterText(
-          find.byType(AppTextField),
-          'Updated: Rain holiday',
-        );
-        await tester.pump();
+      // Update text
+      await tester.enterText(
+        find.byType(AppTextField),
+        'Updated: Rain holiday',
+      );
+      await tester.pump();
 
-        // Tap Save
-        await tester.tap(find.widgetWithText(AppButton, 'Save'));
-        await tester.pumpAndSettle();
+      // Tap Save
+      await tester.tap(find.widgetWithText(AppButton, 'Save'));
+      await tester.pumpAndSettle();
 
-        expect(find.text('Updated: Rain holiday'), findsOneWidget);
+      expect(find.text('Updated: Rain holiday'), findsOneWidget);
 
-        final note = await noteRepo.getNoteForDate(semesterId, '2026-03-10');
-        expect(note!.content, equals('Updated: Rain holiday'));
+      final note = await noteRepo.getNoteForDate(semesterId, '2026-03-10');
+      expect(note!.content, equals('Updated: Rain holiday'));
 
-        await tester.pumpWidget(const SizedBox());
-        await tester.pump(Duration.zero);
-      },
-    );
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(Duration.zero);
+    });
 
-    testWidgets(
-      'deletes note via delete button on banner',
-      (tester) async {
-        setTestViewport(tester);
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets('deletes note via delete button on banner', (tester) async {
+      setTestViewport(tester);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-        final noteRepo = DayNoteRepositoryImpl(db);
-        await noteRepo.setNoteForDate(
-          semesterId: semesterId,
-          date: '2026-03-10',
-          content: 'Note to be removed',
-        );
+      final noteRepo = DayNoteRepositoryImpl(db);
+      await noteRepo.setNoteForDate(
+        semesterId: semesterId,
+        date: '2026-03-10',
+        content: 'Note to be removed',
+      );
 
-        await tester.pumpWidget(
-          createWidgetUnderTest(
-            child: const DayNoteBanner(dateStr: '2026-03-10'),
-          ),
-        );
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        createWidgetUnderTest(
+          child: const DayNoteBanner(dateStr: '2026-03-10'),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        expect(find.text('Note to be removed'), findsOneWidget);
+      expect(find.text('Note to be removed'), findsOneWidget);
 
-        // Tap delete icon
-        await tester.tap(find.byTooltip('Delete day note'));
-        await tester.pumpAndSettle();
+      // Tap delete icon
+      await tester.tap(find.byTooltip('Delete day note'));
+      await tester.pumpAndSettle();
 
-        // Banner reverts back to "+ Add note for this day"
-        expect(find.text('+ Add note for this day'), findsOneWidget);
-        expect(find.text('Note to be removed'), findsNothing);
+      // Banner reverts back to "+ Add note for this day"
+      expect(find.text('+ Add note for this day'), findsOneWidget);
+      expect(find.text('Note to be removed'), findsNothing);
 
-        // Verify removed from DB
-        final note = await noteRepo.getNoteForDate(semesterId, '2026-03-10');
-        expect(note, isNull);
+      // Verify removed from DB
+      final note = await noteRepo.getNoteForDate(semesterId, '2026-03-10');
+      expect(note, isNull);
 
-        await tester.pumpWidget(const SizedBox());
-        await tester.pump(Duration.zero);
-      },
-    );
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(Duration.zero);
+    });
   });
 
   group('AttendanceCalendar with Day Note Tests', () {
@@ -328,9 +323,7 @@ void main() {
 
         final testDate = DateTime(2026, 3, 10);
         await tester.pumpWidget(
-          createWidgetUnderTest(
-            child: QuickLogSheet(initialDate: testDate),
-          ),
+          createWidgetUnderTest(child: QuickLogSheet(initialDate: testDate)),
         );
         await tester.pumpAndSettle();
 
@@ -343,10 +336,7 @@ void main() {
 
         expect(find.text('Add Day Note'), findsOneWidget);
 
-        await tester.enterText(
-          find.byType(AppTextField),
-          'Logged from drawer',
-        );
+        await tester.enterText(find.byType(AppTextField), 'Logged from drawer');
         await tester.pump();
 
         await tester.tap(find.widgetWithText(AppButton, 'Save'));

@@ -316,8 +316,10 @@ final dayNoteRepositoryProvider = Provider<DayNoteRepository>((ref) {
   return DayNoteRepositoryImpl(db);
 });
 
-final dayNoteForDateFamilyProvider =
-    StreamProvider.family<DayNote?, String>((ref, dateStr) {
+final dayNoteForDateFamilyProvider = StreamProvider.family<DayNote?, String>((
+  ref,
+  dateStr,
+) {
   final activeSemester = ref.watch(activeSemesterProvider);
   if (activeSemester == null) {
     return Stream.value(null);
@@ -335,9 +337,9 @@ final dayNotesForMonthProvider = StreamProvider<Map<String, String>>((ref) {
   final yearMonthPrefix =
       '${currentMonth.year.toString().padLeft(4, '0')}-${currentMonth.month.toString().padLeft(2, '0')}';
   final repo = ref.watch(dayNoteRepositoryProvider);
-  return repo
-      .watchNotesForMonth(activeSemester.id, yearMonthPrefix)
-      .map((notes) {
+  return repo.watchNotesForMonth(activeSemester.id, yearMonthPrefix).map((
+    notes,
+  ) {
     final map = <String, String>{};
     for (final note in notes) {
       map[note.date] = note.content;
@@ -350,10 +352,7 @@ class DayNoteController extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
-  Future<void> saveNote({
-    required String date,
-    required String content,
-  }) async {
+  Future<void> saveNote({required String date, required String content}) async {
     final activeSemester = ref.read(activeSemesterProvider);
     if (activeSemester == null) return;
 
@@ -372,19 +371,14 @@ class DayNoteController extends AsyncNotifier<void> {
     }
   }
 
-  Future<void> deleteNote({
-    required String date,
-  }) async {
+  Future<void> deleteNote({required String date}) async {
     final activeSemester = ref.read(activeSemesterProvider);
     if (activeSemester == null) return;
 
     state = const AsyncLoading();
     try {
       final repo = ref.read(dayNoteRepositoryProvider);
-      await repo.deleteNoteForDate(
-        semesterId: activeSemester.id,
-        date: date,
-      );
+      await repo.deleteNoteForDate(semesterId: activeSemester.id, date: date);
       state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);
@@ -394,7 +388,4 @@ class DayNoteController extends AsyncNotifier<void> {
 }
 
 final dayNoteControllerProvider =
-    AsyncNotifierProvider<DayNoteController, void>(
-      DayNoteController.new,
-    );
-
+    AsyncNotifierProvider<DayNoteController, void>(DayNoteController.new);

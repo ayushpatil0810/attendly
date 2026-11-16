@@ -65,6 +65,18 @@ class $SemestersTable extends Semesters
         requiredDuringInsert: false,
         defaultValue: const Constant(0.75),
       );
+  static const VerificationMeta _targetGoalMeta = const VerificationMeta(
+    'targetGoal',
+  );
+  @override
+  late final GeneratedColumn<double> targetGoal = GeneratedColumn<double>(
+    'target_goal',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.85),
+  );
   static const VerificationMeta _calculationMethodMeta = const VerificationMeta(
     'calculationMethod',
   );
@@ -122,6 +134,7 @@ class $SemestersTable extends Semesters
     startDate,
     endDate,
     attendanceThreshold,
+    targetGoal,
     calculationMethod,
     createdAt,
     updatedAt,
@@ -169,6 +182,12 @@ class $SemestersTable extends Semesters
           data['attendance_threshold']!,
           _attendanceThresholdMeta,
         ),
+      );
+    }
+    if (data.containsKey('target_goal')) {
+      context.handle(
+        _targetGoalMeta,
+        targetGoal.isAcceptableOrUnknown(data['target_goal']!, _targetGoalMeta),
       );
     }
     if (data.containsKey('calculation_method')) {
@@ -231,6 +250,10 @@ class $SemestersTable extends Semesters
         DriftSqlType.double,
         data['${effectivePrefix}attendance_threshold'],
       )!,
+      targetGoal: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}target_goal'],
+      )!,
       calculationMethod: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}calculation_method'],
@@ -262,6 +285,7 @@ class SemesterRow extends DataClass implements Insertable<SemesterRow> {
   final String? startDate;
   final String? endDate;
   final double attendanceThreshold;
+  final double targetGoal;
   final String calculationMethod;
   final int createdAt;
   final int updatedAt;
@@ -272,6 +296,7 @@ class SemesterRow extends DataClass implements Insertable<SemesterRow> {
     this.startDate,
     this.endDate,
     required this.attendanceThreshold,
+    required this.targetGoal,
     required this.calculationMethod,
     required this.createdAt,
     required this.updatedAt,
@@ -289,6 +314,7 @@ class SemesterRow extends DataClass implements Insertable<SemesterRow> {
       map['end_date'] = Variable<String>(endDate);
     }
     map['attendance_threshold'] = Variable<double>(attendanceThreshold);
+    map['target_goal'] = Variable<double>(targetGoal);
     map['calculation_method'] = Variable<String>(calculationMethod);
     map['created_at'] = Variable<int>(createdAt);
     map['updated_at'] = Variable<int>(updatedAt);
@@ -307,6 +333,7 @@ class SemesterRow extends DataClass implements Insertable<SemesterRow> {
           ? const Value.absent()
           : Value(endDate),
       attendanceThreshold: Value(attendanceThreshold),
+      targetGoal: Value(targetGoal),
       calculationMethod: Value(calculationMethod),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -327,6 +354,7 @@ class SemesterRow extends DataClass implements Insertable<SemesterRow> {
       attendanceThreshold: serializer.fromJson<double>(
         json['attendanceThreshold'],
       ),
+      targetGoal: serializer.fromJson<double>(json['targetGoal']),
       calculationMethod: serializer.fromJson<String>(json['calculationMethod']),
       createdAt: serializer.fromJson<int>(json['createdAt']),
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
@@ -342,6 +370,7 @@ class SemesterRow extends DataClass implements Insertable<SemesterRow> {
       'startDate': serializer.toJson<String?>(startDate),
       'endDate': serializer.toJson<String?>(endDate),
       'attendanceThreshold': serializer.toJson<double>(attendanceThreshold),
+      'targetGoal': serializer.toJson<double>(targetGoal),
       'calculationMethod': serializer.toJson<String>(calculationMethod),
       'createdAt': serializer.toJson<int>(createdAt),
       'updatedAt': serializer.toJson<int>(updatedAt),
@@ -355,6 +384,7 @@ class SemesterRow extends DataClass implements Insertable<SemesterRow> {
     Value<String?> startDate = const Value.absent(),
     Value<String?> endDate = const Value.absent(),
     double? attendanceThreshold,
+    double? targetGoal,
     String? calculationMethod,
     int? createdAt,
     int? updatedAt,
@@ -365,6 +395,7 @@ class SemesterRow extends DataClass implements Insertable<SemesterRow> {
     startDate: startDate.present ? startDate.value : this.startDate,
     endDate: endDate.present ? endDate.value : this.endDate,
     attendanceThreshold: attendanceThreshold ?? this.attendanceThreshold,
+    targetGoal: targetGoal ?? this.targetGoal,
     calculationMethod: calculationMethod ?? this.calculationMethod,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -379,6 +410,9 @@ class SemesterRow extends DataClass implements Insertable<SemesterRow> {
       attendanceThreshold: data.attendanceThreshold.present
           ? data.attendanceThreshold.value
           : this.attendanceThreshold,
+      targetGoal: data.targetGoal.present
+          ? data.targetGoal.value
+          : this.targetGoal,
       calculationMethod: data.calculationMethod.present
           ? data.calculationMethod.value
           : this.calculationMethod,
@@ -398,6 +432,7 @@ class SemesterRow extends DataClass implements Insertable<SemesterRow> {
           ..write('startDate: $startDate, ')
           ..write('endDate: $endDate, ')
           ..write('attendanceThreshold: $attendanceThreshold, ')
+          ..write('targetGoal: $targetGoal, ')
           ..write('calculationMethod: $calculationMethod, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -413,6 +448,7 @@ class SemesterRow extends DataClass implements Insertable<SemesterRow> {
     startDate,
     endDate,
     attendanceThreshold,
+    targetGoal,
     calculationMethod,
     createdAt,
     updatedAt,
@@ -427,6 +463,7 @@ class SemesterRow extends DataClass implements Insertable<SemesterRow> {
           other.startDate == this.startDate &&
           other.endDate == this.endDate &&
           other.attendanceThreshold == this.attendanceThreshold &&
+          other.targetGoal == this.targetGoal &&
           other.calculationMethod == this.calculationMethod &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
@@ -439,6 +476,7 @@ class SemestersCompanion extends UpdateCompanion<SemesterRow> {
   final Value<String?> startDate;
   final Value<String?> endDate;
   final Value<double> attendanceThreshold;
+  final Value<double> targetGoal;
   final Value<String> calculationMethod;
   final Value<int> createdAt;
   final Value<int> updatedAt;
@@ -449,6 +487,7 @@ class SemestersCompanion extends UpdateCompanion<SemesterRow> {
     this.startDate = const Value.absent(),
     this.endDate = const Value.absent(),
     this.attendanceThreshold = const Value.absent(),
+    this.targetGoal = const Value.absent(),
     this.calculationMethod = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -460,6 +499,7 @@ class SemestersCompanion extends UpdateCompanion<SemesterRow> {
     this.startDate = const Value.absent(),
     this.endDate = const Value.absent(),
     this.attendanceThreshold = const Value.absent(),
+    this.targetGoal = const Value.absent(),
     this.calculationMethod = const Value.absent(),
     required int createdAt,
     required int updatedAt,
@@ -473,6 +513,7 @@ class SemestersCompanion extends UpdateCompanion<SemesterRow> {
     Expression<String>? startDate,
     Expression<String>? endDate,
     Expression<double>? attendanceThreshold,
+    Expression<double>? targetGoal,
     Expression<String>? calculationMethod,
     Expression<int>? createdAt,
     Expression<int>? updatedAt,
@@ -485,6 +526,7 @@ class SemestersCompanion extends UpdateCompanion<SemesterRow> {
       if (endDate != null) 'end_date': endDate,
       if (attendanceThreshold != null)
         'attendance_threshold': attendanceThreshold,
+      if (targetGoal != null) 'target_goal': targetGoal,
       if (calculationMethod != null) 'calculation_method': calculationMethod,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -498,6 +540,7 @@ class SemestersCompanion extends UpdateCompanion<SemesterRow> {
     Value<String?>? startDate,
     Value<String?>? endDate,
     Value<double>? attendanceThreshold,
+    Value<double>? targetGoal,
     Value<String>? calculationMethod,
     Value<int>? createdAt,
     Value<int>? updatedAt,
@@ -509,6 +552,7 @@ class SemestersCompanion extends UpdateCompanion<SemesterRow> {
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       attendanceThreshold: attendanceThreshold ?? this.attendanceThreshold,
+      targetGoal: targetGoal ?? this.targetGoal,
       calculationMethod: calculationMethod ?? this.calculationMethod,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -534,6 +578,9 @@ class SemestersCompanion extends UpdateCompanion<SemesterRow> {
     if (attendanceThreshold.present) {
       map['attendance_threshold'] = Variable<double>(attendanceThreshold.value);
     }
+    if (targetGoal.present) {
+      map['target_goal'] = Variable<double>(targetGoal.value);
+    }
     if (calculationMethod.present) {
       map['calculation_method'] = Variable<String>(calculationMethod.value);
     }
@@ -557,6 +604,7 @@ class SemestersCompanion extends UpdateCompanion<SemesterRow> {
           ..write('startDate: $startDate, ')
           ..write('endDate: $endDate, ')
           ..write('attendanceThreshold: $attendanceThreshold, ')
+          ..write('targetGoal: $targetGoal, ')
           ..write('calculationMethod: $calculationMethod, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -2038,6 +2086,7 @@ typedef $$SemestersTableCreateCompanionBuilder = SemestersCompanion Function({
   Value<String?> startDate,
   Value<String?> endDate,
   Value<double> attendanceThreshold,
+  Value<double> targetGoal,
   Value<String> calculationMethod,
   required int createdAt,
   required int updatedAt,
@@ -2049,6 +2098,7 @@ typedef $$SemestersTableUpdateCompanionBuilder = SemestersCompanion Function({
   Value<String?> startDate,
   Value<String?> endDate,
   Value<double> attendanceThreshold,
+  Value<double> targetGoal,
   Value<String> calculationMethod,
   Value<int> createdAt,
   Value<int> updatedAt,
@@ -2127,6 +2177,11 @@ class $$SemestersTableFilterComposer
 
   ColumnFilters<double> get attendanceThreshold => $composableBuilder(
     column: $table.attendanceThreshold,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get targetGoal => $composableBuilder(
+    column: $table.targetGoal,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2235,6 +2290,11 @@ class $$SemestersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get targetGoal => $composableBuilder(
+    column: $table.targetGoal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get calculationMethod => $composableBuilder(
     column: $table.calculationMethod,
     builder: (column) => ColumnOrderings(column),
@@ -2279,6 +2339,11 @@ class $$SemestersTableAnnotationComposer
 
   GeneratedColumn<double> get attendanceThreshold => $composableBuilder(
     column: $table.attendanceThreshold,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get targetGoal => $composableBuilder(
+    column: $table.targetGoal,
     builder: (column) => column,
   );
 
@@ -2382,6 +2447,7 @@ class $$SemestersTableTableManager
                 Value<String?> startDate = const Value.absent(),
                 Value<String?> endDate = const Value.absent(),
                 Value<double> attendanceThreshold = const Value.absent(),
+                Value<double> targetGoal = const Value.absent(),
                 Value<String> calculationMethod = const Value.absent(),
                 Value<int> createdAt = const Value.absent(),
                 Value<int> updatedAt = const Value.absent(),
@@ -2392,6 +2458,7 @@ class $$SemestersTableTableManager
                 startDate: startDate,
                 endDate: endDate,
                 attendanceThreshold: attendanceThreshold,
+                targetGoal: targetGoal,
                 calculationMethod: calculationMethod,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -2404,6 +2471,7 @@ class $$SemestersTableTableManager
                 Value<String?> startDate = const Value.absent(),
                 Value<String?> endDate = const Value.absent(),
                 Value<double> attendanceThreshold = const Value.absent(),
+                Value<double> targetGoal = const Value.absent(),
                 Value<String> calculationMethod = const Value.absent(),
                 required int createdAt,
                 required int updatedAt,
@@ -2414,6 +2482,7 @@ class $$SemestersTableTableManager
                 startDate: startDate,
                 endDate: endDate,
                 attendanceThreshold: attendanceThreshold,
+                targetGoal: targetGoal,
                 calculationMethod: calculationMethod,
                 createdAt: createdAt,
                 updatedAt: updatedAt,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:attendly/core/services/notification_preferences_service.dart';
 import 'package:attendly/core/services/notification_service.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/shared/widgets/app_switch.dart';
@@ -76,9 +75,7 @@ void main() {
       ],
       child: const MaterialApp(
         home: Scaffold(
-          body: SingleChildScrollView(
-            child: DailyReminderSection(),
-          ),
+          body: SingleChildScrollView(child: DailyReminderSection()),
         ),
       ),
     );
@@ -94,8 +91,9 @@ void main() {
   }
 
   group('DailyReminderSection Widget Tests', () {
-    testWidgets('renders daily reminder switch in disabled state by default',
-        (tester) async {
+    testWidgets('renders daily reminder switch in disabled state by default', (
+      tester,
+    ) async {
       setLargeViewport(tester);
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
@@ -115,35 +113,39 @@ void main() {
       await tester.pump(Duration.zero);
     });
 
-    testWidgets('toggling switch to enabled expands time selector and test button',
-        (tester) async {
-      setLargeViewport(tester);
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
+    testWidgets(
+      'toggling switch to enabled expands time selector and test button',
+      (tester) async {
+        setLargeViewport(tester);
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pumpAndSettle();
 
-      final switchFinder = find.byType(AppSwitchTile);
-      await tester.tap(switchFinder);
-      await tester.pumpAndSettle();
+        final switchFinder = find.byType(AppSwitchTile);
+        await tester.tap(switchFinder);
+        await tester.pumpAndSettle();
 
-      expect(fakeNotificationService.scheduledHour, equals(20));
-      expect(fakeNotificationService.scheduledMinute, equals(0));
+        expect(fakeNotificationService.scheduledHour, equals(20));
+        expect(fakeNotificationService.scheduledMinute, equals(0));
 
-      // Controls now visible
-      expect(find.text('Reminder Time'), findsOneWidget);
-      expect(find.text('8:00 PM'), findsOneWidget);
-      expect(find.text('Send Test Notification'), findsOneWidget);
-      expect(
-        find.text(
-          '100% offline: reminders are scheduled directly by your device without background tracking or server sync.',
-        ),
-        findsOneWidget,
-      );
+        // Controls now visible
+        expect(find.text('Reminder Time'), findsOneWidget);
+        expect(find.text('8:00 PM'), findsOneWidget);
+        expect(find.text('Send Test Notification'), findsOneWidget);
+        expect(
+          find.text(
+            '100% offline: reminders are scheduled directly by your device without background tracking or server sync.',
+          ),
+          findsOneWidget,
+        );
 
-      await tester.pumpWidget(const SizedBox());
-      await tester.pump(Duration.zero);
-    });
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(Duration.zero);
+      },
+    );
 
-    testWidgets('tapping Send Test Notification invokes service', (tester) async {
+    testWidgets('tapping Send Test Notification invokes service', (
+      tester,
+    ) async {
       setLargeViewport(tester);
       // Pre-enable in SharedPreferences
       SharedPreferences.setMockInitialValues({
@@ -166,8 +168,9 @@ void main() {
       await tester.pump(Duration.zero);
     });
 
-    testWidgets('toggling off cancels reminder and hides controls',
-        (tester) async {
+    testWidgets('toggling off cancels reminder and hides controls', (
+      tester,
+    ) async {
       setLargeViewport(tester);
       SharedPreferences.setMockInitialValues({
         'pref_daily_reminder_enabled_v1': true,

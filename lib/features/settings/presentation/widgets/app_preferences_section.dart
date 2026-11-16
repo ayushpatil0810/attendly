@@ -20,9 +20,7 @@ class AppPreferencesSection extends ConsumerWidget {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(
-          color: AppColors.divider.withValues(alpha: 0.8),
-        ),
+        border: Border.all(color: AppColors.divider.withValues(alpha: 0.8)),
         boxShadow: [
           BoxShadow(
             color: AppColors.ink.withValues(alpha: 0.04),

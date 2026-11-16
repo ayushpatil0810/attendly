@@ -43,87 +43,101 @@ void main() {
         sharedPreferencesProvider.overrideWithValue(prefs),
       ],
       child: MaterialApp(
-        home: Scaffold(
-          body: ShareSemesterQrSheet(semester: semester),
-        ),
+        home: Scaffold(body: ShareSemesterQrSheet(semester: semester)),
       ),
     );
   }
 
   group('ShareSemesterQrSheet Widget Tests', () {
-    testWidgets('renders QR code, semester title, and metadata when subjects exist', (tester) async {
-      tester.view.physicalSize = const Size(800, 1200);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'renders QR code, semester title, and metadata when subjects exist',
+      (tester) async {
+        tester.view.physicalSize = const Size(800, 1200);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      final semId = await semRepo.createSemester(
-        name: 'Spring 2026',
-        attendanceThreshold: 0.75,
-        calculationMethod: AttendanceCalculationMethod.rawCombined,
-      );
-      final sem = (await semRepo.getSemesterById(semId))!;
+        final semId = await semRepo.createSemester(
+          name: 'Spring 2026',
+          attendanceThreshold: 0.75,
+          calculationMethod: AttendanceCalculationMethod.rawCombined,
+        );
+        final sem = (await semRepo.getSemesterById(semId))!;
 
-      await subjRepo.createSubject(
-        semesterId: semId,
-        name: 'Operating Systems',
-        lectureEnabled: true,
-        labEnabled: true,
-      );
-      await subjRepo.createSubject(
-        semesterId: semId,
-        name: 'Computer Networks',
-        lectureEnabled: true,
-        labEnabled: false,
-      );
+        await subjRepo.createSubject(
+          semesterId: semId,
+          name: 'Operating Systems',
+          lectureEnabled: true,
+          labEnabled: true,
+        );
+        await subjRepo.createSubject(
+          semesterId: semId,
+          name: 'Computer Networks',
+          lectureEnabled: true,
+          labEnabled: false,
+        );
 
-      await tester.pumpWidget(createWidgetUnderTest(sem));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(createWidgetUnderTest(sem));
+        await tester.pumpAndSettle();
 
-      expect(find.text('Share Semester'), findsOneWidget);
-      expect(find.text('Spring 2026'), findsOneWidget);
-      expect(find.text('75% Goal'), findsOneWidget);
-      expect(find.text('2 courses'), findsOneWidget);
-      expect(find.text('Equal weight'), findsOneWidget);
-      expect(find.byType(QrImageView), findsOneWidget);
-      expect(find.text('Scan with Attendly on another phone'), findsOneWidget);
-      expect(
-        find.text(
-          'Shares courses and targets only · Attendance records stay private',
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.byWidgetPredicate(
-          (w) =>
-              w is Semantics &&
-              w.properties.label ==
-                  'QR Code for semester Spring 2026 with 2 courses',
-        ),
-        findsOneWidget,
-      );
-      // Verify QR container has single elevation: border present, no box shadows
-      final qrContainerFinder = find.ancestor(
-        of: find.byType(QrImageView),
-        matching: find.byType(Container),
-      ).first;
-      final qrContainer = tester.widget<Container>(qrContainerFinder);
-      final boxDecoration = qrContainer.decoration as BoxDecoration?;
-      expect(boxDecoration?.border, isNotNull);
-      expect(boxDecoration?.boxShadow, isNull);
+        expect(find.text('Share Semester'), findsOneWidget);
+        expect(find.text('Spring 2026'), findsOneWidget);
+        expect(find.text('75% Goal'), findsOneWidget);
+        expect(find.text('2 courses'), findsOneWidget);
+        expect(find.text('Equal weight'), findsOneWidget);
+        expect(find.byType(QrImageView), findsOneWidget);
+        expect(
+          find.text('Scan with Attendly on another phone'),
+          findsOneWidget,
+        );
+        expect(
+          find.text(
+            'Shares courses and targets only · Attendance records stay private',
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.byWidgetPredicate(
+            (w) =>
+                w is Semantics &&
+                w.properties.label ==
+                    'QR Code for semester Spring 2026 with 2 courses',
+          ),
+          findsOneWidget,
+        );
+        // Verify QR container has single elevation: border present, no box shadows
+        final qrContainerFinder = find
+            .ancestor(
+              of: find.byType(QrImageView),
+              matching: find.byType(Container),
+            )
+            .first;
+        final qrContainer = tester.widget<Container>(qrContainerFinder);
+        final boxDecoration = qrContainer.decoration as BoxDecoration?;
+        expect(boxDecoration?.border, isNotNull);
+        expect(boxDecoration?.boxShadow, isNull);
 
-      // Verify close button tap target is at least 48x48
-      final closeButtonFinder = find.byType(AppCloseButton);
-      expect(tester.getSize(closeButtonFinder).width, greaterThanOrEqualTo(48.0));
-      expect(tester.getSize(closeButtonFinder).height, greaterThanOrEqualTo(48.0));
+        // Verify close button tap target is at least 48x48
+        final closeButtonFinder = find.byType(AppCloseButton);
+        expect(
+          tester.getSize(closeButtonFinder).width,
+          greaterThanOrEqualTo(48.0),
+        );
+        expect(
+          tester.getSize(closeButtonFinder).height,
+          greaterThanOrEqualTo(48.0),
+        );
 
-      expect(find.text('Copy Code Data'), findsOneWidget);
+        expect(find.text('Copy Code Data'), findsOneWidget);
 
-      await tester.pumpWidget(const SizedBox());
-      await tester.pump(Duration.zero);
-    });
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(Duration.zero);
+      },
+    );
 
-    testWidgets('displays warning and hides QR when semester has 0 subjects', (tester) async {
+    testWidgets('displays warning and hides QR when semester has 0 subjects', (
+      tester,
+    ) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -152,7 +166,9 @@ void main() {
       await tester.pump(Duration.zero);
     });
 
-    testWidgets('tapping Copy Code Data copies payload to clipboard', (tester) async {
+    testWidgets('tapping Copy Code Data copies payload to clipboard', (
+      tester,
+    ) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -163,7 +179,8 @@ void main() {
         SystemChannels.platform,
         (methodCall) async {
           if (methodCall.method == 'Clipboard.setData') {
-            capturedClipboardText = (methodCall.arguments as Map)['text'] as String?;
+            capturedClipboardText =
+                (methodCall.arguments as Map)['text'] as String?;
             return null;
           } else if (methodCall.method == 'Clipboard.getData') {
             return {'text': capturedClipboardText};

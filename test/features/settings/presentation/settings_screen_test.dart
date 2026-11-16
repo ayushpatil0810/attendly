@@ -93,7 +93,7 @@ void main() {
   }
 
   void setLargeViewport(WidgetTester tester) {
-    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.physicalSize = const Size(800, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() {
       tester.view.resetPhysicalSize();

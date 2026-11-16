@@ -1,48 +1,52 @@
 import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_calculation_method.dart';
 import 'package:attendly/features/semesters/domain/entities/semester_qr_payload.dart';
 
 void main() {
   group('SemesterQrPayload Serialization & Deserialization', () {
-    test('serializes and deserializes a complete semester payload roundtrip', () {
-      const payload = SemesterQrPayload(
-        semesterName: 'Fall 2026',
-        attendanceThreshold: 0.80,
-        calculationMethod: AttendanceCalculationMethod.componentAverage,
-        subjects: [
-          SubjectQrPayload(
-            name: 'Distributed Systems',
-            lectureEnabled: true,
-            labEnabled: true,
-            sortOrder: 0,
-          ),
-          SubjectQrPayload(
-            name: 'Linear Algebra',
-            lectureEnabled: true,
-            labEnabled: false,
-            sortOrder: 1,
-          ),
-        ],
-      );
+    test(
+      'serializes and deserializes a complete semester payload roundtrip',
+      () {
+        const payload = SemesterQrPayload(
+          semesterName: 'Fall 2026',
+          attendanceThreshold: 0.80,
+          calculationMethod: AttendanceCalculationMethod.componentAverage,
+          subjects: [
+            SubjectQrPayload(
+              name: 'Distributed Systems',
+              lectureEnabled: true,
+              labEnabled: true,
+              sortOrder: 0,
+            ),
+            SubjectQrPayload(
+              name: 'Linear Algebra',
+              lectureEnabled: true,
+              labEnabled: false,
+              sortOrder: 1,
+            ),
+          ],
+        );
 
-      final encoded = payload.toEncodedString();
-      final decoded = SemesterQrPayload.tryParse(encoded);
+        final encoded = payload.toEncodedString();
+        final decoded = SemesterQrPayload.tryParse(encoded);
 
-      expect(decoded, isNotNull);
-      expect(decoded!.semesterName, equals('Fall 2026'));
-      expect(decoded.attendanceThreshold, equals(0.80));
-      expect(decoded.thresholdPercent, equals(80));
-      expect(
-        decoded.calculationMethod,
-        equals(AttendanceCalculationMethod.componentAverage),
-      );
-      expect(decoded.subjects.length, equals(2));
-      expect(decoded.subjects[0].name, equals('Distributed Systems'));
-      expect(decoded.subjects[0].hasBothComponents, isTrue);
-      expect(decoded.subjects[1].name, equals('Linear Algebra'));
-      expect(decoded.subjects[1].labEnabled, isFalse);
-    });
+        expect(decoded, isNotNull);
+        expect(decoded!.semesterName, equals('Fall 2026'));
+        expect(decoded.attendanceThreshold, equals(0.80));
+        expect(decoded.thresholdPercent, equals(80));
+        expect(
+          decoded.calculationMethod,
+          equals(AttendanceCalculationMethod.componentAverage),
+        );
+        expect(decoded.subjects.length, equals(2));
+        expect(decoded.subjects[0].name, equals('Distributed Systems'));
+        expect(decoded.subjects[0].hasBothComponents, isTrue);
+        expect(decoded.subjects[1].name, equals('Linear Algebra'));
+        expect(decoded.subjects[1].labEnabled, isFalse);
+      },
+    );
 
     test('rejects payload with wrong app identifier', () {
       final json = {
@@ -53,7 +57,7 @@ void main() {
         'threshold': 0.75,
         'calc_method': 'raw_combined',
         'subjects': [
-          {'name': 'Math', 'lecture': true, 'lab': false}
+          {'name': 'Math', 'lecture': true, 'lab': false},
         ],
       };
 
@@ -77,7 +81,7 @@ void main() {
         'threshold': 0.75,
         'calc_method': 'raw_combined',
         'subjects': [
-          {'name': 'Math', 'lecture': true, 'lab': false}
+          {'name': 'Math', 'lecture': true, 'lab': false},
         ],
       };
 
@@ -96,7 +100,7 @@ void main() {
         'threshold': 1.5,
         'calc_method': 'raw_combined',
         'subjects': [
-          {'name': 'Math', 'lecture': true, 'lab': false}
+          {'name': 'Math', 'lecture': true, 'lab': false},
         ],
       };
 
@@ -132,7 +136,7 @@ void main() {
         'threshold': 0.75,
         'calc_method': 'raw_combined',
         'subjects': [
-          {'name': 'Ghost Course', 'lecture': false, 'lab': false}
+          {'name': 'Ghost Course', 'lecture': false, 'lab': false},
         ],
       };
 

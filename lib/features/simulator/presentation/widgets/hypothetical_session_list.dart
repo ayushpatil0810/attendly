@@ -250,17 +250,13 @@ class _HypotheticalRow extends StatelessWidget {
                 AppIcon(
                   isPresent ? AppIcons.check : AppIcons.close,
                   size: 12,
-                  color: isPresent
-                      ? AppColors.inkMint
-                      : AppColors.inkCoral,
+                  color: isPresent ? AppColors.inkMint : AppColors.inkCoral,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   isPresent ? 'Present' : 'Absent',
                   style: AppTypography.labelSmall.copyWith(
-                    color: isPresent
-                        ? AppColors.inkMint
-                        : AppColors.inkCoral,
+                    color: isPresent ? AppColors.inkMint : AppColors.inkCoral,
                     fontWeight: FontWeight.w700,
                     fontSize: 11,
                   ),

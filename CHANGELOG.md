@@ -5,6 +5,30 @@ All notable changes to the College Attendance Tracker (attendly) project will be
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-11-16
+
+### Added
+- **Attendance Goals & Milestones:**
+  - Set personal attendance goals per semester (default: 85%, customizable from 50% to 100% with 80%, 85%, 90%, 95% presets).
+  - Kept personal ambition independent from official university attendance threshold.
+  - Added `GoalMilestonesCard` on the dashboard displaying current attendance vs. goal, a dual-colored progress track with goal marker tick, and consecutive classes needed calculation (`RecoveryCalculator.calculateGoalRecovery`).
+  - Added personal goal indicators on `SubjectDetailSheet` showing subject progress towards the goal.
+  - Milestone system celebrating 75%, 80%, 85%, 90%, 95%, and 100% marks with subtle scale and fade animated celebration dialog (`MilestoneCelebrationDialog`) and horizontal achievement badge chips on the dashboard.
+  - Milestone achievement status tracked per-semester in local offline storage (`MilestoneService`).
+  - Correctly handled unavailable Component Average calculations with honest guidance directing students to scenario simulations.
+  - Updated Drift SQLite database schema to version 5 with safe migration adding `target_goal` to `Semesters` table.
+  - Included personal goal preservation in QR code export/import (`SemesterQrPayload`).
+- **Android Home Screen Widgets:**
+  - Designed and built three resizable native Android home screen widgets:
+    - **Small (2x2):** Overall attendance percentage, circular determinate progress ring, semester title, and threshold status badge.
+    - **Medium (4x2):** Semester name, overall attendance %, present/absent count chips, total recorded sessions, and a one-tap Quick Log button.
+    - **Large (4x4):** Semester name, attendance %, threshold status badge, personal goal progress advice, subject-wise breakdown (top 4 subjects with present/conducted stats and status pills), and Quick Log button.
+  - Native Android widget layouts, drawables, and color resources adhering strictly to the Attendly design system (Plus Jakarta Sans, soft pastels, WCAG AA contrast).
+  - Kotlin widget providers: `SmallAttendanceWidgetProvider`, `MediumAttendanceWidgetProvider`, and `LargeAttendanceWidgetProvider`.
+  - Reactive background widget synchronization via `HomeWidgetService` triggered upon attendance logging, undo, deletion, or semester changes.
+  - Deep linking support (`attendly://quick-log`) launching directly into the Quick Log sheet.
+  - 100% offline-only and private: no cloud sync, no tracking, and simulator data strictly isolated from home widgets.
+
 ## [1.0.0-rc.1] - 2026-11-15
 
 ### Added

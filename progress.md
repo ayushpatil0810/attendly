@@ -96,19 +96,42 @@
 ---
 
 ## Test Verification Summary
-- **Total Tests:** 193 passing tests across 25 test suites (7 new tests added in Phase 6).
+- **Total Tests:** 269 passing tests across 30+ test suites.
 - **Static Analysis & Formatting:**
-  - `dart format .`: **100% cleanly formatted** (142 files checked).
+  - `dart format .`: **100% cleanly formatted**.
   - `flutter analyze`: **0 issues found**.
-  - `flutter test`: **193/193 tests passed (0 failures)**.
+  - `flutter test`: **269/269 tests passed (0 failures)**.
 - **Android Builds:**
   - `flutter build apk --debug`: **Exit code 0** (Success).
   - `flutter build apk --release`: **Exit code 0** (Success).
 
 ---
 
+## Phase 7: Attendance Goals, Milestones & Android Home Screen Widgets
+
+### 1. Attendance Goals & Milestones
+- [x] **Personal Goals:** Students can configure a personal attendance goal per semester (default 85%, customizable between 50% and 100% with quick presets for 80%, 85%, 90%, 95%).
+- [x] **Goal Separation:** Maintained strict separation between the student's personal ambitious goal and the official university threshold.
+- [x] **Dashboard Card (`GoalMilestonesCard`):** Displays current attendance vs. goal, a visual dual-color progress track with goal marker tick, and mathematical recovery projections (`RecoveryCalculator.calculateGoalRecovery`).
+- [x] **Component Average Handling:** Honest handling explaining that Component Average recovery requires future Lecture vs. Lab distribution scenarios in the What-if Simulator.
+- [x] **Subject Integration (`SubjectDetailSheet`):** Displays subject-level goal progress and consecutive classes needed.
+- [x] **Milestone Celebration:** Milestones for 75%, 80%, 85%, 90%, 95%, and 100% attendance celebrated with animated modal dialogs (`MilestoneCelebrationDialog`) and interactive badge chips.
+- [x] **Local Persistence:** Drift SQLite schema version 5 migration with `target_goal` column and milestone celebration tracking via `MilestoneService`.
+
+### 2. Android Home Screen Widgets
+- [x] **Small Widget (2x2):** Overall attendance percentage, circular determinate progress ring, semester title, and threshold status badge.
+- [x] **Medium Widget (4x2):** Semester name, overall percentage, present & absent counts, total sessions, and one-tap Quick Log shortcut button.
+- [x] **Large Widget (4x4):** Semester name, overall percentage, threshold status, personal goal advice, subject-wise breakdown (up to 4 subjects with present/conducted stats and status pills), and Quick Log shortcut button.
+- [x] **Native Android Assets:** Custom layouts (`widget_attendance_small.xml`, `widget_attendance_medium.xml`, `widget_attendance_large.xml`), vector drawables, and Attendly color tokens.
+- [x] **Kotlin Widget Providers:** `SmallAttendanceWidgetProvider`, `MediumAttendanceWidgetProvider`, and `LargeAttendanceWidgetProvider`.
+- [x] **Reactive Sync (`HomeWidgetService`):** Background synchronization on attendance recording, undo, deletion, or semester adjustments.
+- [x] **Deep Linking:** Clicking "Quick Log" on widgets triggers `attendly://quick-log`, opening directly into the Quick Log sheet.
+- [x] **100% Offline & Private:** Local data only, zero cloud dependencies, and strict isolation preventing simulator projections from leaking into widgets.
+
+---
+
 ## Known Issues & Debt
-- None. All planned features across Phases 1 through 6 are implemented, audited, tested, and passing.
+- None. All features are implemented, audited, tested, and passing with zero static analysis issues.
 
 ---
 
@@ -122,4 +145,4 @@ Before publishing to Google Play or distributing production builds:
 ---
 
 ## Last Updated
-2026-11-15 (Phase 6 Completed)
+2026-11-16 (Phase 7 Completed)

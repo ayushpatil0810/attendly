@@ -29,9 +29,7 @@ class SemesterSettingsSection extends ConsumerWidget {
         decoration: BoxDecoration(
           color: AppColors.pureWhite,
           borderRadius: AppRadius.lgBorder,
-          border: Border.all(
-            color: AppColors.divider.withValues(alpha: 0.8),
-          ),
+          border: Border.all(color: AppColors.divider.withValues(alpha: 0.8)),
           boxShadow: [
             BoxShadow(
               color: AppColors.ink.withValues(alpha: 0.04),
@@ -82,9 +80,7 @@ class SemesterSettingsSection extends ConsumerWidget {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(
-          color: AppColors.divider.withValues(alpha: 0.8),
-        ),
+        border: Border.all(color: AppColors.divider.withValues(alpha: 0.8)),
         boxShadow: [
           BoxShadow(
             color: AppColors.ink.withValues(alpha: 0.04),
@@ -203,7 +199,10 @@ class SemesterSettingsSection extends ConsumerWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Attendance Threshold', style: AppTypography.itemTitle),
+                  const Text(
+                    'Attendance Threshold',
+                    style: AppTypography.itemTitle,
+                  ),
                   const SizedBox(height: 2),
                   Text(
                     'Required attendance target',
@@ -323,6 +322,174 @@ class SemesterSettingsSection extends ConsumerWidget {
           const Divider(height: 1, color: AppColors.divider),
           const SizedBox(height: 16),
 
+          // Personal Attendance Goal Title & Badge
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        const Text(
+                          'Personal Goal',
+                          style: AppTypography.itemTitle,
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 1.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.softMint,
+                            borderRadius: AppRadius.pillBorder,
+                          ),
+                          child: Text(
+                            'Target',
+                            style: AppTypography.labelSmall.copyWith(
+                              color: AppColors.inkMint,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Your ambitious target, separate from university threshold',
+                      style: AppTypography.labelSmall.copyWith(
+                        color: AppColors.mutedInk,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.softMint,
+                  borderRadius: AppRadius.pillBorder,
+                  border: Border.all(
+                    color: AppColors.brandMint.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Text(
+                  '${(semester.targetGoal * 100).round()}%',
+                  style: AppTypography.metricMedium.copyWith(
+                    fontSize: 15,
+                    color: AppColors.inkMint,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Goal Slider
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: AppColors.inkMint,
+              inactiveTrackColor: AppColors.track,
+              thumbColor: AppColors.inkMint,
+              overlayColor: AppColors.brandMint.withValues(alpha: 0.15),
+              trackHeight: 4,
+            ),
+            child: Slider(
+              value: semester.targetGoal,
+              min: 0.50,
+              max: 1.00,
+              divisions: 50,
+              onChanged: (newVal) async {
+                final rounded = (newVal * 100).round() / 100.0;
+                if (rounded != semester.targetGoal) {
+                  final updated = semester.copyWith(targetGoal: rounded);
+                  await ref
+                      .read(semesterControllerProvider.notifier)
+                      .updateSemester(updated);
+                }
+              },
+            ),
+          ),
+          const SizedBox(height: 4),
+
+          // Goal Preset Chips
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                'Presets:',
+                style: AppTypography.labelSmall.copyWith(
+                  color: AppColors.mutedInk,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              _ThresholdPresetChip(
+                label: '80%',
+                value: 0.80,
+                isSelected: (semester.targetGoal - 0.80).abs() < 0.005,
+                onTap: () async {
+                  AppHaptics.selectionClick(ref);
+                  final updated = semester.copyWith(targetGoal: 0.80);
+                  await ref
+                      .read(semesterControllerProvider.notifier)
+                      .updateSemester(updated);
+                },
+              ),
+              _ThresholdPresetChip(
+                label: '85% (Rec)',
+                value: 0.85,
+                isSelected: (semester.targetGoal - 0.85).abs() < 0.005,
+                onTap: () async {
+                  AppHaptics.selectionClick(ref);
+                  final updated = semester.copyWith(targetGoal: 0.85);
+                  await ref
+                      .read(semesterControllerProvider.notifier)
+                      .updateSemester(updated);
+                },
+              ),
+              _ThresholdPresetChip(
+                label: '90%',
+                value: 0.90,
+                isSelected: (semester.targetGoal - 0.90).abs() < 0.005,
+                onTap: () async {
+                  AppHaptics.selectionClick(ref);
+                  final updated = semester.copyWith(targetGoal: 0.90);
+                  await ref
+                      .read(semesterControllerProvider.notifier)
+                      .updateSemester(updated);
+                },
+              ),
+              _ThresholdPresetChip(
+                label: '95%',
+                value: 0.95,
+                isSelected: (semester.targetGoal - 0.95).abs() < 0.005,
+                onTap: () async {
+                  AppHaptics.selectionClick(ref);
+                  final updated = semester.copyWith(targetGoal: 0.95);
+                  await ref
+                      .read(semesterControllerProvider.notifier)
+                      .updateSemester(updated);
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: AppColors.divider),
+          const SizedBox(height: 16),
+
           // Calculation Method Configuration
           const Text('Calculation Method', style: AppTypography.itemTitle),
           const SizedBox(height: 2),
@@ -342,8 +509,7 @@ class SemesterSettingsSection extends ConsumerWidget {
               ),
               SegmentItem(
                 value: AttendanceCalculationMethod.componentAverage,
-                label:
-                    AttendanceCalculationMethod.componentAverage.displayName,
+                label: AttendanceCalculationMethod.componentAverage.displayName,
                 icon: const AppIcon(AppIcons.lab, size: 16),
               ),
             ],
@@ -361,7 +527,8 @@ class SemesterSettingsSection extends ConsumerWidget {
 
           // Method explanation note
           Text(
-            semester.calculationMethod == AttendanceCalculationMethod.rawCombined
+            semester.calculationMethod ==
+                    AttendanceCalculationMethod.rawCombined
                 ? 'Every conducted class hour carries equal weight (1 session = 1 class).'
                 : 'Theory Lecture and Practical Lab are averaged separately (50/50).',
             style: AppTypography.labelSmall.copyWith(
@@ -423,9 +590,7 @@ class _ThresholdPresetChip extends StatelessWidget {
           color: isSelected ? AppColors.softLavender : AppColors.warmWhite,
           borderRadius: AppRadius.pillBorder,
           border: Border.all(
-            color: isSelected
-                ? AppColors.inkViolet
-                : AppColors.border,
+            color: isSelected ? AppColors.inkViolet : AppColors.border,
             width: isSelected ? 1.5 : 1,
           ),
         ),

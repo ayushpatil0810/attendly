@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:attendly/core/database/app_database.dart';
 import 'package:attendly/core/errors/app_failure.dart';
+
 import '../../domain/entities/day_note.dart';
 import '../../domain/repositories/day_note_repository.dart';
 
@@ -28,21 +29,21 @@ class DayNoteRepositoryImpl implements DayNoteRepository {
 
   @override
   Stream<DayNote?> watchNoteForDate(int semesterId, String date) {
-    return (_db.select(_db.dayNotes)
-          ..where(
-            (tbl) => tbl.semesterId.equals(semesterId) & tbl.date.equals(date),
-          ))
+    return (_db.select(_db.dayNotes)..where(
+          (tbl) => tbl.semesterId.equals(semesterId) & tbl.date.equals(date),
+        ))
         .watchSingleOrNull()
         .map((row) => row != null ? _toEntity(row) : null);
   }
 
   @override
   Future<DayNote?> getNoteForDate(int semesterId, String date) async {
-    final row = await (_db.select(_db.dayNotes)
-          ..where(
-            (tbl) => tbl.semesterId.equals(semesterId) & tbl.date.equals(date),
-          ))
-        .getSingleOrNull();
+    final row =
+        await (_db.select(_db.dayNotes)..where(
+              (tbl) =>
+                  tbl.semesterId.equals(semesterId) & tbl.date.equals(date),
+            ))
+            .getSingleOrNull();
     return row != null ? _toEntity(row) : null;
   }
 
@@ -51,12 +52,11 @@ class DayNoteRepositoryImpl implements DayNoteRepository {
     int semesterId,
     String yearMonthPrefix,
   ) {
-    return (_db.select(_db.dayNotes)
-          ..where(
-            (tbl) =>
-                tbl.semesterId.equals(semesterId) &
-                tbl.date.like('$yearMonthPrefix%'),
-          ))
+    return (_db.select(_db.dayNotes)..where(
+          (tbl) =>
+              tbl.semesterId.equals(semesterId) &
+              tbl.date.like('$yearMonthPrefix%'),
+        ))
         .watch()
         .map((rows) => rows.map(_toEntity).toList());
   }
@@ -66,13 +66,13 @@ class DayNoteRepositoryImpl implements DayNoteRepository {
     int semesterId,
     String yearMonthPrefix,
   ) async {
-    final rows = await (_db.select(_db.dayNotes)
-          ..where(
-            (tbl) =>
-                tbl.semesterId.equals(semesterId) &
-                tbl.date.like('$yearMonthPrefix%'),
-          ))
-        .get();
+    final rows =
+        await (_db.select(_db.dayNotes)..where(
+              (tbl) =>
+                  tbl.semesterId.equals(semesterId) &
+                  tbl.date.like('$yearMonthPrefix%'),
+            ))
+            .get();
     return rows.map(_toEntity).toList();
   }
 
@@ -94,19 +94,17 @@ class DayNoteRepositoryImpl implements DayNoteRepository {
     try {
       final existing = await getNoteForDate(semesterId, date);
       if (existing != null) {
-        await (_db.update(_db.dayNotes)
-              ..where(
-                (tbl) =>
-                    tbl.semesterId.equals(semesterId) & tbl.date.equals(date),
-              ))
+        await (_db.update(_db.dayNotes)..where(
+              (tbl) =>
+                  tbl.semesterId.equals(semesterId) & tbl.date.equals(date),
+            ))
             .write(
-          DayNotesCompanion(
-            content: Value(trimmed),
-            updatedAt: Value(now),
-          ),
-        );
+              DayNotesCompanion(content: Value(trimmed), updatedAt: Value(now)),
+            );
       } else {
-        await _db.into(_db.dayNotes).insert(
+        await _db
+            .into(_db.dayNotes)
+            .insert(
               DayNotesCompanion.insert(
                 semesterId: semesterId,
                 date: date,
@@ -127,11 +125,9 @@ class DayNoteRepositoryImpl implements DayNoteRepository {
     required String date,
   }) async {
     try {
-      await (_db.delete(_db.dayNotes)
-            ..where(
-              (tbl) =>
-                  tbl.semesterId.equals(semesterId) & tbl.date.equals(date),
-            ))
+      await (_db.delete(_db.dayNotes)..where(
+            (tbl) => tbl.semesterId.equals(semesterId) & tbl.date.equals(date),
+          ))
           .go();
     } catch (e) {
       throw DatabaseFailure('Failed to delete day note: $e');

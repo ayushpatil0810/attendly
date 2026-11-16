@@ -125,7 +125,7 @@ void main() {
           attendanceControllerProvider.notifier,
         );
         final sessId = await controller.recordSession(
-          subjectId: subId!,
+          subjectId: subId,
           sessionDate: dateStr,
           component: SessionComponent.lecture,
           status: AttendanceStatus.absent,
@@ -180,7 +180,7 @@ void main() {
       final dateStr = '2026-03-10';
       final controller = container.read(attendanceControllerProvider.notifier);
       final id = await controller.recordSession(
-        subjectId: subId!,
+        subjectId: subId,
         sessionDate: dateStr,
         component: SessionComponent.lecture,
         status: AttendanceStatus.present,
@@ -217,7 +217,7 @@ void main() {
       final dateStr = '2026-03-10';
       final controller = container.read(attendanceControllerProvider.notifier);
       final id = await controller.recordSession(
-        subjectId: subId!,
+        subjectId: subId,
         sessionDate: dateStr,
         component: SessionComponent.lecture,
         status: AttendanceStatus.present,
@@ -263,7 +263,7 @@ void main() {
       final dateStr = '2026-03-10';
       final controller = container.read(attendanceControllerProvider.notifier);
       await controller.recordSession(
-        subjectId: subId!,
+        subjectId: subId,
         sessionDate: dateStr,
         component: SessionComponent.lecture,
         status: AttendanceStatus.present,
@@ -277,10 +277,7 @@ void main() {
       );
       expect(secondId, isNot(equals(0)));
       final rows = await db.select(db.attendanceSessions).get();
-      expect(
-        rows.where((row) => row.sessionDate == dateStr).length,
-        equals(2),
-      );
+      expect(rows.where((row) => row.sessionDate == dateStr).length, equals(2));
 
       sub1.close();
     });

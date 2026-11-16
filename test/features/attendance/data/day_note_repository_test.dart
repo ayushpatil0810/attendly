@@ -82,10 +82,7 @@ void main() {
 
       expect(await repo.getNoteForDate(semesterId, '2026-03-10'), isNotNull);
 
-      await repo.deleteNoteForDate(
-        semesterId: semesterId,
-        date: '2026-03-10',
-      );
+      await repo.deleteNoteForDate(semesterId: semesterId, date: '2026-03-10');
 
       expect(await repo.getNoteForDate(semesterId, '2026-03-10'), isNull);
     });
@@ -107,7 +104,9 @@ void main() {
         content: 'Next month note',
       );
 
-      final notesList = await repo.watchNotesForMonth(semesterId, '2026-03').first;
+      final notesList = await repo
+          .watchNotesForMonth(semesterId, '2026-03')
+          .first;
 
       expect(notesList.length, equals(2));
       final notesMap = {for (final n in notesList) n.date: n.content};

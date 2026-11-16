@@ -34,11 +34,7 @@ void main() {
         databaseProvider.overrideWithValue(db),
         sharedPreferencesProvider.overrideWithValue(prefs),
       ],
-      child: MaterialApp(
-        home: Scaffold(
-          body: child,
-        ),
-      ),
+      child: MaterialApp(home: Scaffold(body: child)),
     );
   }
 

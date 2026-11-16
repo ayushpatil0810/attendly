@@ -45,6 +45,10 @@ abstract final class AppIcons {
   static const flashOff = HugeIcons.strokeRoundedFlashOff;
   static const notification = HugeIcons.strokeRoundedNotification01;
   static const clock = HugeIcons.strokeRoundedClock01;
+  static const target = HugeIcons.strokeRoundedTarget02;
+  static const trophy = HugeIcons.strokeRoundedTrophy;
+  static const award = HugeIcons.strokeRoundedAward01;
+  static const flag = HugeIcons.strokeRoundedFlag01;
 }
 
 /// Standardized HugeIcon wrapper for uniform styling

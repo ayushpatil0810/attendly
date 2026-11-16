@@ -19,7 +19,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -87,6 +87,9 @@ class AppDatabase extends _$AppDatabase {
           'CREATE INDEX IF NOT EXISTS idx_day_notes_date '
           'ON day_notes(date);',
         );
+      }
+      if (from < 5) {
+        await m.addColumn(semesters, semesters.targetGoal);
       }
     },
     beforeOpen: (details) async {

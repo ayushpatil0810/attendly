@@ -14,16 +14,13 @@ abstract interface class NotificationService {
     String? body,
   });
   Future<void> cancelDailyAttendanceReminder();
-  Future<void> showTestNotification({
-    String? title,
-    String? body,
-  });
+  Future<void> showTestNotification({String? title, String? body});
   Future<bool> areNotificationsEnabled();
 }
 
 class NotificationServiceImpl implements NotificationService {
   NotificationServiceImpl({FlutterLocalNotificationsPlugin? plugin})
-      : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
+    : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
 
   final FlutterLocalNotificationsPlugin _plugin;
 
@@ -48,8 +45,9 @@ class NotificationServiceImpl implements NotificationService {
       // Retain tz.local fallback on platforms without timezone discovery
     }
 
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const darwinSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
@@ -70,16 +68,20 @@ class NotificationServiceImpl implements NotificationService {
   Future<bool> requestPermissions() async {
     await initialize();
 
-    final androidImplementation = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidImplementation = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     if (androidImplementation != null) {
-      final granted =
-          await androidImplementation.requestNotificationsPermission();
+      final granted = await androidImplementation
+          .requestNotificationsPermission();
       return granted ?? false;
     }
 
-    final iosImplementation = _plugin.resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin>();
+    final iosImplementation = _plugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
     if (iosImplementation != null) {
       final granted = await iosImplementation.requestPermissions(
         alert: true,
@@ -122,7 +124,8 @@ class NotificationServiceImpl implements NotificationService {
     await _plugin.zonedSchedule(
       id: dailyReminderId,
       title: title ?? 'Time to log attendance!',
-      body: body ??
+      body:
+          body ??
           "Take a quick second to record today's classes and stay on track.",
       scheduledDate: scheduledDate,
       notificationDetails: notificationDetails,
@@ -139,10 +142,7 @@ class NotificationServiceImpl implements NotificationService {
   }
 
   @override
-  Future<void> showTestNotification({
-    String? title,
-    String? body,
-  }) async {
+  Future<void> showTestNotification({String? title, String? body}) async {
     await initialize();
 
     const notificationDetails = NotificationDetails(
@@ -172,8 +172,10 @@ class NotificationServiceImpl implements NotificationService {
 
   @override
   Future<bool> areNotificationsEnabled() async {
-    final androidImplementation = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidImplementation = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     if (androidImplementation != null) {
       final enabled = await androidImplementation.areNotificationsEnabled();
       return enabled ?? false;

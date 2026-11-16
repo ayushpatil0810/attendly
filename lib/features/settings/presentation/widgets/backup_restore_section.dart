@@ -81,8 +81,7 @@ class BackupRestoreSection extends ConsumerWidget {
             ],
           ),
           content: Text(
-            validationResult.error ??
-                'The selected file could not be verified as a valid Attendly backup.',
+            validationResult.error ?? 'The selected file could not be verified as a valid Attendly backup.',
             style: AppTypography.bodySmall.copyWith(color: AppColors.ink),
           ),
           actions: [
@@ -156,9 +155,7 @@ class BackupRestoreSection extends ConsumerWidget {
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(
-          color: AppColors.divider.withValues(alpha: 0.8),
-        ),
+        border: Border.all(color: AppColors.divider.withValues(alpha: 0.8)),
         boxShadow: [
           BoxShadow(
             color: AppColors.ink.withValues(alpha: 0.04),
@@ -193,7 +190,10 @@ class BackupRestoreSection extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Export Local Backup', style: AppTypography.itemTitle),
+                    const Text(
+                      'Export Local Backup',
+                      style: AppTypography.itemTitle,
+                    ),
                     const SizedBox(height: 3),
                     Text(
                       'Save all semesters, subjects, and attendance history to a portable JSON backup file.',
@@ -214,8 +214,8 @@ class BackupRestoreSection extends ConsumerWidget {
                       isLoading: backupState.isExporting,
                       onPressed:
                           backupState.isExporting || backupState.isRestoring
-                              ? null
-                              : () => _handleExport(context, ref),
+                          ? null
+                          : () => _handleExport(context, ref),
                     ),
                   ],
                 ),
@@ -249,7 +249,10 @@ class BackupRestoreSection extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Restore from Backup', style: AppTypography.itemTitle),
+                    const Text(
+                      'Restore from Backup',
+                      style: AppTypography.itemTitle,
+                    ),
                     const SizedBox(height: 3),
                     Text(
                       'Import data from a previously saved JSON file. Restoring will replace existing local records.',
@@ -271,8 +274,8 @@ class BackupRestoreSection extends ConsumerWidget {
                       isLoading: backupState.isRestoring,
                       onPressed:
                           backupState.isExporting || backupState.isRestoring
-                              ? null
-                              : () => _handleRestore(context, ref),
+                          ? null
+                          : () => _handleRestore(context, ref),
                     ),
                   ],
                 ),

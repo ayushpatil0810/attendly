@@ -299,8 +299,7 @@ class SubjectsScreen extends ConsumerWidget {
                     const AppLoadingState(message: 'Loading subjects...'),
                 error: (e, _) => AppErrorState(
                   message: 'Subjects could not load.',
-                  onRetry: () =>
-                      ref.invalidate(activeSemesterSubjectsProvider),
+                  onRetry: () => ref.invalidate(activeSemesterSubjectsProvider),
                 ),
               ),
             ),
