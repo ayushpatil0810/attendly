@@ -47,7 +47,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Initially on Home
-      expect(find.text('College Attendance'), findsOneWidget);
+      expect(find.text('attendly'), findsOneWidget);
       expect(find.text('Fall 2026'), findsOneWidget);
 
       // Tap Subjects tab

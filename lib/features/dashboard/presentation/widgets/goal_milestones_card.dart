@@ -83,23 +83,12 @@ class GoalMilestonesCard extends ConsumerWidget {
             // Top Row: Title, Target Pill & Edit Action
             Row(
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: meetsGoal
-                        ? AppColors.softMint
-                        : AppColors.softLavender,
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: AppIcon(
-                    meetsGoal ? AppIcons.trophy : AppIcons.target,
-                    size: 18,
-                    color: meetsGoal ? AppColors.inkMint : AppColors.inkViolet,
-                  ),
+                AppIcon(
+                  meetsGoal ? AppIcons.trophy : AppIcons.target,
+                  size: 22,
+                  color: meetsGoal ? AppColors.inkMint : AppColors.inkViolet,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -692,23 +681,12 @@ class _MilestoneDetailSheetContent extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: isAchieved
-                      ? AppColors.softMint
-                      : AppColors.softLavender,
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: AppIcon(
-                  isAchieved ? AppIcons.trophy : AppIcons.award,
-                  size: 24,
-                  color: isAchieved ? AppColors.inkMint : AppColors.inkViolet,
-                ),
+              AppIcon(
+                isAchieved ? AppIcons.trophy : AppIcons.award,
+                size: 28,
+                color: isAchieved ? AppColors.inkMint : AppColors.inkViolet,
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

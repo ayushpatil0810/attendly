@@ -4,6 +4,7 @@ import 'package:attendly/app/router/route_names.dart';
 import 'package:attendly/core/shared/widgets/app_bottom_sheet.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
+import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/semesters/domain/entities/semester.dart';
@@ -20,86 +21,102 @@ class DashboardHeader extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        // Left: Application name in lowercase (replaces "College Attendance")
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'College Attendance',
-                style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.mutedInk,
-                  fontWeight: FontWeight.w500,
-                ),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'attendly',
+              style: AppTypography.screenTitle.copyWith(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.8,
+                color: AppColors.brandViolet,
               ),
-              const SizedBox(height: 2),
-              Semantics(
-                button: true,
-                label: 'Switch active semester, currently ${semester.name}',
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      showAppBottomSheet(
-                        context: context,
-                        title: 'Semesters',
-                        child: const SemesterSwitcherSheet(),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              semester.name,
-                              style: AppTypography.screenTitle.copyWith(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: -0.5,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+
+        // Centre: Active semester switcher
+        Expanded(
+          flex: 2,
+          child: Center(
+            child: Semantics(
+              button: true,
+              label: 'Switch active semester, currently ${semester.name}',
+              child: Material(
+                color: AppColors.softLavender.withValues(alpha: 0.6),
+                borderRadius: AppRadius.pillBorder,
+                child: InkWell(
+                  onTap: () {
+                    showAppBottomSheet(
+                      context: context,
+                      title: 'Semesters',
+                      child: const SemesterSwitcherSheet(),
+                    );
+                  },
+                  borderRadius: AppRadius.pillBorder,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            semester.name,
+                            style: AppTypography.labelMedium.copyWith(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: AppColors.ink,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(width: 4),
-                          const AppIcon(
-                            AppIcons.arrowDown,
-                            size: 18,
-                            color: AppColors.brandViolet,
-                          ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: 6),
+                        const AppIcon(
+                          AppIcons.arrowDown,
+                          size: 16,
+                          color: AppColors.inkViolet,
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-            ],
+            ),
           ),
         ),
-        const SizedBox(width: AppSpacing.sm),
-        Semantics(
-          label: 'Open settings',
-          button: true,
-          child: Tooltip(
-            message: 'Settings',
-            child: Material(
-              color: AppColors.softLavender,
-              shape: const CircleBorder(),
-              child: InkWell(
-                onTap: () {
-                  context.pushNamed(RouteNames.settings);
-                },
-                customBorder: const CircleBorder(),
-                child: const SizedBox(
-                  width: 44,
-                  height: 44,
-                  child: Center(
-                    child: AppIcon(
-                      AppIcons.settings,
-                      size: 20,
-                      color: AppColors.brandViolet,
+
+        // Right: Settings icon action (comfortably sized)
+        Expanded(
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Semantics(
+              label: 'Open settings',
+              button: true,
+              child: Tooltip(
+                message: 'Settings',
+                child: Material(
+                  color: Colors.transparent,
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    onTap: () {
+                      context.pushNamed(RouteNames.settings);
+                    },
+                    customBorder: const CircleBorder(),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      alignment: Alignment.center,
+                      child: const AppIcon(
+                        AppIcons.settings,
+                        size: 23,
+                        color: AppColors.ink,
+                      ),
                     ),
                   ),
                 ),

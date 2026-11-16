@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:attendly/core/theme/app_colors.dart';
-import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
@@ -22,18 +21,22 @@ class DashboardTrendCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Attendance Trend', style: AppTypography.sectionTitle),
-        const SizedBox(height: AppSpacing.sm),
+        Text(
+          'Attendance Trend',
+          style: AppTypography.sectionTitle
+        ),
+        const SizedBox(height: AppSpacing.xs + 2),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.cardPadding),
           decoration: BoxDecoration(
             color: AppColors.pureWhite,
-            borderRadius: AppRadius.lgBorder,
+            borderRadius: AppRadius.mdBorder,
+            border: Border.all(color: AppColors.divider),
             boxShadow: [
               BoxShadow(
-                color: AppColors.ink.withAlpha(6),
-                blurRadius: 12,
+                color: AppColors.ink.withValues(alpha: 0.03),
+                blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
             ],
@@ -49,32 +52,35 @@ class DashboardTrendCard extends StatelessWidget {
   Widget _buildEmptyState() {
     return Semantics(
       container: true,
-      label: 'Attendance Trend: More Data Needed. Trend visualization appears after sessions across at least two dates are logged.',
-      child: Row(
+      label:
+          'Attendance Trend: More Data Needed. Trend visualization appears after sessions across at least two dates are logged.',
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 2),
-            child: AppIcon(
-              AppIcons.info,
-              size: 20,
-              color: AppColors.brandViolet,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('More Data Needed', style: AppTypography.itemTitle),
-                const SizedBox(height: 2),
-                Text(
-                  'Trend visualization appears after sessions across at least two dates are logged.',
-                  style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.mutedInk,
-                  ),
+          Row(
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                  color: AppColors.brandViolet,
+                  shape: BoxShape.circle,
                 ),
-              ],
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'More Data Needed',
+                  style: AppTypography.itemTitle,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Trend visualization appears after sessions across at least two dates are logged.',
+            style: AppTypography.bodySmall.copyWith(
+              color: AppColors.mutedInk,
             ),
           ),
         ],
@@ -137,7 +143,7 @@ class DashboardTrendCard extends StatelessWidget {
 
           // Custom Sparkline Painter
           SizedBox(
-            height: 84,
+            height: 80,
             width: double.infinity,
             child: CustomPaint(
               painter: _TrendLinePainter(
