@@ -51,7 +51,7 @@ class ShareSemesterQrSheet extends ConsumerWidget {
                 borderRadius: AppRadius.pillBorder,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
@@ -68,11 +68,11 @@ class ShareSemesterQrSheet extends ConsumerWidget {
                 ],
               ),
             ),
-            const Divider(color: AppColors.divider, height: 20),
+            const SizedBox(height: 16),
 
             payloadAsync.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 48),
+              loading: () => const SizedBox(
+                height: 280,
                 child: Center(
                   child: CircularProgressIndicator(color: AppColors.brandViolet),
                 ),
@@ -130,152 +130,149 @@ class ShareSemesterQrSheet extends ConsumerWidget {
 
                 final encodedString = payload.toEncodedString();
 
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                  child: Column(
-                    children: [
-                      // Header Card with semester title & meta badges
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: AppColors.softLavender.withValues(alpha: 0.6),
-                          borderRadius: AppRadius.mdBorder,
-                          border: Border.all(
-                            color: AppColors.brandViolet.withValues(alpha: 0.2),
+                return Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Semester Title (Typographic hero, no unearned card)
+                        Text(
+                          payload.semesterName,
+                          style: AppTypography.screenTitle.copyWith(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.3,
+                            color: AppColors.ink,
+                            height: 1.25,
                           ),
+                          textAlign: TextAlign.center,
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        const SizedBox(height: 8),
+
+                        // Distilled Metadata Badges (Tabular figures, softLavender tint, no borders)
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 6,
+                          runSpacing: 6,
                           children: [
-                            Text(
-                              payload.semesterName,
-                              style: AppTypography.sectionTitle.copyWith(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
+                            _MetaBadge(
+                              icon: AppIcons.check,
+                              label: '${payload.thresholdPercent}% Goal',
+                            ),
+                            _MetaBadge(
+                              icon: AppIcons.subjects,
+                              label: '${payload.subjects.length} ${payload.subjects.length == 1 ? "course" : "courses"}',
+                            ),
+                            _MetaBadge(
+                              icon: AppIcons.insights,
+                              label: payload.calculationMethod.displayName,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+
+                        // QR Code Container (Crisp single-elevation border, generous padding)
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.pureWhite,
+                            borderRadius: AppRadius.lgBorder,
+                            border: Border.all(color: AppColors.border, width: 1.0),
+                          ),
+                          child: Semantics(
+                            label: 'QR Code for semester ${payload.semesterName} with ${payload.subjects.length} courses',
+                            child: QrImageView(
+                              data: encodedString,
+                              version: QrVersions.auto,
+                              size: 210.0,
+                              backgroundColor: AppColors.pureWhite,
+                              eyeStyle: const QrEyeStyle(
+                                eyeShape: QrEyeShape.square,
+                                color: AppColors.ink,
+                              ),
+                              dataModuleStyle: const QrDataModuleStyle(
+                                dataModuleShape: QrDataModuleShape.square,
+                                color: AppColors.ink,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 6,
-                              children: [
-                                _MetaChip(
-                                  icon: AppIcons.check,
-                                  label: '${payload.thresholdPercent}% Goal',
-                                  color: AppColors.inkViolet,
-                                  backgroundColor: AppColors.pureWhite,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Guidance Lockup (Comfortable 14px body reading scale)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const AppIcon(
+                              AppIcons.scan,
+                              size: 16,
+                              color: AppColors.inkViolet,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                'Scan with Attendly on another phone',
+                                style: AppTypography.bodyMedium.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.ink,
                                 ),
-                                _MetaChip(
-                                  icon: AppIcons.subjects,
-                                  label: '${payload.subjects.length} courses',
-                                  color: AppColors.inkViolet,
-                                  backgroundColor: AppColors.pureWhite,
-                                ),
-                                _MetaChip(
-                                  icon: AppIcons.insights,
-                                  label: payload.calculationMethod.displayName,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+
+                        // Privacy Reassurance
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const AppIcon(
+                              AppIcons.shield,
+                              size: 13,
+                              color: AppColors.subtleInk,
+                            ),
+                            const SizedBox(width: 5),
+                            Flexible(
+                              child: Text(
+                                'Shares courses and targets only · Attendance records stay private',
+                                style: AppTypography.bodySmall.copyWith(
                                   color: AppColors.mutedInk,
-                                  backgroundColor: AppColors.pureWhite,
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // QR Code Container with High-Contrast White Background
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.pureWhite,
-                          borderRadius: AppRadius.lgBorder,
-                          border: Border.all(color: AppColors.border, width: 1.5),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.ink.withValues(alpha: 0.05),
-                              blurRadius: 16,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Semantics(
-                          label: 'QR Code for semester ${payload.semesterName} with ${payload.subjects.length} courses',
-                          child: QrImageView(
-                            data: encodedString,
-                            version: QrVersions.auto,
-                            size: 210.0,
-                            backgroundColor: AppColors.pureWhite,
-                            eyeStyle: const QrEyeStyle(
-                              eyeShape: QrEyeShape.square,
-                              color: AppColors.ink,
-                            ),
-                            dataModuleStyle: const QrDataModuleStyle(
-                              dataModuleShape: QrDataModuleShape.square,
-                              color: AppColors.ink,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Guidance caption
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const AppIcon(
-                            AppIcons.scan,
-                            size: 16,
-                            color: AppColors.brandViolet,
-                          ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              'Have your classmate scan this using Attendly',
-                              style: AppTypography.labelSmall.copyWith(
-                                color: AppColors.inkViolet,
-                                fontWeight: FontWeight.w600,
+                                textAlign: TextAlign.center,
                               ),
-                              textAlign: TextAlign.center,
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Shares course names and settings only. Personal attendance records remain 100% private.',
-                        style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.mutedInk,
-                          fontSize: 12,
+                          ],
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 20),
+                        const SizedBox(height: 24),
 
-                      // Fallback copy button
-                      AppButton(
-                        label: 'Copy Code Data',
-                        icon: const AppIcon(
-                          AppIcons.exportFile,
-                          size: 16,
-                          color: AppColors.pureWhite,
+                        // Primary Action
+                        AppButton(
+                          label: 'Copy Code Data',
+                          icon: const AppIcon(
+                            AppIcons.exportFile,
+                            size: 16,
+                            color: AppColors.pureWhite,
+                          ),
+                          variant: AppButtonVariant.primary,
+                          isFullWidth: true,
+                          size: AppButtonSize.medium,
+                          onPressed: () async {
+                            await Clipboard.setData(ClipboardData(text: encodedString));
+                            AppHaptics.lightImpact(ref);
+                            if (context.mounted) {
+                              AppToast.showSuccess(
+                                context,
+                                message: 'Semester code copied to clipboard.',
+                              );
+                            }
+                          },
                         ),
-                        variant: AppButtonVariant.primary,
-                        isFullWidth: true,
-                        size: AppButtonSize.medium,
-                        onPressed: () async {
-                          await Clipboard.setData(ClipboardData(text: encodedString));
-                          AppHaptics.lightImpact(ref);
-                          if (context.mounted) {
-                            AppToast.showSuccess(
-                              context,
-                              message: 'Semester code copied to clipboard.',
-                            );
-                          }
-                        },
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },
@@ -287,39 +284,40 @@ class ShareSemesterQrSheet extends ConsumerWidget {
   }
 }
 
-class _MetaChip extends StatelessWidget {
-  const _MetaChip({
+class _MetaBadge extends StatelessWidget {
+  const _MetaBadge({
     required this.icon,
     required this.label,
-    required this.color,
-    required this.backgroundColor,
   });
 
   final dynamic icon;
   final String label;
-  final Color color;
-  final Color backgroundColor;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: backgroundColor,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: const BoxDecoration(
+        color: AppColors.softLavender,
         borderRadius: AppRadius.pillBorder,
-        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AppIcon(icon, size: 12, color: color),
+          AppIcon(
+            icon,
+            size: 12,
+            color: AppColors.inkViolet,
+          ),
           const SizedBox(width: 5),
           Text(
             label,
-            style: AppTypography.labelSmall.copyWith(
-              color: color,
-              fontWeight: FontWeight.w600,
-              fontSize: 11,
+            style: AppTypography.withTabularFigures(
+              AppTypography.labelSmall.copyWith(
+                color: AppColors.inkViolet,
+                fontWeight: FontWeight.w600,
+                fontSize: 11.5,
+              ),
             ),
           ),
         ],

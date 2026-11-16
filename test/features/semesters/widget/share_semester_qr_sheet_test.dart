@@ -7,6 +7,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:attendly/core/database/app_database.dart';
 import 'package:attendly/core/providers/database_provider.dart';
+import 'package:attendly/core/shared/widgets/app_bottom_sheet.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_calculation_method.dart';
 import 'package:attendly/features/onboarding/presentation/providers/onboarding_provider.dart';
@@ -85,6 +86,37 @@ void main() {
       expect(find.text('2 courses'), findsOneWidget);
       expect(find.text('Equal weight'), findsOneWidget);
       expect(find.byType(QrImageView), findsOneWidget);
+      expect(find.text('Scan with Attendly on another phone'), findsOneWidget);
+      expect(
+        find.text(
+          'Shares courses and targets only · Attendance records stay private',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is Semantics &&
+              w.properties.label ==
+                  'QR Code for semester Spring 2026 with 2 courses',
+        ),
+        findsOneWidget,
+      );
+      // Verify QR container has single elevation: border present, no box shadows
+      final qrContainerFinder = find.ancestor(
+        of: find.byType(QrImageView),
+        matching: find.byType(Container),
+      ).first;
+      final qrContainer = tester.widget<Container>(qrContainerFinder);
+      final boxDecoration = qrContainer.decoration as BoxDecoration?;
+      expect(boxDecoration?.border, isNotNull);
+      expect(boxDecoration?.boxShadow, isNull);
+
+      // Verify close button tap target is at least 48x48
+      final closeButtonFinder = find.byType(AppCloseButton);
+      expect(tester.getSize(closeButtonFinder).width, greaterThanOrEqualTo(48.0));
+      expect(tester.getSize(closeButtonFinder).height, greaterThanOrEqualTo(48.0));
+
       expect(find.text('Copy Code Data'), findsOneWidget);
 
       await tester.pumpWidget(const SizedBox());
