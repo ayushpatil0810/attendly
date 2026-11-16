@@ -20,10 +20,16 @@ import 'package:attendly/features/subjects/domain/entities/subject.dart';
 import 'package:attendly/features/subjects/presentation/providers/subjects_provider.dart';
 
 class QuickLogSheet extends ConsumerStatefulWidget {
-  const QuickLogSheet({super.key, this.initialDate, this.initialSubjectId});
+  const QuickLogSheet({
+    super.key,
+    this.initialDate,
+    this.initialSubjectId,
+    this.title,
+  });
 
   final DateTime? initialDate;
   final int? initialSubjectId;
+  final String? title;
 
   @override
   ConsumerState<QuickLogSheet> createState() => _QuickLogSheetState();
@@ -169,237 +175,248 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
       sessionsForDateFamilyProvider(dateStr),
     );
 
-    return subjectsAsync.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.all(40),
-        child: Center(
-          child: CircularProgressIndicator(color: AppColors.brandViolet),
+    return Column(
+      children: [
+        // Drag Handle
+        const SizedBox(height: 12),
+        Container(
+          width: 36,
+          height: 4,
+          decoration: const BoxDecoration(
+            color: AppColors.divider,
+            borderRadius: AppRadius.pillBorder,
+          ),
         ),
-      ),
-      error: (err, _) => AppErrorState(
-        message: 'Subjects could not load.',
-        onRetry: () => ref.invalidate(activeSemesterSubjectsProvider),
-      ),
-      data: (subjects) {
-        if (subjects.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: const BoxDecoration(
-                    color: AppColors.softPeach,
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: const AppIcon(
-                    AppIcons.subjects,
-                    size: 28,
-                    color: AppColors.inkPeach,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'No subjects found',
+        const SizedBox(height: 12),
+
+        // Header Bar
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  widget.title ?? 'Quick Attendance Log',
                   style: AppTypography.sectionTitle,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Please add subjects to your semester before logging attendance.',
-                  style: AppTypography.bodyMuted,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                AppButton(
-                  label: 'Close',
-                  variant: AppButtonVariant.outline,
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
-            ),
-          );
-        }
-
-        // Sort subjects so initialSubjectId (if any) is at the top
-        final sortedSubjects = [...subjects];
-        if (widget.initialSubjectId != null) {
-          final idx = sortedSubjects.indexWhere(
-            (s) => s.id == widget.initialSubjectId,
-          );
-          if (idx > 0) {
-            final target = sortedSubjects.removeAt(idx);
-            sortedSubjects.insert(0, target);
-          }
-        }
-
-        final sessions = sessionsForDateAsync.value ?? [];
-        final totalLoggedOnDate = sessions.length;
-
-        // Group sessions by subjectId and component
-        final sessionsBySubjectAndComponent =
-            <int, Map<SessionComponent, List<AttendanceSession>>>{};
-        for (final s in sessions) {
-          sessionsBySubjectAndComponent
-              .putIfAbsent(s.subjectId, () => {})
-              .putIfAbsent(s.component, () => [])
-              .add(s);
-        }
-
-        return Column(
-          children: [
-            // Drag Handle
-            const SizedBox(height: 12),
-            Container(
-              width: 36,
-              height: 4,
-              decoration: const BoxDecoration(
-                color: AppColors.divider,
-                borderRadius: AppRadius.pillBorder,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Header Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'Quick Attendance Log',
-                      style: AppTypography.sectionTitle,
-                    ),
-                  ),
-                  AppCloseButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            // Distilled Date Strip
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  Semantics(
-                    button: true,
-                    label: 'Change attendance date, currently $formattedDate',
-                    child: InkWell(
-                      onTap: _selectDate,
-                      borderRadius: AppRadius.smBorder,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const AppIcon(
-                              AppIcons.calendar,
-                              size: 15,
-                              color: AppColors.brandViolet,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              isToday ? 'Today ($formattedDate)' : formattedDate,
-                              style: AppTypography.itemTitle.copyWith(
-                                color: AppColors.inkViolet,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const AppIcon(
-                              AppIcons.arrowDown,
-                              size: 13,
-                              color: AppColors.brandViolet,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  if (totalLoggedOnDate > 0)
-                    Text(
-                      totalLoggedOnDate == 1
-                          ? '1 class logged'
-                          : '$totalLoggedOnDate classes logged',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.mutedInk,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            // Day Note Banner / Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: DayNoteBanner(dateStr: dateStr, isCompact: true),
-            ),
-            const SizedBox(height: 8),
-            const Divider(height: 1, color: AppColors.divider),
-
-            // Vertical Subject List
-            Expanded(
-              child: ListView.separated(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
-                itemCount: sortedSubjects.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 10),
-                itemBuilder: (context, index) {
-                  final subject = sortedSubjects[index];
-                  final isInitial = subject.id == widget.initialSubjectId;
-                  final subjectSessions =
-                      sessionsBySubjectAndComponent[subject.id] ?? {};
-
-                  final lectureSessions =
-                      subjectSessions[SessionComponent.lecture] ?? [];
-                  final labSessions =
-                      subjectSessions[SessionComponent.lab] ?? [];
-                  final totalSubjectCount =
-                      lectureSessions.length + labSessions.length;
-
-                  return _SubjectLogCard(
-                    subject: subject,
-                    isInitial: isInitial,
-                    lectureSessions: lectureSessions,
-                    labSessions: labSessions,
-                    totalCount: totalSubjectCount,
-                    inFlightKeys: _inFlightKeys,
-                    onRecord: _recordAttendance,
-                    onDeleteSession: _deleteSession,
-                  );
-                },
-              ),
-            ),
-
-            // Bottom Sticky Done Button
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
-              decoration: const BoxDecoration(
-                color: AppColors.pureWhite,
-                border: Border(
-                  top: BorderSide(color: AppColors.divider),
                 ),
               ),
-              child: AppButton(
-                label: 'Done Logging',
-                size: AppButtonSize.large,
-                isFullWidth: true,
+              AppCloseButton(
                 onPressed: () => Navigator.of(context).pop(),
               ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        Expanded(
+          child: subjectsAsync.when(
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.brandViolet),
             ),
-          ],
-        );
-      },
+            error: (err, _) => Center(
+              child: AppErrorState(
+                message: 'Subjects could not load.',
+                onRetry: () => ref.invalidate(activeSemesterSubjectsProvider),
+              ),
+            ),
+            data: (subjects) {
+              if (subjects.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 32,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 56,
+                        height: 56,
+                        decoration: const BoxDecoration(
+                          color: AppColors.softPeach,
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: const AppIcon(
+                          AppIcons.subjects,
+                          size: 28,
+                          color: AppColors.inkPeach,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No subjects found',
+                        style: AppTypography.sectionTitle,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Please add subjects to your semester before logging attendance.',
+                        style: AppTypography.bodyMuted,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      AppButton(
+                        label: 'Close',
+                        variant: AppButtonVariant.outline,
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              // Sort subjects so initialSubjectId (if any) is at the top
+              final sortedSubjects = [...subjects];
+              if (widget.initialSubjectId != null) {
+                final idx = sortedSubjects.indexWhere(
+                  (s) => s.id == widget.initialSubjectId,
+                );
+                if (idx > 0) {
+                  final target = sortedSubjects.removeAt(idx);
+                  sortedSubjects.insert(0, target);
+                }
+              }
+
+              final sessions = sessionsForDateAsync.value ?? [];
+              final totalLoggedOnDate = sessions.length;
+
+              // Group sessions by subjectId and component
+              final sessionsBySubjectAndComponent =
+                  <int, Map<SessionComponent, List<AttendanceSession>>>{};
+              for (final s in sessions) {
+                sessionsBySubjectAndComponent
+                    .putIfAbsent(s.subjectId, () => {})
+                    .putIfAbsent(s.component, () => [])
+                    .add(s);
+              }
+
+              return Column(
+                children: [
+                  // Distilled Date Strip
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        Semantics(
+                          button: true,
+                          label:
+                              'Change attendance date, currently $formattedDate',
+                          child: InkWell(
+                            onTap: _selectDate,
+                            borderRadius: AppRadius.smBorder,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const AppIcon(
+                                    AppIcons.calendar,
+                                    size: 15,
+                                    color: AppColors.brandViolet,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    isToday
+                                        ? 'Today ($formattedDate)'
+                                        : formattedDate,
+                                    style: AppTypography.itemTitle.copyWith(
+                                      color: AppColors.inkViolet,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const AppIcon(
+                                    AppIcons.arrowDown,
+                                    size: 13,
+                                    color: AppColors.brandViolet,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const Spacer(),
+                        if (totalLoggedOnDate > 0)
+                          Text(
+                            totalLoggedOnDate == 1
+                                ? '1 class logged'
+                                : '$totalLoggedOnDate classes logged',
+                            style: AppTypography.labelSmall.copyWith(
+                              color: AppColors.mutedInk,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Day Note Banner / Button
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: DayNoteBanner(dateStr: dateStr, isCompact: true),
+                  ),
+                  const SizedBox(height: 8),
+                  const Divider(height: 1, color: AppColors.divider),
+
+                  // Vertical Subject List
+                  Expanded(
+                    child: ListView.separated(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+                      itemCount: sortedSubjects.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final subject = sortedSubjects[index];
+                        final isInitial = subject.id == widget.initialSubjectId;
+                        final subjectSessions =
+                            sessionsBySubjectAndComponent[subject.id] ?? {};
+
+                        final lectureSessions =
+                            subjectSessions[SessionComponent.lecture] ?? [];
+                        final labSessions =
+                            subjectSessions[SessionComponent.lab] ?? [];
+                        final totalSubjectCount =
+                            lectureSessions.length + labSessions.length;
+
+                        return _SubjectLogCard(
+                          subject: subject,
+                          isInitial: isInitial,
+                          lectureSessions: lectureSessions,
+                          labSessions: labSessions,
+                          totalCount: totalSubjectCount,
+                          inFlightKeys: _inFlightKeys,
+                          onRecord: _recordAttendance,
+                          onDeleteSession: _deleteSession,
+                        );
+                      },
+                    ),
+                  ),
+
+                  // Bottom Sticky Done Button
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
+                    decoration: const BoxDecoration(
+                      color: AppColors.pureWhite,
+                      border: Border(
+                        top: BorderSide(color: AppColors.divider),
+                      ),
+                    ),
+                    child: AppButton(
+                      label: 'Done Logging',
+                      size: AppButtonSize.large,
+                      isFullWidth: true,
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
@@ -796,6 +813,7 @@ void showQuickLogSheet({
   required BuildContext context,
   DateTime? initialDate,
   int? initialSubjectId,
+  String? title,
 }) {
   showModalBottomSheet<void>(
     context: context,
@@ -817,6 +835,7 @@ void showQuickLogSheet({
             child: QuickLogSheet(
               initialDate: initialDate,
               initialSubjectId: initialSubjectId,
+              title: title,
             ),
           ),
         ),

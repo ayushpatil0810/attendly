@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:attendly/core/errors/app_failure.dart';
 import 'package:attendly/core/services/preferences_service.dart';
 import 'package:attendly/core/shared/widgets/app_bottom_sheet.dart';
-import 'package:attendly/core/shared/widgets/app_error_state.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
+import 'package:attendly/core/shared/widgets/app_error_state.dart';
 import 'package:attendly/core/shared/widgets/app_segmented_control.dart';
 import 'package:attendly/core/shared/widgets/app_text_field.dart';
 import 'package:attendly/core/shared/widgets/app_toast.dart';
@@ -18,9 +19,9 @@ import 'package:attendly/features/attendance/domain/entities/session_component.d
 import 'package:attendly/features/attendance/presentation/providers/attendance_providers.dart';
 import 'package:attendly/features/subjects/domain/entities/subject.dart';
 import 'package:attendly/features/subjects/presentation/providers/subjects_provider.dart';
-import 'package:intl/intl.dart';
 
 import 'delete_session_dialog.dart';
+import 'quick_log_sheet.dart';
 
 class SessionFormSheet extends ConsumerStatefulWidget {
   const SessionFormSheet({super.key, this.sessionToEdit, this.prefilledDate});
@@ -74,7 +75,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
       context: context,
       initialDate: _sessionDate,
       firstDate: DateTime(2020),
-      lastDate: DateTime(now.year, now.month, now.day), // Future dates rejected
+      lastDate: DateTime(now.year, now.month, now.day),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -93,16 +94,6 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
       setState(() {
         _sessionDate = DateTime(picked.year, picked.month, picked.day);
       });
-    }
-  }
-
-  void _syncComponentForSubject(Subject subject) {
-    if (subject.hasBothComponents) {
-      // keep current selection
-    } else if (subject.lectureEnabled) {
-      _component = SessionComponent.lecture;
-    } else if (subject.labEnabled) {
-      _component = SessionComponent.lab;
     }
   }
 
@@ -239,6 +230,13 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_isEditing) {
+      return QuickLogSheet(
+        initialDate: widget.prefilledDate,
+        title: 'Record Historical Session',
+      );
+    }
+
     final subjectsAsync = ref.watch(activeSemesterSubjectsProvider);
 
     return subjectsAsync.when(
@@ -265,20 +263,53 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
           orElse: () => subjects.first,
         );
 
-        if (_subjectId == null) {
-          _subjectId = selectedSubject.id;
-          _syncComponentForSubject(selectedSubject);
-        }
-
         final dateDisplay = DateFormat('EEEE, d MMMM yyyy')
             .format(_sessionDate);
 
         return SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Subject display
+              const Text('Subject', style: AppTypography.labelSmall),
+              const SizedBox(height: 6),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.softLavender.withValues(alpha: 0.5),
+                  borderRadius: AppRadius.mdBorder,
+                  border: Border.all(
+                    color: AppColors.brandViolet.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const AppIcon(
+                      AppIcons.subjects,
+                      size: 18,
+                      color: AppColors.inkViolet,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        selectedSubject.name,
+                        style: AppTypography.itemTitle.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
               // Date row
               const Text('Date', style: AppTypography.labelSmall),
               const SizedBox(height: 6),
@@ -291,7 +322,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.track.withValues(alpha: 0.5),
+                    color: AppColors.pureWhite,
                     borderRadius: AppRadius.mdBorder,
                     border: Border.all(color: AppColors.border),
                   ),
@@ -321,84 +352,6 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
 
               const SizedBox(height: 16),
 
-              // Subject selection
-              const Text('Subject', style: AppTypography.labelSmall),
-              const SizedBox(height: 6),
-              if (_isEditing)
-                // When editing, show current subject name clearly
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.track.withValues(alpha: 0.4),
-                    borderRadius: AppRadius.mdBorder,
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Text(
-                    selectedSubject.name,
-                    style: AppTypography.itemTitle,
-                  ),
-                )
-              else
-                // Horizontal chips when adding
-                SizedBox(
-                  height: 48,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: subjects.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(width: 8),
-                    itemBuilder: (context, index) {
-                      final subject = subjects[index];
-                      final isSelected = subject.id == _subjectId;
-
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _subjectId = subject.id;
-                            _syncComponentForSubject(subject);
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? AppColors.softLavender
-                                : AppColors.pureWhite,
-                            borderRadius: AppRadius.pillBorder,
-                            border: Border.all(
-                              color: isSelected
-                                  ? AppColors.brandViolet
-                                  : AppColors.border,
-                              width: isSelected ? 1.5 : 1,
-                            ),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            subject.name,
-                            style: AppTypography.itemTitle.copyWith(
-                              color: isSelected
-                                  ? AppColors.inkViolet
-                                  : AppColors.ink,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-              const SizedBox(height: 16),
-
               // Component selection
               if (selectedSubject.hasBothComponents) ...[
                 const Text('Component', style: AppTypography.labelSmall),
@@ -408,11 +361,17 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                     SegmentItem(
                       value: SessionComponent.lecture,
                       label: 'Lecture',
+                      icon: AppIcon(AppIcons.lecture, size: 16),
                     ),
-                    SegmentItem(value: SessionComponent.lab, label: 'Lab'),
+                    SegmentItem(
+                      value: SessionComponent.lab,
+                      label: 'Lab',
+                      icon: AppIcon(AppIcons.lab, size: 16),
+                    ),
                   ],
                   selectedValue: _component,
                   onChanged: (comp) {
+                    AppHaptics.selectionClick(ref);
                     setState(() => _component = comp);
                   },
                 ),
@@ -451,11 +410,25 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                   SegmentItem(
                     value: AttendanceStatus.present,
                     label: 'Present',
+                    icon: AppIcon(
+                      AppIcons.check,
+                      size: 16,
+                      color: AppColors.inkMint,
+                    ),
                   ),
-                  SegmentItem(value: AttendanceStatus.absent, label: 'Absent'),
+                  SegmentItem(
+                    value: AttendanceStatus.absent,
+                    label: 'Absent',
+                    icon: AppIcon(
+                      AppIcons.close,
+                      size: 16,
+                      color: AppColors.inkCoral,
+                    ),
+                  ),
                 ],
                 selectedValue: _status,
                 onChanged: (st) {
+                  AppHaptics.selectionClick(ref);
                   setState(() => _status = st);
                 },
               ),
@@ -466,33 +439,32 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
               AppTextField(
                 controller: _noteController,
                 label: 'Note (Optional)',
-                hint: 'e.g. Guest lecture, Unit test',
+                hint: 'e.g. Guest lecture, Unit test, Lab viva',
+                textCapitalization: TextCapitalization.sentences,
+                maxLength: 150,
               ),
 
               const SizedBox(height: 24),
 
-              // Action buttons
+              // Action buttons: Delete and Save Changes
               Row(
                 children: [
-                  if (_isEditing) ...[
-                    // Delete button
-                    AppButton(
-                      label: 'Delete',
-                      icon: const AppIcon(
-                        AppIcons.delete,
-                        size: 16,
-                        color: AppColors.pureWhite,
-                      ),
-                      variant: AppButtonVariant.destructive,
-                      onPressed: () => _handleDelete(selectedSubject),
+                  AppButton(
+                    label: 'Delete',
+                    icon: const AppIcon(
+                      AppIcons.delete,
+                      size: 16,
+                      color: AppColors.pureWhite,
                     ),
-                    const SizedBox(width: 12),
-                  ],
+                    variant: AppButtonVariant.destructive,
+                    onPressed: () => _handleDelete(selectedSubject),
+                  ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: AppButton(
-                      label: _isEditing ? 'Save Changes' : 'Record Session',
-                      icon: AppIcon(
-                        _isEditing ? AppIcons.check : AppIcons.add,
+                      label: 'Save Changes',
+                      icon: const AppIcon(
+                        AppIcons.check,
                         size: 16,
                         color: AppColors.pureWhite,
                       ),
@@ -515,55 +487,70 @@ void showSessionFormSheet({
   AttendanceSession? sessionToEdit,
   DateTime? prefilledDate,
 }) {
+  if (sessionToEdit == null) {
+    showQuickLogSheet(
+      context: context,
+      initialDate: prefilledDate,
+      title: 'Record Historical Session',
+    );
+    return;
+  }
+
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: AppColors.pureWhite,
     shape: const RoundedRectangleBorder(borderRadius: AppRadius.sheetTop),
     builder: (context) {
-      return SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 36,
-                height: 4,
-                decoration: const BoxDecoration(
-                  color: AppColors.divider,
-                  borderRadius: AppRadius.pillBorder,
+      final mediaQuery = MediaQuery.of(context);
+      return ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: mediaQuery.size.height * 0.88,
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: mediaQuery.viewInsets.bottom,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 12),
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: const BoxDecoration(
+                    color: AppColors.divider,
+                    borderRadius: AppRadius.pillBorder,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        sessionToEdit != null
-                            ? 'Edit Session'
-                            : 'Record Historical Session',
-                        style: AppTypography.sectionTitle,
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Edit Session',
+                          style: AppTypography.sectionTitle,
+                        ),
                       ),
-                    ),
-                    AppCloseButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
+                      AppCloseButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const Divider(color: AppColors.divider, height: 20),
-              SessionFormSheet(
-                sessionToEdit: sessionToEdit,
-                prefilledDate: prefilledDate,
-              ),
-            ],
+                const Divider(color: AppColors.divider, height: 20),
+                Expanded(
+                  child: SessionFormSheet(
+                    sessionToEdit: sessionToEdit,
+                    prefilledDate: prefilledDate,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );

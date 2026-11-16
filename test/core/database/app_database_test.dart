@@ -21,8 +21,8 @@ void main() {
   });
 
   group('Database initialization & schema', () {
-    test('database opens and schemaVersion is 3', () {
-      expect(db.schemaVersion, equals(3));
+    test('database opens and schemaVersion is 4', () {
+      expect(db.schemaVersion, equals(4));
     });
 
     test('can insert and retrieve a semester', () async {
@@ -429,8 +429,8 @@ void main() {
     });
   });
 
-  group('Database migrations (v1 -> v3)', () {
-    test('migrates database from v1 to v3 and keeps same-day sessions', () async {
+  group('Database migrations (v1 -> v4)', () {
+    test('migrates database from v1 to v4 and keeps same-day sessions', () async {
       final tempDir = await Directory.systemTemp.createTemp(
         'attendly_migration_test_',
       );
@@ -505,9 +505,9 @@ void main() {
 
       await executor.close();
 
-      // 2. Open with AppDatabase v2, triggering onUpgrade from v1 to v2
+      // 2. Open with AppDatabase v4, triggering onUpgrade from v1 to v4
       final upgradedDb = AppDatabase.forTesting(NativeDatabase(dbFile));
-      expect(upgradedDb.schemaVersion, equals(3));
+      expect(upgradedDb.schemaVersion, equals(4));
 
       // 3. Verify existing data preserved
       final semesters = await upgradedDb.select(upgradedDb.semesters).get();
