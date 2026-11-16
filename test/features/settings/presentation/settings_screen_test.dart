@@ -125,6 +125,7 @@ void main() {
       expect(find.text('Export Backup'), findsOneWidget);
       expect(find.text('Restore Backup'), findsOneWidget);
       expect(find.text('Haptic Feedback'), findsOneWidget);
+      expect(find.byTooltip('Share Semester via QR'), findsOneWidget);
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);

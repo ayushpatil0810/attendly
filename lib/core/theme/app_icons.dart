@@ -39,6 +39,10 @@ abstract final class AppIcons {
   static const device = HugeIcons.strokeRoundedSmartPhone01;
   static const database = HugeIcons.strokeRoundedDatabase;
   static const note = HugeIcons.strokeRoundedNote01;
+  static const qrCode = HugeIcons.strokeRoundedQrCode;
+  static const scan = HugeIcons.strokeRoundedScan;
+  static const flash = HugeIcons.strokeRoundedFlash;
+  static const flashOff = HugeIcons.strokeRoundedFlashOff;
 }
 
 /// Standardized HugeIcon wrapper for uniform styling

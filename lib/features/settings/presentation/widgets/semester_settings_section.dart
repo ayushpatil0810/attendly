@@ -14,6 +14,7 @@ import 'package:attendly/features/semesters/domain/entities/semester.dart';
 import 'package:attendly/features/semesters/presentation/providers/semesters_provider.dart';
 import 'package:attendly/features/semesters/presentation/widgets/semester_form_sheet.dart';
 import 'package:attendly/features/semesters/presentation/widgets/semester_switcher_sheet.dart';
+import 'package:attendly/features/semesters/presentation/widgets/share_semester_qr_sheet.dart';
 
 class SemesterSettingsSection extends ConsumerWidget {
   const SemesterSettingsSection({super.key, required this.activeSemester});
@@ -155,6 +156,22 @@ class SemesterSettingsSection extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 8),
+              IconButton(
+                icon: const AppIcon(
+                  AppIcons.qrCode,
+                  size: 18,
+                  color: AppColors.brandViolet,
+                ),
+                tooltip: 'Share Semester via QR',
+                onPressed: () {
+                  AppHaptics.selectionClick(ref);
+                  showShareSemesterQrSheet(
+                    context: context,
+                    semester: semester,
+                  );
+                },
+              ),
+              const SizedBox(width: 4),
               AppButton(
                 label: 'Switch',
                 variant: AppButtonVariant.outline,

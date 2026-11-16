@@ -7,10 +7,12 @@ import 'package:attendly/core/shared/widgets/app_segmented_control.dart';
 import 'package:attendly/core/shared/widgets/app_text_field.dart';
 import 'package:attendly/core/shared/widgets/app_toast.dart';
 import 'package:attendly/core/theme/app_colors.dart';
+import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_calculation_method.dart';
 import 'package:attendly/features/semesters/presentation/providers/semesters_provider.dart';
+import 'scan_semester_qr_screen.dart';
 
 class SemesterSetupScreen extends ConsumerStatefulWidget {
   const SemesterSetupScreen({super.key});
@@ -206,6 +208,41 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                   label: 'Save & Continue',
                   onPressed: _submit,
                   isLoading: _isLoading,
+                  isFullWidth: true,
+                  size: AppButtonSize.large,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const Expanded(child: Divider(color: AppColors.divider)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'OR',
+                        style: AppTypography.labelSmall.copyWith(
+                          color: AppColors.mutedInk,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const Expanded(child: Divider(color: AppColors.divider)),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                AppButton(
+                  label: 'Scan QR to Import Semester',
+                  icon: const AppIcon(
+                    AppIcons.scan,
+                    size: 18,
+                    color: AppColors.inkViolet,
+                  ),
+                  variant: AppButtonVariant.outline,
+                  onPressed: () async {
+                    final success = await openScanSemesterQrScreen(context);
+                    if (success == true && context.mounted) {
+                      context.go('/home');
+                    }
+                  },
                   isFullWidth: true,
                   size: AppButtonSize.large,
                 ),

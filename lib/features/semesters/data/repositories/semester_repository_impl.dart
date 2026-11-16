@@ -3,6 +3,7 @@ import 'package:attendly/core/database/app_database.dart';
 import 'package:attendly/core/errors/app_failure.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_calculation_method.dart';
 import 'package:attendly/features/semesters/domain/entities/semester.dart';
+import 'package:attendly/features/semesters/domain/entities/semester_qr_payload.dart';
 import 'package:attendly/features/semesters/domain/repositories/semester_repository.dart';
 
 class SemesterRepositoryImpl implements SemesterRepository {
@@ -204,5 +205,105 @@ class SemesterRepositoryImpl implements SemesterRepository {
     } catch (e) {
       throw DatabaseFailure('Failed to delete semester: $e');
     }
+  }
+
+  @override
+  Future<SemesterQrPayload> exportSemesterPayload(int semesterId) async {
+    final semester = await getSemesterById(semesterId);
+    if (semester == null) {
+      throw const NotFoundFailure('Semester not found');
+    }
+
+    final subjectRows = await (_db.select(_db.subjects)
+          ..where((tbl) => tbl.semesterId.equals(semesterId))
+          ..orderBy([(tbl) => OrderingTerm(expression: tbl.sortOrder)]))
+        .get();
+
+    final subjects = subjectRows
+        .map(
+          (row) => SubjectQrPayload(
+            name: row.name,
+            lectureEnabled: row.lectureEnabled,
+            labEnabled: row.labEnabled,
+            sortOrder: row.sortOrder,
+          ),
+        )
+        .toList();
+
+    return SemesterQrPayload(
+      semesterName: semester.name,
+      attendanceThreshold: semester.attendanceThreshold,
+      calculationMethod: semester.calculationMethod,
+      subjects: subjects,
+    );
+  }
+
+  @override
+  Future<int> importSemesterPayload(
+    SemesterQrPayload payload, {
+    String? customName,
+    bool replaceExisting = false,
+  }) async {
+    final initialName = (customName?.trim().isNotEmpty == true)
+        ? customName!.trim()
+        : payload.semesterName.trim();
+
+    return _db.transaction(() async {
+      String finalName = initialName;
+
+      final existingSemesters = await _db.select(_db.semesters).get();
+      final match = existingSemesters
+          .where((s) => s.name.toLowerCase() == initialName.toLowerCase())
+          .firstOrNull;
+
+      if (match != null) {
+        if (replaceExisting) {
+          // Delete existing (cascade will remove its subjects & sessions)
+          await (_db.delete(_db.semesters)
+                ..where((tbl) => tbl.id.equals(match.id)))
+              .go();
+          finalName = match.name;
+        } else {
+          // Generate a unique non-colliding name
+          int counter = 1;
+          String candidate = '$initialName (Imported)';
+          while (existingSemesters.any(
+            (s) => s.name.toLowerCase() == candidate.toLowerCase(),
+          )) {
+            counter++;
+            candidate = '$initialName (Imported $counter)';
+          }
+          finalName = candidate;
+        }
+      }
+
+      final now = DateTime.now().toUtc().millisecondsSinceEpoch;
+      final semesterId = await _db.into(_db.semesters).insert(
+            SemestersCompanion.insert(
+              name: finalName,
+              attendanceThreshold: Value(payload.attendanceThreshold),
+              calculationMethod: Value(payload.calculationMethod.dbValue),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+
+      for (var i = 0; i < payload.subjects.length; i++) {
+        final s = payload.subjects[i];
+        await _db.into(_db.subjects).insert(
+              SubjectsCompanion.insert(
+                semesterId: semesterId,
+                name: s.name.trim(),
+                lectureEnabled: Value(s.lectureEnabled),
+                labEnabled: Value(s.labEnabled),
+                sortOrder: Value(s.sortOrder == 0 ? i : s.sortOrder),
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+      }
+
+      return semesterId;
+    });
   }
 }
