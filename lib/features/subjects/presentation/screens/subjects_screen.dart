@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/shared/widgets/app_bottom_sheet.dart';
@@ -5,7 +6,6 @@ import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/shared/widgets/app_empty_state.dart';
 import 'package:attendly/core/shared/widgets/app_error_state.dart';
 import 'package:attendly/core/shared/widgets/app_loading_state.dart';
-import 'package:attendly/core/shared/widgets/app_progress.dart';
 import 'package:attendly/core/shared/widgets/app_toast.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
@@ -15,12 +15,11 @@ import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/attendance/domain/entities/subject_attendance_summary.dart';
 import 'package:attendly/features/attendance/domain/entities/threshold_status.dart';
 import 'package:attendly/features/attendance/presentation/providers/attendance_providers.dart';
-import 'package:attendly/features/semesters/domain/entities/semester.dart';
+import 'package:attendly/features/attendance/presentation/widgets/quick_log_sheet.dart';
 import 'package:attendly/features/semesters/presentation/providers/semesters_provider.dart';
 import 'package:attendly/features/semesters/presentation/widgets/semester_switcher_sheet.dart';
 import 'package:attendly/features/subjects/domain/entities/subject.dart';
 import 'package:attendly/features/subjects/presentation/providers/subjects_provider.dart';
-import 'package:attendly/features/subjects/presentation/widgets/subject_detail_sheet.dart';
 import 'package:attendly/features/subjects/presentation/widgets/subject_form_sheet.dart';
 
 class SubjectsScreen extends ConsumerWidget {
@@ -39,24 +38,6 @@ class SubjectsScreen extends ConsumerWidget {
       context: context,
       title: 'Edit Subject',
       child: SubjectFormSheet(semesterId: semesterId, initialSubject: subject),
-    );
-  }
-
-  void _openSubjectDetail(
-    BuildContext context,
-    WidgetRef ref,
-    Subject subject,
-    SubjectAttendanceSummary? summary,
-    Semester activeSemester,
-  ) {
-    showSubjectDetailSheet(
-      context: context,
-      subject: subject,
-      summary: summary,
-      threshold: activeSemester.attendanceThreshold,
-      calculationMethod: activeSemester.calculationMethod,
-      onEdit: () => _openEditSubject(context, activeSemester.id, subject),
-      onDelete: () => _confirmDelete(context, ref, subject),
     );
   }
 
@@ -156,7 +137,7 @@ class SubjectsScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Bar with Semester context and Add button
+            // Top Bar with Semester context and Add button (matches DashboardHeader)
             Padding(
               padding: const EdgeInsets.only(
                 left: AppSpacing.screenHorizontal,
@@ -165,64 +146,77 @@ class SubjectsScreen extends ConsumerWidget {
                 bottom: 12,
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  // Left: Screen Title
+                  Text(
+                    'Subjects',
+                    style: AppTypography.screenTitle.copyWith(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.8,
+                      color: AppColors.brandViolet,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+
+                  // Centre: Active semester switcher
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Subjects', style: AppTypography.screenTitle),
-                        const SizedBox(height: 2),
-                        Semantics(
-                          button: true,
-                          label:
-                              'Switch active semester, currently ${activeSemester.name}',
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {
-                                showAppBottomSheet(
-                                  context: context,
-                                  title: 'Switch Semester',
-                                  child: const SemesterSwitcherSheet(),
-                                );
-                              },
-                              borderRadius: BorderRadius.circular(6),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 2,
-                                  horizontal: 2,
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Flexible(
-                                      child: Text(
-                                        activeSemester.name,
-                                        style: AppTypography.labelMedium
-                                            .copyWith(
-                                              color: AppColors.inkViolet,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
+                    child: Center(
+                      child: Semantics(
+                        button: true,
+                        label:
+                            'Switch active semester, currently ${activeSemester.name}',
+                        child: Material(
+                          color:
+                              AppColors.softLavender.withValues(alpha: 0.6),
+                          borderRadius: AppRadius.pillBorder,
+                          child: InkWell(
+                            onTap: () {
+                              showAppBottomSheet(
+                                context: context,
+                                title: 'Semesters',
+                                child: const SemesterSwitcherSheet(),
+                              );
+                            },
+                            borderRadius: AppRadius.pillBorder,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 7,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      activeSemester.name,
+                                      style: AppTypography.labelMedium
+                                          .copyWith(
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 14,
+                                            color: AppColors.ink,
+                                          ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    const SizedBox(width: 4),
-                                    const AppIcon(
-                                      AppIcons.arrowDown,
-                                      size: 14,
-                                      color: AppColors.brandViolet,
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  const AppIcon(
+                                    AppIcons.arrowDown,
+                                    size: 15,
+                                    color: AppColors.inkViolet,
+                                  ),
+                                ],
                               ),
                             ),
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 8),
+
+                  // Right: Add Subject action button
                   AppButton(
                     label: 'Add Subject',
                     icon: const AppIcon(
@@ -237,7 +231,6 @@ class SubjectsScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            const Divider(height: 1, color: AppColors.divider),
 
             // Content
             Expanded(
@@ -278,13 +271,6 @@ class SubjectsScreen extends ConsumerWidget {
                         subject: subject,
                         summary: summary,
                         threshold: activeSemester.attendanceThreshold,
-                        onTap: () => _openSubjectDetail(
-                          context,
-                          ref,
-                          subject,
-                          summary,
-                          activeSemester,
-                        ),
                         onEdit: () => _openEditSubject(
                           context,
                           activeSemester.id,
@@ -310,29 +296,38 @@ class SubjectsScreen extends ConsumerWidget {
   }
 }
 
-class _SubjectCard extends StatelessWidget {
+class _SubjectCard extends StatefulWidget {
   const _SubjectCard({
     required this.subject,
     required this.summary,
     required this.threshold,
-    required this.onTap,
     required this.onEdit,
     required this.onDelete,
   });
 
+  static const double _ringSize = 46;
+  static const double _strokeWidth = 4.0;
+
   final Subject subject;
   final SubjectAttendanceSummary? summary;
   final double threshold;
-  final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
+  @override
+  State<_SubjectCard> createState() => _SubjectCardState();
+}
+
+class _SubjectCardState extends State<_SubjectCard> {
+  bool _isExpanded = false;
+
   Color _getProgressColor() {
-    if (summary == null || summary!.totalConducted == 0) {
+    final summary = widget.summary;
+    if (summary == null || summary.totalConducted == 0) {
       return AppColors.track;
     }
-    if (summary!.isProvisional) return AppColors.brandPeach;
-    switch (summary!.thresholdStatus) {
+    if (summary.isProvisional) return AppColors.brandPeach;
+    switch (summary.thresholdStatus) {
       case ThresholdStatus.meeting:
         return AppColors.brandMint;
       case ThresholdStatus.below:
@@ -342,296 +337,633 @@ class _SubjectCard extends StatelessWidget {
     }
   }
 
-  Color _getStatusTextColor() {
-    if (summary == null || summary!.totalConducted == 0) {
-      return AppColors.mutedInk;
+  String _formatPct() {
+    final pct = widget.summary?.percentage;
+    if (pct == null || widget.summary?.isNotAvailable == true) {
+      return 'N/A';
     }
-    if (summary!.isProvisional) return AppColors.inkPeach;
-    switch (summary!.thresholdStatus) {
-      case ThresholdStatus.meeting:
-        return AppColors.inkMint;
-      case ThresholdStatus.below:
-        return AppColors.inkCoral;
-      case ThresholdStatus.notAvailable:
-        return AppColors.mutedInk;
-    }
-  }
+    final pctStr = pct == pct.roundToDouble()
+        ? '${pct.toInt()}%'
+        : '${pct.toStringAsFixed(1)}%';
 
-  Color _getStatusBadgeBg() {
-    if (summary == null || summary!.totalConducted == 0) {
-      return AppColors.track;
+    if (widget.summary?.isProvisional == true) {
+      return '$pctStr*';
     }
-    if (summary!.isProvisional) return AppColors.softPeach;
-    switch (summary!.thresholdStatus) {
-      case ThresholdStatus.meeting:
-        return AppColors.softMint;
-      case ThresholdStatus.below:
-        return AppColors.softCoral;
-      case ThresholdStatus.notAvailable:
-        return AppColors.track;
-    }
-  }
-
-  String _getStatusLabel() {
-    if (summary == null || summary!.totalConducted == 0) {
-      return 'No records yet';
-    }
-    if (summary!.isProvisional) return 'Provisional';
-    switch (summary!.thresholdStatus) {
-      case ThresholdStatus.meeting:
-        return 'Meeting target';
-      case ThresholdStatus.below:
-        return 'Below target';
-      case ThresholdStatus.notAvailable:
-        return 'No records';
-    }
+    return pctStr;
   }
 
   @override
   Widget build(BuildContext context) {
-    final hasData = summary != null && summary!.totalConducted > 0;
+    final summary = widget.summary;
+    final hasData = summary != null && summary.totalConducted > 0;
     final progressColor = _getProgressColor();
-    final statusTextColor = _getStatusTextColor();
-    final statusBadgeBg = _getStatusBadgeBg();
-    final statusLabel = _getStatusLabel();
+    final pctDisplay = _formatPct();
     final pct = summary?.percentage;
+    final progress = pct != null ? (pct / 100.0).clamp(0.0, 1.0) : 0.0;
+    final thresholdPercent = (widget.threshold * 100).toInt();
 
-    final pctDisplay = pct != null
-        ? (pct == pct.roundToDouble()
-              ? '${pct.toInt()}%'
-              : '${pct.toStringAsFixed(1)}%')
-        : null;
-
-    final semanticText = StringBuffer(subject.name)
-      ..write(
-        hasData
-            ? ', $pctDisplay, $statusLabel. ${summary!.totalPresent} of ${summary!.totalConducted} sessions attended.'
-            : ', No sessions recorded yet.',
-      )
-      ..write(' Components: ')
-      ..write(
-        [
-          if (subject.lectureEnabled) 'Lecture',
-          if (subject.labEnabled) 'Lab',
-        ].join(' and '),
-      );
-
-    return Semantics(
-      button: true,
-      label: semanticText.toString(),
-      child: Material(
-        color: AppColors.pureWhite,
-        borderRadius: AppRadius.lgBorder,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: AppRadius.lgBorder,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              borderRadius: AppRadius.lgBorder,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.ink.withAlpha(6),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Line 1: Course Name on left; Standing & Actions on right
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        subject.name,
-                        style: AppTypography.itemTitle.copyWith(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-
-                    if (hasData && pctDisplay != null) ...[
-                      Text(
-                        pctDisplay,
-                        style: AppTypography.itemTitle.copyWith(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: statusTextColor,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: statusBadgeBg,
-                          borderRadius: AppRadius.pillBorder,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 5,
-                              height: 5,
-                              decoration: BoxDecoration(
-                                color: statusTextColor,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              statusLabel,
-                              style: AppTypography.labelSmall.copyWith(
-                                color: statusTextColor,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                    ],
-
-                    // Lightweight Overflow Menu
-                    PopupMenuButton<String>(
-                      tooltip: 'Subject options',
-                      icon: const AppIcon(
-                        AppIcons.more,
-                        size: 18,
-                        color: AppColors.mutedInk,
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 48,
-                        minHeight: 48,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: AppRadius.mdBorder,
-                      ),
-                      onSelected: (val) {
-                        if (val == 'edit') onEdit();
-                        if (val == 'delete') onDelete();
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'edit',
-                          child: Row(
-                            children: [
-                              AppIcon(AppIcons.edit, size: 16),
-                              SizedBox(width: 8),
-                              Text('Edit Subject'),
-                            ],
+    return Material(
+      color: AppColors.pureWhite,
+      borderRadius: AppRadius.mdBorder,
+      child: InkWell(
+        onTap: () => setState(() => _isExpanded = !_isExpanded),
+        borderRadius: AppRadius.mdBorder,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.pureWhite,
+            borderRadius: AppRadius.mdBorder,
+            border: Border.all(color: AppColors.divider),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Main Card Header (Ring, Title, Inline metadata, Chevron)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Prominent Mini Donut Ring (46x46)
+                  SizedBox(
+                    width: _SubjectCard._ringSize,
+                    height: _SubjectCard._ringSize,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        CustomPaint(
+                          size: const Size.square(_SubjectCard._ringSize),
+                          painter: _MiniRingPainter(
+                            progress: progress,
+                            progressColor: progressColor,
+                            trackColor: AppColors.track,
+                            hasData: hasData,
+                            strokeWidth: _SubjectCard._strokeWidth,
                           ),
                         ),
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              AppIcon(
-                                AppIcons.delete,
-                                size: 16,
-                                color: AppColors.inkCoral,
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: Text(
+                              pctDisplay,
+                              style: AppTypography.labelSmall.copyWith(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.3,
+                                color: AppColors.ink,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
                               ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Delete Subject',
-                                style: TextStyle(color: AppColors.inkCoral),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 8),
+                  ),
+                  const SizedBox(width: AppSpacing.sm + 4),
 
-                // Line 2: Streamlined Progress Bar
-                AppProgressBar(
-                  progress: pct != null ? (pct / 100.0).clamp(0.0, 1.0) : 0.0,
-                  color: progressColor,
-                  height: 5,
-                ),
-                const SizedBox(height: 8),
-
-                // Line 3: Compact Metadata (Component tags & Sessions count)
-                Row(
-                  children: [
-                    if (subject.lectureEnabled) ...[
-                      _ComponentBadge(
-                        label: 'Lecture',
-                        color: AppColors.brandViolet,
-                        bg: AppColors.softLavender,
-                      ),
-                      const SizedBox(width: 6),
-                    ],
-                    if (subject.labEnabled) ...[
-                      _ComponentBadge(
-                        label: 'Lab',
-                        color: AppColors.inkMint,
-                        bg: AppColors.softMint,
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    Expanded(
-                      child: Text(
-                        hasData
-                            ? '${summary!.totalPresent} of ${summary!.totalConducted} sessions attended'
-                            : 'No sessions recorded yet',
-                        style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.mutedInk,
-                          fontSize: 11,
-                          fontFeatures: const [FontFeature.tabularFigures()],
+                  // Middle Column: Title & Metadata (Clean, NO badges!)
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          widget.subject.name,
+                          style: AppTypography.itemTitle.copyWith(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.2,
+                            color: AppColors.ink,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                        const SizedBox(height: 3),
+
+                        // Line 2: Components & Attendance count (clean typography)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            if (widget.subject.lectureEnabled)
+                              Text(
+                                'Lecture',
+                                style: AppTypography.labelSmall.copyWith(
+                                  color: AppColors.brandViolet,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            if (widget.subject.lectureEnabled &&
+                                widget.subject.labEnabled)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                child: Text(
+                                  '•',
+                                  style: AppTypography.labelSmall.copyWith(
+                                    color: AppColors.mutedInk
+                                        .withValues(alpha: 0.35),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            if (widget.subject.labEnabled)
+                              Text(
+                                'Lab',
+                                style: AppTypography.labelSmall.copyWith(
+                                  color: AppColors.inkMint,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 5),
+                              child: Text(
+                                '•',
+                                style: AppTypography.labelSmall.copyWith(
+                                  color:
+                                      AppColors.mutedInk.withValues(alpha: 0.35),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                hasData
+                                    ? '${summary.totalPresent} of ${summary.totalConducted} sessions attended'
+                                    : 'No sessions recorded yet',
+                                style: AppTypography.labelSmall.copyWith(
+                                  color: AppColors.mutedInk,
+                                  fontSize: 12,
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                  const SizedBox(width: 6),
+
+                  // Trailing Expand / Collapse Chevron
+                  AnimatedRotation(
+                    turns: _isExpanded ? 0.5 : 0.0,
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
+                    child: const AppIcon(
+                      AppIcons.arrowDown,
+                      size: 16,
+                      color: AppColors.mutedInk,
+                    ),
+                  ),
+                ],
+              ),
+
+              // Expandable Content Section (Direct in-card details, no drawer needed)
+              AnimatedSize(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeInOut,
+                alignment: Alignment.topCenter,
+                child: _isExpanded
+                    ? _buildExpandedContent(
+                        context,
+                        hasData,
+                        thresholdPercent,
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+
+  Widget _buildExpandedContent(
+    BuildContext context,
+    bool hasData,
+    int thresholdPercent,
+  ) {
+    final summary = widget.summary;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        const Divider(height: 1, color: AppColors.divider),
+        const SizedBox(height: 12),
+
+        // 1. Quick Metrics Strip (Target, Present, Absent, Conducted)
+        // Clean open layout with subtle vertical divider ticks
+        Row(
+          children: [
+            Expanded(
+              child: _MetricCell(
+                label: 'Target',
+                value: '$thresholdPercent%',
+              ),
+            ),
+            const _MetricDivider(),
+            Expanded(
+              child: _MetricCell(
+                label: 'Present',
+                value: '${summary?.totalPresent ?? 0}',
+                color: AppColors.inkMint,
+              ),
+            ),
+            const _MetricDivider(),
+            Expanded(
+              child: _MetricCell(
+                label: 'Absent',
+                value: '${summary?.totalAbsent ?? 0}',
+                color: AppColors.inkCoral,
+              ),
+            ),
+            const _MetricDivider(),
+            Expanded(
+              child: _MetricCell(
+                label: 'Conducted',
+                value: '${summary?.totalConducted ?? 0}',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // 2. Standing & Target Status Banner
+        if (hasData && summary != null) ...[
+          if (widget.subject.lectureEnabled && widget.subject.labEnabled) ...[
+            _ComponentBreakdownStrip(summary: summary),
+            const SizedBox(height: 10),
+          ],
+        ] else ...[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            decoration: BoxDecoration(
+              color: AppColors.softLavender.withValues(alpha: 0.5),
+              borderRadius: AppRadius.smBorder,
+            ),
+            child: Row(
+              children: [
+                const AppIcon(
+                  AppIcons.info,
+                  size: 15,
+                  color: AppColors.inkViolet,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'No attendance sessions have been logged for this course yet.',
+                    style: AppTypography.bodySmall.copyWith(
+                      fontSize: 11.5,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
+
+        // 4. Action Row: Log Attendance (Primary) + Edit & Delete Icon Buttons
+        Row(
+          children: [
+            Expanded(
+              child: Semantics(
+                button: true,
+                label: 'Log attendance for ${widget.subject.name}',
+                child: AppButton(
+                  label: 'Log Attendance',
+                  icon: const AppIcon(
+                    AppIcons.add,
+                    size: 15,
+                    color: AppColors.pureWhite,
+                  ),
+                  size: AppButtonSize.small,
+                  onPressed: () {
+                    showQuickLogSheet(
+                      context: context,
+                      initialSubjectId: widget.subject.id,
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Edit icon button
+            Tooltip(
+              message: 'Edit',
+              child: Semantics(
+                button: true,
+                label: 'Edit ${widget.subject.name}',
+                child: Material(
+                  color: AppColors.softLavender.withValues(alpha: 0.7),
+                  borderRadius: AppRadius.smBorder,
+                  child: InkWell(
+                    onTap: widget.onEdit,
+                    borderRadius: AppRadius.smBorder,
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        borderRadius: AppRadius.smBorder,
+                        border: Border.all(color: AppColors.divider),
+                      ),
+                      child: const AppIcon(
+                        AppIcons.edit,
+                        size: 16,
+                        color: AppColors.inkViolet,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Delete icon button
+            Tooltip(
+              message: 'Delete',
+              child: Semantics(
+                button: true,
+                label: 'Delete ${widget.subject.name}',
+                child: Material(
+                  color: AppColors.softCoral.withValues(alpha: 0.6),
+                  borderRadius: AppRadius.smBorder,
+                  child: InkWell(
+                    onTap: widget.onDelete,
+                    borderRadius: AppRadius.smBorder,
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        borderRadius: AppRadius.smBorder,
+                        border: Border.all(
+                          color: AppColors.brandCoral.withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: const AppIcon(
+                        AppIcons.delete,
+                        size: 16,
+                        color: AppColors.inkCoral,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }
 
-class _ComponentBadge extends StatelessWidget {
-  const _ComponentBadge({
+class _MetricCell extends StatelessWidget {
+  const _MetricCell({
     required this.label,
-    required this.color,
-    required this.bg,
+    required this.value,
+    this.color,
   });
 
   final String label;
-  final Color color;
-  final Color bg;
+  final String value;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          value,
+          style: AppTypography.itemTitle.copyWith(
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.2,
+            color: color ?? AppColors.ink,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: AppTypography.labelSmall.copyWith(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: AppColors.mutedInk,
+            letterSpacing: 0.1,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MetricDivider extends StatelessWidget {
+  const _MetricDivider();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(color: bg, borderRadius: AppRadius.pillBorder),
-      child: Text(
-        label,
-        style: AppTypography.labelSmall.copyWith(
-          color: color,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
+      width: 1,
+      height: 22,
+      color: AppColors.divider,
+    );
+  }
+}
+
+class _ComponentBreakdownStrip extends StatelessWidget {
+  const _ComponentBreakdownStrip({required this.summary});
+
+  final SubjectAttendanceSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final lecture = summary.lectureSummary;
+    final lab = summary.labSummary;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: AppColors.softLavender.withValues(alpha: 0.4),
+        borderRadius: AppRadius.smBorder,
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Row(
+        children: [
+          // Lecture section
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'Lecture',
+                      style: AppTypography.labelSmall.copyWith(
+                        color: AppColors.inkViolet,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${lecture?.presentCount ?? 0}/${lecture?.conductedCount ?? 0} attended',
+                      style: AppTypography.labelSmall.copyWith(
+                        fontSize: 11,
+                        color: AppColors.mutedInk,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                    if (lecture?.percentage != null)
+                      Text(
+                        '${lecture!.percentage!.toStringAsFixed(1)}%',
+                        style: AppTypography.labelMedium.copyWith(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12,
+                          color: AppColors.ink,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Divider
+          Container(
+            width: 1,
+            height: 28,
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+            color: AppColors.divider,
+          ),
+
+          // Lab section
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'Lab',
+                      style: AppTypography.labelSmall.copyWith(
+                        color: AppColors.inkMint,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${lab?.presentCount ?? 0}/${lab?.conductedCount ?? 0} attended',
+                      style: AppTypography.labelSmall.copyWith(
+                        fontSize: 11,
+                        color: AppColors.mutedInk,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                    if (lab?.percentage != null)
+                      Text(
+                        '${lab!.percentage!.toStringAsFixed(1)}%',
+                        style: AppTypography.labelMedium.copyWith(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12,
+                          color: AppColors.ink,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
+  }
+}
+
+class _MiniRingPainter extends CustomPainter {
+  const _MiniRingPainter({
+    required this.progress,
+    required this.progressColor,
+    required this.trackColor,
+    required this.hasData,
+    required this.strokeWidth,
+  });
+
+  final double progress;
+  final Color progressColor;
+  final Color trackColor;
+  final bool hasData;
+  final double strokeWidth;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - strokeWidth) / 2;
+
+    final trackPaint = Paint()
+      ..color = trackColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..isAntiAlias = true;
+
+    canvas.drawCircle(center, radius, trackPaint);
+
+    if (hasData && progress > 0) {
+      final progressPaint = Paint()
+        ..color = progressColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round
+        ..isAntiAlias = true;
+
+      const startAngle = -math.pi / 2;
+      final sweepAngle = 2 * math.pi * progress.clamp(0.0, 1.0);
+
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle,
+        sweepAngle,
+        false,
+        progressPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _MiniRingPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.progressColor != progressColor ||
+        oldDelegate.trackColor != trackColor ||
+        oldDelegate.hasData != hasData ||
+        oldDelegate.strokeWidth != strokeWidth;
   }
 }

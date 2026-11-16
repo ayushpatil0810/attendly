@@ -18,12 +18,12 @@ class CompactAttendanceStats extends StatelessWidget {
     return Semantics(
       container: true,
       label:
-          'Attendance session summary: ${summary.totalConducted} conducted, ${summary.totalPresent} present, ${summary.totalAbsent} absent',
+          'Attendance session summary: ${summary.totalConducted} conducted, ${summary.totalPresent} present',
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
         child: Column(
           children: [
-            // Primary Session Counts Row — Open, clean, uncluttered
+            // Primary Session Counts Row — Open, clean, uncluttered (Conducted & Present)
             Row(
               children: [
                 Expanded(
@@ -33,7 +33,11 @@ class CompactAttendanceStats extends StatelessWidget {
                     valueColor: AppColors.ink,
                   ),
                 ),
-                Container(width: 1, height: 28, color: AppColors.divider),
+                Container(
+                  width: 1,
+                  height: 28,
+                  color: AppColors.divider,
+                ),
                 Expanded(
                   child: _StatColumn(
                     label: 'Present',
@@ -41,34 +45,24 @@ class CompactAttendanceStats extends StatelessWidget {
                     valueColor: AppColors.inkMint,
                   ),
                 ),
-                Container(width: 1, height: 28, color: AppColors.divider),
-                Expanded(
-                  child: _StatColumn(
-                    label: 'Absent',
-                    value: summary.totalAbsent.toString(),
-                    valueColor: AppColors.inkCoral,
-                  ),
-                ),
               ],
             ),
 
             // Component Breakdown (when both Lecture and Lab exist)
             if (hasBothComponents) ...[
-              const SizedBox(height: AppSpacing.sm),
-              const Divider(height: 1, color: AppColors.divider),
-              const SizedBox(height: AppSpacing.xs + 2),
+              const SizedBox(height: 12),
               Wrap(
-                alignment: WrapAlignment.spaceAround,
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.xs,
+                alignment: WrapAlignment.center,
+                spacing: 10,
+                runSpacing: 6,
                 children: [
-                  _ComponentBadge(
+                  _ComponentTag(
                     label: 'Lecture',
                     present: summary.lecturePresent,
                     conducted: summary.lectureConducted,
                     pct: summary.lecturePercentage,
                   ),
-                  _ComponentBadge(
+                  _ComponentTag(
                     label: 'Lab',
                     present: summary.labPresent,
                     conducted: summary.labConducted,
@@ -108,8 +102,8 @@ class _StatColumn extends StatelessWidget {
               value,
               style: AppTypography.metricLarge.copyWith(
                 color: valueColor,
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
@@ -122,6 +116,7 @@ class _StatColumn extends StatelessWidget {
               style: AppTypography.labelSmall.copyWith(
                 color: AppColors.mutedInk,
                 fontWeight: FontWeight.w500,
+                fontSize: 12,
               ),
             ),
           ),
@@ -131,8 +126,8 @@ class _StatColumn extends StatelessWidget {
   }
 }
 
-class _ComponentBadge extends StatelessWidget {
-  const _ComponentBadge({
+class _ComponentTag extends StatelessWidget {
+  const _ComponentTag({
     required this.label,
     required this.present,
     required this.conducted,
@@ -153,9 +148,9 @@ class _ComponentBadge extends StatelessWidget {
         : '—';
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.softLavender,
+        color: AppColors.softLavender.withValues(alpha: 0.65),
         borderRadius: AppRadius.pillBorder,
       ),
       child: Text.rich(
@@ -163,17 +158,19 @@ class _ComponentBadge extends StatelessWidget {
           children: [
             TextSpan(
               text: '$label: ',
-              style: AppTypography.labelSmall.copyWith(
+              style: AppTypography.labelMedium.copyWith(
                 color: AppColors.inkViolet,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
               ),
             ),
             TextSpan(
               text: '$present/$conducted ($pctStr)',
-              style: AppTypography.labelSmall.copyWith(
+              style: AppTypography.labelMedium.copyWith(
                 color: AppColors.ink,
                 fontFeatures: const [FontFeature.tabularFigures()],
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
               ),
             ),
           ],
