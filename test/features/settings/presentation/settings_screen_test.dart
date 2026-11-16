@@ -111,6 +111,8 @@ void main() {
 
       expect(find.text('Settings'), findsOneWidget);
       expect(find.text('Semester Settings'), findsOneWidget);
+      expect(find.text('Daily Reminder'), findsOneWidget);
+      expect(find.text('Daily Attendance Reminder'), findsOneWidget);
       expect(find.text('App Preferences'), findsOneWidget);
       expect(find.text('Local Backup & Restore'), findsOneWidget);
       expect(find.text('Privacy & Offline Guarantee'), findsOneWidget);

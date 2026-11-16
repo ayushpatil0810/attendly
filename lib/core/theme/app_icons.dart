@@ -43,6 +43,8 @@ abstract final class AppIcons {
   static const scan = HugeIcons.strokeRoundedScan;
   static const flash = HugeIcons.strokeRoundedFlash;
   static const flashOff = HugeIcons.strokeRoundedFlashOff;
+  static const notification = HugeIcons.strokeRoundedNotification01;
+  static const clock = HugeIcons.strokeRoundedClock01;
 }
 
 /// Standardized HugeIcon wrapper for uniform styling
