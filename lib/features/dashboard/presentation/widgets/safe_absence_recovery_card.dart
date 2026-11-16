@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:attendly/app/router/route_names.dart';
 import 'package:attendly/core/theme/app_colors.dart';
-import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
@@ -18,131 +15,12 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (summary.totalConducted == 0) {
-      return Semantics(
-        container: true,
-        label: 'Attendance Insights: Safe absence and recovery insights will appear once classes are recorded.',
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: AppColors.softLavender,
-            borderRadius: AppRadius.lgBorder,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.only(top: 2),
-                child: AppIcon(
-                  AppIcons.info,
-                  size: 20,
-                  color: AppColors.brandViolet,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Attendance Insights',
-                      style: AppTypography.itemTitle,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Safe absence and recovery insights will appear once classes are recorded.',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.mutedInk,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      return const SizedBox.shrink();
     }
 
     if (summary.calculationMethod ==
         AttendanceCalculationMethod.componentAverage) {
-      return Semantics(
-        container: true,
-        label: 'Depends on the next classes. Lecture and lab each count for half, so how many you can miss depends on whether those classes are lectures or labs.',
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: AppColors.softLavender,
-            borderRadius: AppRadius.lgBorder,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.only(top: 2),
-                child: AppIcon(
-                  AppIcons.info,
-                  size: 20,
-                  color: AppColors.brandViolet,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Depends on the next classes',
-                      style: AppTypography.itemTitle,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Lecture and lab each count for half, so how many you can miss depends on whether those classes are lectures or labs.',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.mutedInk,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Semantics(
-                      button: true,
-                      label: 'Open Attendance Simulator',
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () => context.push(RouteNames.simulatorPath),
-                          borderRadius: BorderRadius.circular(6),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Open Simulator',
-                                  style: AppTypography.labelSmall.copyWith(
-                                    color: AppColors.inkViolet,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                const AppIcon(
-                                  AppIcons.forward,
-                                  size: 14,
-                                  color: AppColors.brandViolet,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      return const SizedBox.shrink();
     }
 
     // Raw Combined
@@ -166,40 +44,47 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.softMint,
-            borderRadius: AppRadius.lgBorder,
+            color: AppColors.pureWhite,
+            borderRadius: AppRadius.mdBorder,
+            border: Border.all(color: AppColors.divider),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.ink.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          child: Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.only(top: 2),
-                child: AppIcon(
-                  AppIcons.check,
-                  size: 20,
-                  color: AppColors.inkMint,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
+              Row(
+                children: [
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      color: AppColors.brandMint,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
                       title,
                       style: AppTypography.itemTitle.copyWith(
-                        color: const Color(0xFF135B4C),
+                        color: AppColors.ink,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      bodyText,
-                      style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.inkMint,
-                      ),
-                    ),
-                  ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                bodyText,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.mutedInk,
                 ),
               ),
             ],
@@ -228,40 +113,47 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.softCoral,
-            borderRadius: AppRadius.lgBorder,
+            color: AppColors.pureWhite,
+            borderRadius: AppRadius.mdBorder,
+            border: Border.all(color: AppColors.divider),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.ink.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          child: Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.only(top: 2),
-                child: AppIcon(
-                  AppIcons.alert,
-                  size: 20,
-                  color: AppColors.inkCoral,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
+              Row(
+                children: [
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      color: AppColors.brandCoral,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
                       title,
                       style: AppTypography.itemTitle.copyWith(
-                        color: const Color(0xFF8C1D26),
+                        color: AppColors.ink,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      message,
-                      style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.inkCoral,
-                      ),
-                    ),
-                  ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                message,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.mutedInk,
                 ),
               ),
             ],

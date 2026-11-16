@@ -311,6 +311,55 @@ final semesterAttendanceSummaryProvider =
       return AsyncData(summary);
     });
 
+/// Reactive provider yielding attendance summary for sessions in the current calendar month only.
+final currentMonthAttendanceSummaryProvider =
+    Provider<AsyncValue<SemesterAttendanceSummary?>>((ref) {
+      final activeSemester = ref.watch(activeSemesterProvider);
+      if (activeSemester == null) {
+        return const AsyncData(null);
+      }
+
+      final subjectsAsync = ref.watch(activeSemesterSubjectsProvider);
+      final sessionsAsync = ref.watch(activeSemesterSessionsStreamProvider);
+
+      if (subjectsAsync.isLoading || sessionsAsync.isLoading) {
+        return const AsyncLoading();
+      }
+
+      if (subjectsAsync.hasError) {
+        return AsyncError(
+          subjectsAsync.error!,
+          subjectsAsync.stackTrace ?? StackTrace.current,
+        );
+      }
+
+      if (sessionsAsync.hasError) {
+        return AsyncError(
+          sessionsAsync.error!,
+          sessionsAsync.stackTrace ?? StackTrace.current,
+        );
+      }
+
+      final subjects = subjectsAsync.value ?? [];
+      final sessions = sessionsAsync.value ?? [];
+      final calculator = ref.watch(attendanceCalculatorProvider);
+
+      final now = DateTime.now();
+      final yearMonthPrefix =
+          '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}';
+      final monthSessions = sessions
+          .where((s) => s.sessionDate.startsWith(yearMonthPrefix))
+          .toList();
+
+      final summary = calculator.calculateSemester(
+        semester: activeSemester,
+        subjects: subjects,
+        sessions: monthSessions,
+      );
+
+      return AsyncData(summary);
+    });
+
 final dayNoteRepositoryProvider = Provider<DayNoteRepository>((ref) {
   final db = ref.watch(databaseProvider);
   return DayNoteRepositoryImpl(db);

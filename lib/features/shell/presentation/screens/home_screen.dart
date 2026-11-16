@@ -7,13 +7,15 @@ import 'package:attendly/core/shared/widgets/app_loading_state.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
+import 'package:attendly/features/attendance/domain/entities/attendance_calculation_method.dart';
 import 'package:attendly/features/attendance/presentation/providers/attendance_providers.dart';
+import 'package:attendly/features/dashboard/presentation/providers/dashboard_scope_provider.dart';
 import 'package:attendly/features/dashboard/presentation/widgets/compact_attendance_stats.dart';
 import 'package:attendly/features/dashboard/presentation/widgets/dashboard_empty_state.dart';
 import 'package:attendly/features/dashboard/presentation/widgets/dashboard_header.dart';
+import 'package:attendly/features/dashboard/presentation/widgets/dashboard_scope_toggle.dart';
 import 'package:attendly/features/dashboard/presentation/widgets/dashboard_subject_preview.dart';
 import 'package:attendly/features/dashboard/presentation/widgets/dashboard_trend_card.dart';
-import 'package:attendly/features/dashboard/presentation/widgets/goal_milestones_card.dart';
 import 'package:attendly/features/dashboard/presentation/widgets/overall_attendance_hero.dart';
 import 'package:attendly/features/dashboard/presentation/widgets/safe_absence_recovery_card.dart';
 import 'package:attendly/features/semesters/presentation/providers/semesters_provider.dart';
@@ -51,6 +53,9 @@ class HomeScreen extends ConsumerWidget {
     }
 
     final summaryAsync = ref.watch(semesterAttendanceSummaryProvider);
+    final activeSummaryAsync =
+        ref.watch(activeDashboardAttendanceSummaryProvider);
+    final scope = ref.watch(dashboardAttendanceScopeProvider);
 
     return Scaffold(
       backgroundColor: AppColors.warmWhite,
@@ -62,6 +67,7 @@ class HomeScreen extends ConsumerWidget {
             }
 
             final hasConductedSessions = summary.totalConducted > 0;
+            final displaySummary = activeSummaryAsync.value ?? summary;
 
             return SingleChildScrollView(
               physics: const BouncingScrollPhysics(
@@ -78,11 +84,28 @@ class HomeScreen extends ConsumerWidget {
                 children: [
                   // Header: Greeting, Semester Name, Switcher & Settings
                   DashboardHeader(semester: activeSemester),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
 
-                  // Overall Attendance Hero Banner (large % & progress ring)
-                  OverallAttendanceHero(summary: summary),
-                  const SizedBox(height: 16),
+                  if (hasConductedSessions) ...[
+                    Center(
+                      child: DashboardScopeToggle(
+                        selectedScope: scope,
+                        onScopeChanged: (newScope) {
+                          ref
+                              .read(dashboardAttendanceScopeProvider.notifier)
+                              .setScope(newScope);
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+
+                  // Overall Attendance Hero Banner (circular gauge & large %)
+                  OverallAttendanceHero(
+                    summary: displaySummary,
+                    scope: scope,
+                  ),
+                  const SizedBox(height: 20),
 
                   if (!hasConductedSessions) ...[
                     // Empty dashboard guide when no sessions recorded yet
@@ -90,14 +113,7 @@ class HomeScreen extends ConsumerWidget {
                       semester: activeSemester,
                       hasSubjects: summary.subjectSummaries.isNotEmpty,
                     ),
-                    const SizedBox(height: 16),
-
-                    // Personal Goal and Milestones Card
-                    GoalMilestonesCard(
-                      summary: summary,
-                      semester: activeSemester,
-                    ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
                     // Subjects Preview
                     DashboardSubjectPreview(
@@ -108,18 +124,16 @@ class HomeScreen extends ConsumerWidget {
                     ),
                   ] else ...[
                     // Compact session counts (conducted, present, absent + components)
-                    CompactAttendanceStats(summary: summary),
-                    const SizedBox(height: 16),
+                    CompactAttendanceStats(summary: displaySummary),
 
-                    // Safe Absence / Recovery insight card
-                    SafeAbsenceRecoveryCard(summary: summary),
-                    const SizedBox(height: 16),
-
-                    // Personal Goal and Milestones Card
-                    GoalMilestonesCard(
-                      summary: summary,
-                      semester: activeSemester,
-                    ),
+                    // Safe Absence / Recovery insight card (only for overall semester targets when applicable)
+                    if (scope == DashboardAttendanceScope.overall &&
+                        displaySummary.totalConducted > 0 &&
+                        displaySummary.calculationMethod !=
+                            AttendanceCalculationMethod.componentAverage) ...[
+                      const SizedBox(height: 16),
+                      SafeAbsenceRecoveryCard(summary: displaySummary),
+                    ],
                     const SizedBox(height: 24),
 
                     // Subjects overview preview

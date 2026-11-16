@@ -26,15 +26,16 @@ class DashboardEmptyState extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
-        vertical: AppSpacing.xl,
+        vertical: AppSpacing.lg + 4,
       ),
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
-        borderRadius: AppRadius.xlBorder,
+        borderRadius: AppRadius.lgBorder,
+        border: Border.all(color: AppColors.divider),
         boxShadow: [
           BoxShadow(
-            color: AppColors.ink.withAlpha(6),
-            blurRadius: 16,
+            color: AppColors.ink.withValues(alpha: 0.03),
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
@@ -42,46 +43,41 @@ class DashboardEmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: const BoxDecoration(
-              color: AppColors.softLavender,
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: const AppIcon(
-              AppIcons.calendar,
-              size: 28,
-              color: AppColors.brandViolet,
-            ),
+          // Clean, unboxed icon (no colored bubble container)
+          const AppIcon(
+            AppIcons.calendar,
+            size: 32,
+            color: AppColors.brandViolet,
           ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             hasSubjects ? 'No Classes Recorded Yet' : 'Start Semester Setup',
             style: AppTypography.screenTitle.copyWith(
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.w700,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
             hasSubjects
-                ? 'Your attendance summary, safe absence allowances, and recovery targets will calculate automatically once classes are logged.'
-                : 'Add your enrolled courses to this semester so you can start logging attendance.',
-            style: AppTypography.bodyMedium.copyWith(color: AppColors.mutedInk),
+                ? 'Log your first class session to calculate safe absences and track progress.'
+                : 'Add your courses to this semester to begin tracking attendance.',
+            style: AppTypography.bodySmall.copyWith(
+              color: AppColors.mutedInk,
+            ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           if (hasSubjects)
             AppButton(
               label: 'Quick Log Session',
               icon: const AppIcon(
                 AppIcons.add,
-                size: 18,
+                size: 16,
                 color: AppColors.pureWhite,
               ),
+              size: AppButtonSize.small,
               onPressed: () {
                 showQuickLogSheet(context: context);
               },
@@ -91,9 +87,10 @@ class DashboardEmptyState extends StatelessWidget {
               label: 'Add First Subject',
               icon: const AppIcon(
                 AppIcons.add,
-                size: 18,
+                size: 16,
                 color: AppColors.pureWhite,
               ),
+              size: AppButtonSize.small,
               onPressed: () {
                 showAppBottomSheet(
                   context: context,
