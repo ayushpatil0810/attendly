@@ -11,6 +11,7 @@ abstract final class AppToast {
     String? actionLabel,
     VoidCallback? onAction,
     Duration duration = const Duration(seconds: 4),
+    bool persist = false,
   }) {
     _show(
       context,
@@ -20,6 +21,7 @@ abstract final class AppToast {
       actionLabel: actionLabel,
       onAction: onAction,
       duration: duration,
+      persist: persist,
     );
   }
 
@@ -27,6 +29,7 @@ abstract final class AppToast {
     BuildContext context, {
     required String message,
     Duration duration = const Duration(seconds: 4),
+    bool persist = false,
   }) {
     _show(
       context,
@@ -34,6 +37,7 @@ abstract final class AppToast {
       backgroundColor: AppColors.inkCoral,
       textColor: AppColors.pureWhite,
       duration: duration,
+      persist: persist,
     );
   }
 
@@ -43,6 +47,7 @@ abstract final class AppToast {
     String? actionLabel,
     VoidCallback? onAction,
     Duration duration = const Duration(seconds: 3),
+    bool persist = false,
   }) {
     _show(
       context,
@@ -52,6 +57,7 @@ abstract final class AppToast {
       actionLabel: actionLabel,
       onAction: onAction,
       duration: duration,
+      persist: persist,
     );
   }
 
@@ -63,6 +69,7 @@ abstract final class AppToast {
     String? actionLabel,
     VoidCallback? onAction,
     required Duration duration,
+    required bool persist,
   }) {
     final messenger = ScaffoldMessenger.maybeOf(context);
     if (messenger == null) return;
@@ -76,13 +83,14 @@ abstract final class AppToast {
         ),
         backgroundColor: backgroundColor,
         duration: duration,
+        persist: persist,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.only(
           left: 16,
           right: 16,
           bottom: 90, // Positioned comfortably above the floating dock
         ),
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
         action: actionLabel != null
             ? SnackBarAction(
                 label: actionLabel,
