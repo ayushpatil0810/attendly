@@ -214,6 +214,61 @@ void main() {
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);
     });
+
+    testWidgets(
+      'opens redesigned historical session drawer (matching quick log style) and logs attendance on the spot when Add Session tapped',
+      (tester) async {
+        tester.view.physicalSize = const Size(800, 1200);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final testDate = DateTime(2026, 3, 10);
+
+        await tester.pumpWidget(
+          createWidgetUnderTest(initialSelectedDate: testDate),
+        );
+        await tester.pumpAndSettle();
+
+        // Tap Add Session on History screen
+        final addBtn = find.widgetWithText(AppButton, 'Add Session');
+        expect(addBtn, findsOneWidget);
+        await tester.tap(addBtn);
+        await tester.pumpAndSettle();
+
+        // Drawer is open with redesigned Quick Attendance Log model style
+        expect(find.text('Record Historical Session'), findsOneWidget);
+        expect(find.text('Distributed Systems'), findsOneWidget);
+        expect(find.text('Theory Lecture'), findsOneWidget);
+        expect(find.text('Practical Lab'), findsOneWidget);
+        expect(find.text('Done Logging'), findsOneWidget);
+
+        // Tap "+ Present" for Lecture
+        final markPresentBtn = find.text('+ Present').first;
+        expect(markPresentBtn, findsOneWidget);
+        await tester.tap(markPresentBtn);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pumpAndSettle();
+
+        // Immediate session chip feedback in drawer without closing
+        expect(find.text('Lec 1: Present'), findsOneWidget);
+        expect(find.text('Record Historical Session'), findsOneWidget);
+
+        // Tap "Done Logging" to close drawer
+        await tester.tap(find.text('Done Logging'));
+        await tester.pumpAndSettle();
+
+        // Drawer is closed and session is now rendered on HistoryScreen
+        expect(find.text('Record Historical Session'), findsNothing);
+        expect(find.text('Distributed Systems'), findsOneWidget);
+        expect(find.text('Lecture'), findsOneWidget);
+        expect(find.text('Present'), findsOneWidget);
+
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(Duration.zero);
+      },
+    );
   });
 }
 

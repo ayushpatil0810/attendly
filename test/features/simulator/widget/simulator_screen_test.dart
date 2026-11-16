@@ -219,6 +219,11 @@ void main() {
     testWidgets('tapping Reset Scenario clears hypothetical sessions', (
       tester,
     ) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final semRepo = SemesterRepositoryImpl(db);
       final semId = await semRepo.createSemester(
         name: 'Fall 2026',

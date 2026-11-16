@@ -28,11 +28,14 @@ class HypotheticalSessionList extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Simulated Classes (${hypotheticalSessions.length})',
-              style: AppTypography.sectionTitle,
+            Expanded(
+              child: Text(
+                'Simulated Classes (${hypotheticalSessions.length})',
+                style: AppTypography.sectionTitle,
+              ),
             ),
-            if (hypotheticalSessions.isNotEmpty)
+            if (hypotheticalSessions.isNotEmpty) ...[
+              const SizedBox(width: 8),
               GestureDetector(
                 onTap: () {
                   ref.read(simulatorControllerProvider.notifier).reset();
@@ -67,6 +70,7 @@ class HypotheticalSessionList extends ConsumerWidget {
                   ),
                 ),
               ),
+            ],
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
