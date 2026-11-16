@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:attendly/core/database/app_database.dart';
 import 'package:attendly/core/providers/database_provider.dart';
+import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:attendly/features/semesters/data/repositories/semester_repository_impl.dart';
 import 'package:attendly/features/semesters/presentation/screens/semester_setup_screen.dart';
@@ -71,6 +72,16 @@ void main() {
       expect(semesters.length, equals(1));
       expect(semesters.first.name, equals('Semester 3'));
       expect(semesters.first.attendanceThreshold, equals(0.75));
+    },
+  );
+
+  testWidgets(
+    'renders Scan QR to Import Semester button',
+    (tester) async {
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(AppButton, 'Scan QR to Import Semester'), findsOneWidget);
     },
   );
 }

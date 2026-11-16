@@ -5,6 +5,7 @@ import 'package:attendly/features/onboarding/presentation/providers/onboarding_p
 
 import '../../data/repositories/semester_repository_impl.dart';
 import '../../domain/entities/semester.dart';
+import '../../domain/entities/semester_qr_payload.dart';
 import '../../domain/repositories/semester_repository.dart';
 
 const String _activeSemesterKey = 'selected_active_semester_id_v1';
@@ -124,6 +125,28 @@ class SemesterController extends AsyncNotifier<void> {
         ref.read(selectedSemesterIdProvider.notifier).clearSelection();
       }
       state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
+  }
+
+  Future<int> importSemesterFromQr(
+    SemesterQrPayload payload, {
+    String? customName,
+    bool replaceExisting = false,
+  }) async {
+    state = const AsyncLoading();
+    try {
+      final repo = ref.read(semesterRepositoryProvider);
+      final id = await repo.importSemesterPayload(
+        payload,
+        customName: customName,
+        replaceExisting: replaceExisting,
+      );
+      ref.read(selectedSemesterIdProvider.notifier).selectSemester(id);
+      state = const AsyncData(null);
+      return id;
     } catch (e, st) {
       state = AsyncError(e, st);
       rethrow;

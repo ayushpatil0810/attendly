@@ -12,6 +12,7 @@ import 'package:attendly/features/semesters/presentation/providers/semesters_pro
 
 import '../widgets/app_preferences_section.dart';
 import '../widgets/backup_restore_section.dart';
+import '../widgets/daily_reminder_section.dart';
 import '../widgets/privacy_offline_section.dart';
 import '../widgets/semester_settings_section.dart';
 
@@ -87,7 +88,16 @@ class SettingsScreen extends ConsumerWidget {
                       SemesterSettingsSection(activeSemester: activeSemester),
                       const SizedBox(height: 28),
 
-                      // Section B: App Preferences
+                      // Section B: Daily Reminder
+                      const AppSectionHeader(
+                        title: 'Daily Reminder',
+                        subtitle: 'Automated notification to log your attendance',
+                      ),
+                      const SizedBox(height: 10),
+                      const DailyReminderSection(),
+                      const SizedBox(height: 28),
+
+                      // Section C: App Preferences
                       const AppSectionHeader(
                         title: 'App Preferences',
                         subtitle: 'Haptic feedback & motion behavior',

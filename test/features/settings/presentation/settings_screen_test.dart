@@ -111,6 +111,8 @@ void main() {
 
       expect(find.text('Settings'), findsOneWidget);
       expect(find.text('Semester Settings'), findsOneWidget);
+      expect(find.text('Daily Reminder'), findsOneWidget);
+      expect(find.text('Daily Attendance Reminder'), findsOneWidget);
       expect(find.text('App Preferences'), findsOneWidget);
       expect(find.text('Local Backup & Restore'), findsOneWidget);
       expect(find.text('Privacy & Offline Guarantee'), findsOneWidget);
@@ -125,6 +127,7 @@ void main() {
       expect(find.text('Export Backup'), findsOneWidget);
       expect(find.text('Restore Backup'), findsOneWidget);
       expect(find.text('Haptic Feedback'), findsOneWidget);
+      expect(find.byTooltip('Share Semester via QR'), findsOneWidget);
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);
