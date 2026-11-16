@@ -69,9 +69,8 @@ void main() {
       // Header shows semester name
       expect(find.text('Fall 2026'), findsOneWidget);
 
-      // Hero shows target threshold and "Not Available" badge
+      // Hero shows target threshold
       expect(find.text('Target: 75%'), findsOneWidget);
-      expect(find.text('Not Available'), findsWidgets);
 
       // Hero percentage must be '—', NOT '0%'
       expect(find.text('—'), findsOneWidget);
@@ -142,7 +141,6 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.text('Above Target'), findsOneWidget);
       expect(find.text('+5.0%'), findsOneWidget);
 
       // Compact counts
@@ -150,8 +148,7 @@ void main() {
       expect(find.text('10'), findsOneWidget);
       expect(find.text('Present'), findsOneWidget);
       expect(find.text('8'), findsOneWidget);
-      expect(find.text('Absent'), findsOneWidget);
-      expect(find.text('2'), findsOneWidget);
+      expect(find.text('Absent'), findsNothing);
 
       expect(find.text('At Target Threshold'), findsOneWidget);
       expect(
@@ -302,7 +299,6 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.text('Below Target'), findsOneWidget);
       expect(find.text('-15.0%'), findsOneWidget);
 
       // Recovery card
@@ -349,13 +345,12 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Combined percentage must not be treated as final; status badge indicates provisional
-      expect(find.text('Provisional: Lecture only'), findsOneWidget);
+      // Combined percentage must not be treated as final; provisional note shown
       expect(
         find.text('Combined available when both components have sessions.'),
         findsOneWidget,
       );
-      expect(find.text('Depends on the next classes'), findsOneWidget);
+      expect(find.text('Depends on the next classes'), findsNothing);
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);
@@ -531,7 +526,7 @@ void main() {
           ),
           findsOneWidget,
         );
-        expect(find.text('Above Target'), findsOneWidget);
+        expect(find.text('+25.0%'), findsOneWidget);
         expect(find.text('Conducted'), findsOneWidget);
         expect(find.text('1'), findsWidgets);
 
@@ -579,9 +574,92 @@ void main() {
         await tester.pumpAndSettle();
 
         // Verify widgets rendered cleanly without throwing RenderFlex overflow
-        expect(find.text('Split in half'), findsOneWidget);
-        expect(find.text('Provisional: Lecture only'), findsOneWidget);
+        expect(
+          find.text('Combined available when both components have sessions.'),
+          findsOneWidget,
+        );
         expect(find.text('Target: 75%'), findsOneWidget);
+
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(Duration.zero);
+      },
+    );
+
+    testWidgets(
+      'toggles between Overall and This Month attendance scope on dashboard',
+      (tester) async {
+        final semRepo = SemesterRepositoryImpl(db);
+        final semId = await semRepo.createSemester(
+          name: 'Fall 2026',
+          attendanceThreshold: 0.75,
+        );
+        prefs.setInt('selected_active_semester_id_v1', semId);
+
+        final subRepo = SubjectRepositoryImpl(db);
+        final subId = await subRepo.createSubject(
+          semesterId: semId,
+          name: 'Computer Networks',
+          lectureEnabled: true,
+          labEnabled: false,
+        );
+
+        final now = DateTime.now();
+        final currentMonthStr =
+            '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-05';
+
+        final attRepo = AttendanceRepositoryImpl(db);
+        // Past month sessions (4 conducted: 2 present, 2 absent)
+        await attRepo.createSession(
+          subjectId: subId,
+          sessionDate: '2025-01-01',
+          component: SessionComponent.lecture,
+          status: AttendanceStatus.present,
+        );
+        await attRepo.createSession(
+          subjectId: subId,
+          sessionDate: '2025-01-02',
+          component: SessionComponent.lecture,
+          status: AttendanceStatus.absent,
+        );
+
+        // Current month sessions (2 conducted: 2 present = 100%)
+        await attRepo.createSession(
+          subjectId: subId,
+          sessionDate: currentMonthStr,
+          component: SessionComponent.lecture,
+          status: AttendanceStatus.present,
+        );
+        await attRepo.createSession(
+          subjectId: subId,
+          sessionDate: currentMonthStr,
+          component: SessionComponent.lecture,
+          status: AttendanceStatus.present,
+        );
+
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pumpAndSettle();
+
+        // 1. Initially Overall: Total Conducted = 4 (2 past + 2 current)
+        expect(find.text('Overall'), findsOneWidget);
+        expect(find.text('This Month'), findsOneWidget);
+        expect(find.text('Total Percentage'), findsOneWidget);
+        expect(find.text('4'), findsOneWidget); // Conducted
+
+        // 2. Tap "This Month"
+        await tester.tap(find.text('This Month'));
+        await tester.pumpAndSettle();
+
+        // Current month has 2 sessions (2 present = 100%)
+        expect(find.text('Total Percentage'), findsNothing);
+        expect(find.text('100%'), findsOneWidget);
+        expect(find.text('2'), findsNWidgets(2)); // Conducted 2, Present 2
+
+        // 3. Tap "Overall" again
+        await tester.tap(find.text('Overall'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Total Percentage'), findsOneWidget);
+        expect(find.text('4'), findsOneWidget);
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);

@@ -126,20 +126,21 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Subject card renders with live attendance
+      // Subject card renders with live attendance without redundant badges
       expect(find.text('Operating Systems'), findsOneWidget);
       expect(find.text('75%'), findsOneWidget);
-      expect(find.text('Meeting target'), findsOneWidget);
       expect(find.text('3 of 4 sessions attended'), findsOneWidget);
 
-      // Tap card to open SubjectDetailSheet
+      // Tap card to expand inline details and actions (no separate drawer needed)
       await tester.tap(find.text('Operating Systems'));
       await tester.pumpAndSettle();
 
-      // SubjectDetailSheet elements
-      expect(find.text('Target: 75%'), findsOneWidget);
-      expect(find.text('Meeting Target'), findsOneWidget);
-      expect(find.text('Log Attendance for Operating Systems'), findsOneWidget);
+      // Expanded card reveals all subject metrics, standing, and actions directly
+      expect(find.text('Target'), findsOneWidget);
+      expect(find.textContaining('Meeting Target'), findsOneWidget);
+      expect(find.text('Log Attendance'), findsOneWidget);
+      expect(find.byTooltip('Edit'), findsOneWidget);
+      expect(find.byTooltip('Delete'), findsOneWidget);
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);
