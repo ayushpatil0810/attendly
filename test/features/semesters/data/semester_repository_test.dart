@@ -100,5 +100,54 @@ void main() {
       final sem = await repo.getSemesterById(id);
       expect(sem, isNull);
     });
+
+    test(
+      'clears start and end dates via copyWith and updates successfully',
+      () async {
+        final id = await repo.createSemester(
+          name: 'Dated Semester',
+          startDate: DateTime(2026, 1, 1),
+          endDate: DateTime(2026, 5, 30),
+        );
+
+        var sem = (await repo.getSemesterById(id))!;
+        expect(sem.startDate, isNotNull);
+        expect(sem.endDate, isNotNull);
+
+        // Clear both dates using clearStartDate and clearEndDate
+        final cleared = sem.copyWith(clearStartDate: true, clearEndDate: true);
+        expect(cleared.startDate, isNull);
+        expect(cleared.endDate, isNull);
+
+        await repo.updateSemester(cleared);
+
+        final updated = (await repo.getSemesterById(id))!;
+        expect(updated.startDate, isNull);
+        expect(updated.endDate, isNull);
+      },
+    );
+
+    test('clears start and end dates via copyWith and updates successfully', () async {
+      final id = await repo.createSemester(
+        name: 'Dated Semester',
+        startDate: DateTime(2026, 1, 1),
+        endDate: DateTime(2026, 5, 30),
+      );
+
+      var sem = (await repo.getSemesterById(id))!;
+      expect(sem.startDate, isNotNull);
+      expect(sem.endDate, isNotNull);
+
+      // Clear both dates using clearStartDate and clearEndDate
+      final cleared = sem.copyWith(clearStartDate: true, clearEndDate: true);
+      expect(cleared.startDate, isNull);
+      expect(cleared.endDate, isNull);
+
+      await repo.updateSemester(cleared);
+
+      final updated = (await repo.getSemesterById(id))!;
+      expect(updated.startDate, isNull);
+      expect(updated.endDate, isNull);
+    });
   });
 }

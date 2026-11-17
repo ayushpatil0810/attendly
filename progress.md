@@ -19,6 +19,36 @@
 | **Phase 5** | **Settings, Local Backup & Data Safety** | **Completed** |
 | **Phase 6** | **Polish, Quality Assurance & Release Preparation** | **Completed** |
 | **Phase 7** | **Multi-Theme Design System & Dark Mode** | **Completed** |
+| **Phase 8** | **Engineering Architecture & Data Integrity Audit Remediation** | **Completed** |
+
+---
+
+## Phase 8 Progress & Achievements: Engineering Audit Remediation
+- [x] **CRITICAL-03: Data Loss Prevention on Backup/Restore:**
+  - Added `targetGoal` and `dayNotes` to backup format and validator.
+  - Included theme mode and color theme ID in exported preferences.
+  - Implemented transactional batch restoration with full ID remapping.
+- [x] **CRITICAL-04: Multiple Same-Day Session Queries:**
+  - Resolved `StateError` in `AttendanceRepositoryImpl.getSessionBySubjectDateComponent` using order by ID descending and limit 1.
+- [x] **HIGH-03: Semester Date Clearing:**
+  - Added `clearStartDate` and `clearEndDate` to `Semester.copyWith` and hooked into `SemesterFormSheet`.
+- [x] **HIGH-04: Component Validation on Update:**
+  - Verified lecture/lab enabled checks in `AttendanceRepositoryImpl.updateSession`.
+- [x] **HIGH-05: Strict Calendar Date Validation:**
+  - Eliminated calendar rollover in `_validateSessionDate` with exact year/month/day verification.
+- [x] **HIGH-06: Database Composite Indexing:**
+  - Created composite indexes on `attendance_sessions(subject_id, session_date)` and `subjects(semester_id, sort_order)`.
+- [x] **MEDIUM-02 & MEDIUM-05: Performance & Batch Operations:**
+  - Reduced `calculateSemester` complexity from $O(S \times N)$ to $O(S + N)$.
+  - Accelerated backup restoration using `batch.insertAll`.
+- [x] **MEDIUM-03 & MEDIUM-04: Concurrency & Reactive Stability:**
+  - Handled `.hasValue` in summary providers to eliminate reload flicker.
+  - Enforced atomic day note writes in `DayNoteRepositoryImpl.setNoteForDate`.
+- [x] **LOW-01 & LOW-03: Architectural Hygiene & Clean Code:**
+  - Decoupled `sharedPreferencesProvider` to `lib/core/providers/`.
+  - Removed unused stub and dead failure classes.
+- [x] **Verification:**
+  - 291/291 automated tests passing, 0 analyzer issues, clean code formatting.
 
 ---
 

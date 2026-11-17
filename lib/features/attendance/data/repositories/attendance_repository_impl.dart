@@ -36,8 +36,23 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         'Session date must be in YYYY-MM-DD format.',
       );
     }
-    final parsed = DateTime.tryParse(sessionDate);
-    if (parsed == null) {
+    final parts = sessionDate.split('-');
+    if (parts.length != 3) {
+      throw const ValidationFailure(
+        'Session date must be in YYYY-MM-DD format.',
+      );
+    }
+    final year = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final day = int.tryParse(parts[2]);
+    if (year == null || month == null || day == null) {
+      throw const ValidationFailure('Invalid calendar date.');
+    }
+    if (month < 1 || month > 12 || day < 1 || day > 31) {
+      throw const ValidationFailure('Invalid calendar date.');
+    }
+    final parsed = DateTime(year, month, day);
+    if (parsed.year != year || parsed.month != month || parsed.day != day) {
       throw const ValidationFailure('Invalid calendar date.');
     }
     final now = DateTime.now();
@@ -203,12 +218,18 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     SessionComponent component,
   ) async {
     final row =
-        await (_db.select(_db.attendanceSessions)..where(
-              (tbl) =>
-                  tbl.subjectId.equals(subjectId) &
-                  tbl.sessionDate.equals(sessionDate) &
-                  tbl.component.equals(component.dbValue),
-            ))
+        await (_db.select(_db.attendanceSessions)
+              ..where(
+                (tbl) =>
+                    tbl.subjectId.equals(subjectId) &
+                    tbl.sessionDate.equals(sessionDate) &
+                    tbl.component.equals(component.dbValue),
+              )
+              ..orderBy([
+                (tbl) =>
+                    OrderingTerm(expression: tbl.id, mode: OrderingMode.desc),
+              ])
+              ..limit(1))
             .getSingleOrNull();
 
     return row != null ? _toEntity(row) : null;
@@ -287,6 +308,14 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
     if (subjectRow == null) {
       throw const NotFoundFailure('Subject not found.');
+    }
+
+    if (session.component == SessionComponent.lecture &&
+        !subjectRow.lectureEnabled) {
+      throw const ValidationFailure('Lecture is not enabled for this subject.');
+    }
+    if (session.component == SessionComponent.lab && !subjectRow.labEnabled) {
+      throw const ValidationFailure('Lab is not enabled for this subject.');
     }
 
     final now = DateTime.now().toUtc().millisecondsSinceEpoch;

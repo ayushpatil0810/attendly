@@ -123,7 +123,19 @@ final simulatorProjectionProvider = Provider<AsyncValue<SimulatorProjection?>>((
   final sessionsAsync = ref.watch(activeSemesterSessionsStreamProvider);
   final hypotheticalSessions = ref.watch(simulatorControllerProvider);
 
-  if (subjectsAsync.isLoading || sessionsAsync.isLoading) {
+  if (!subjectsAsync.hasValue || !sessionsAsync.hasValue) {
+    if (subjectsAsync.hasError) {
+      return AsyncError(
+        subjectsAsync.error!,
+        subjectsAsync.stackTrace ?? StackTrace.current,
+      );
+    }
+    if (sessionsAsync.hasError) {
+      return AsyncError(
+        sessionsAsync.error!,
+        sessionsAsync.stackTrace ?? StackTrace.current,
+      );
+    }
     return const AsyncLoading();
   }
 

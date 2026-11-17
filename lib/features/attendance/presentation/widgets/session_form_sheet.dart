@@ -168,10 +168,6 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
           },
         );
       }
-    } on DuplicateSessionFailure catch (e) {
-      if (!mounted) return;
-      setState(() => _isSubmitting = false);
-      AppToast.showError(context, message: e.message);
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSubmitting = false);

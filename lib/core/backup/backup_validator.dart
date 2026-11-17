@@ -121,6 +121,7 @@ class BackupValidator {
     final rawSemesters = dataObj['semesters'];
     final rawSubjects = dataObj['subjects'];
     final rawSessions = dataObj['attendanceSessions'];
+    final rawDayNotes = dataObj['dayNotes'];
 
     if (rawSemesters is! List) {
       return const BackupValidationResult.failure(
@@ -137,9 +138,17 @@ class BackupValidator {
         '"data.attendanceSessions" must be a list.',
       );
     }
+    if (rawDayNotes != null && rawDayNotes is! List) {
+      return const BackupValidationResult.failure(
+        '"data.dayNotes" must be a list if present.',
+      );
+    }
 
     final totalRecords =
-        rawSemesters.length + rawSubjects.length + rawSessions.length;
+        rawSemesters.length +
+        rawSubjects.length +
+        rawSessions.length +
+        (rawDayNotes != null ? (rawDayNotes as List).length : 0);
     if (totalRecords > maxTotalRecords) {
       return const BackupValidationResult.failure(
         'Backup contains too many records, exceeding safe limits.',
@@ -183,6 +192,17 @@ class BackupValidator {
         return BackupValidationResult.failure(
           'Semester "$name" has an invalid attendance threshold: $threshold (must be > 0 and <= 1.0).',
         );
+      }
+
+      final targetGoal = s['targetGoal'];
+      double parsedTargetGoal = 0.85;
+      if (targetGoal != null) {
+        if (targetGoal is! num || targetGoal <= 0.0 || targetGoal > 1.0) {
+          return BackupValidationResult.failure(
+            'Semester "$name" has an invalid target goal: $targetGoal (must be > 0 and <= 1.0).',
+          );
+        }
+        parsedTargetGoal = targetGoal.toDouble();
       }
 
       final method = s['calculationMethod'];
@@ -247,6 +267,7 @@ class BackupValidator {
           startDate: startDate as String?,
           endDate: endDate as String?,
           attendanceThreshold: threshold.toDouble(),
+          targetGoal: parsedTargetGoal,
           calculationMethod: method,
           isArchived: isArchived as bool? ?? false,
           createdAt: createdAt,
@@ -432,6 +453,72 @@ class BackupValidator {
       );
     }
 
+    // 8. Parse and validate day notes (optional for backwards compatibility)
+    final parsedDayNotes = <DayNoteBackupModel>[];
+    if (rawDayNotes is List) {
+      final dayNoteIds = <int>{};
+      for (var i = 0; i < rawDayNotes.length; i++) {
+        final note = rawDayNotes[i];
+        if (note is! Map<String, dynamic>) {
+          return BackupValidationResult.failure(
+            'Day note at index $i is not a valid object.',
+          );
+        }
+        final id = note['id'];
+        if (id is! int) {
+          return BackupValidationResult.failure(
+            'Day note at index $i has missing or invalid integer "id".',
+          );
+        }
+        if (dayNoteIds.contains(id)) {
+          return BackupValidationResult.failure(
+            'Duplicate day note ID $id found in backup.',
+          );
+        }
+        dayNoteIds.add(id);
+
+        final semesterId = note['semesterId'];
+        if (semesterId is! int || !semesterIds.contains(semesterId)) {
+          return BackupValidationResult.failure(
+            'Day note $id references non-existent semester $semesterId.',
+          );
+        }
+
+        final date = note['date'];
+        if (date is! String || !_isValidIsoDate(date)) {
+          return BackupValidationResult.failure(
+            'Day note $id has an invalid date: "$date". Expected YYYY-MM-DD.',
+          );
+        }
+
+        final content = note['content'];
+        if (content is! String || content.trim().isEmpty) {
+          return BackupValidationResult.failure(
+            'Day note $id has empty or invalid content.',
+          );
+        }
+
+        final createdAt = note['createdAt'];
+        final updatedAt = note['updatedAt'];
+        if (createdAt is! int || updatedAt is! int) {
+          return BackupValidationResult.failure(
+            'Day note $id has missing or invalid integer timestamps.',
+          );
+        }
+
+        parsedDayNotes.add(
+          DayNoteBackupModel(
+            id: id,
+            semesterId: semesterId,
+            date: date,
+            content: content.trim(),
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+        );
+      }
+    }
+
     final backupData = BackupData(
       format: format,
       formatVersion: formatVersion,
@@ -439,6 +526,7 @@ class BackupValidator {
       semesters: parsedSemesters,
       subjects: parsedSubjects,
       attendanceSessions: parsedSessions,
+      dayNotes: parsedDayNotes,
       appPreferences: dataObj['preferences'] as Map<String, dynamic>?,
     );
 
