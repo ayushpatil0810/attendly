@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:attendly/features/onboarding/presentation/providers/onboarding_provider.dart';
+import 'package:attendly/core/providers/shared_preferences_provider.dart';
 
 const String _hapticFeedbackKey = 'pref_haptic_feedback_enabled_v1';
 

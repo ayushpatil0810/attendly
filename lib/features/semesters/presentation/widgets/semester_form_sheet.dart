@@ -113,6 +113,8 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
           name: _nameController.text.trim(),
           startDate: _startDate,
           endDate: _endDate,
+          clearStartDate: _startDate == null,
+          clearEndDate: _endDate == null,
           attendanceThreshold: threshold,
           calculationMethod: _calculationMethod,
           targetGoal: widget.initialSemester!.targetGoal,

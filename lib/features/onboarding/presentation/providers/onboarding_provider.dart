@@ -1,11 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:attendly/core/providers/shared_preferences_provider.dart';
+
+export 'package:attendly/core/providers/shared_preferences_provider.dart';
 
 const String _onboardingKey = 'has_completed_onboarding_v1';
-
-final sharedPreferencesProvider = Provider<SharedPreferences>(
-  (ref) => throw UnimplementedError(),
-);
 
 class OnboardingNotifier extends Notifier<bool> {
   @override

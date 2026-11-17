@@ -5,6 +5,36 @@ All notable changes to the College Attendance Tracker (attendly) project will be
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-11-18
+
+### Fixed
+- **Data Integrity & Backup/Restore Parity (`CRITICAL-03`):**
+  - Added `targetGoal` to `SemesterBackupModel` with fallback default to preserve personalized goals across backup/restore round-trips.
+  - Added `DayNoteBackupModel` and `dayNotes` serialization to versioned backups with strict validation and cascade remapping.
+  - Exported and restored theme preferences (`themeMode` and `colorThemeId`) alongside user preferences.
+  - Ensured full backward compatibility for legacy backups omitting `dayNotes` or `targetGoal`.
+- **Multiple Same-Day Sessions Querying (`CRITICAL-04`):**
+  - Updated `AttendanceRepositoryImpl.getSessionBySubjectDateComponent` to order by `id DESC` and limit to 1, preventing `StateError ('Too many elements')` when subjects hold multiple sessions per day.
+- **Semester Date Clearing (`HIGH-03`):**
+  - Added `clearStartDate` and `clearEndDate` flags to `Semester.copyWith`, allowing users to clear start and end dates from `SemesterFormSheet` without value retention.
+- **Component Validation on Session Update (`HIGH-04`):**
+  - Added strict component validation in `AttendanceRepositoryImpl.updateSession` verifying `lectureEnabled` and `labEnabled` on the target subject row.
+- **Strict Calendar Date Validation (`HIGH-05`):**
+  - Replaced permissive `DateTime.tryParse` in `_validateSessionDate` with strict component date verification, preventing silent calendar rollover (e.g. `2026-02-31` rolling into March).
+- **SQLite Performance & Query Indexing (`HIGH-06`):**
+  - Added composite indexes `idx_attendance_sessions_subject_date` on `attendance_sessions(subject_id, session_date)` and `idx_subjects_semester_sort` on `subjects(semester_id, sort_order)` across `onCreate` and `beforeOpen`.
+- **Semester Calculation Algorithmic Optimization (`MEDIUM-02`):**
+  - Optimized `AttendanceCalculator.calculateSemester` from $O(S \times N)$ to $O(S + N)$ by grouping sessions in a single pass before evaluating subject summaries.
+- **Provider Stream Reload Flicker Elimination (`MEDIUM-03`):**
+  - Updated `attendance_providers.dart`, `insights_providers.dart`, and `simulator_providers.dart` to check `hasValue`, computing with current state during stream updates and preventing loading spinner flashes.
+- **Atomic Day Note Persistence (`MEDIUM-04`):**
+  - Wrapped `DayNoteRepositoryImpl.setNoteForDate` in an atomic Drift transaction to prevent race conditions during concurrent note saves.
+- **Batch Restoration Performance (`MEDIUM-05`):**
+  - Converted sequential single-row inserts during backup restoration into bulk `batch.insertAll` operations.
+- **Architecture & Provider Hygiene (`LOW-01`, `LOW-03`):**
+  - Relocated `sharedPreferencesProvider` to `lib/core/providers/shared_preferences_provider.dart`, eliminating layer inversion across core services.
+  - Removed dead code `DuplicateSessionFailure` and legacy forwarder stub `lib/features/shell/presentation/screens/history_screen.dart`.
+
 ## [1.2.0] - 2026-11-17
 
 ### Added

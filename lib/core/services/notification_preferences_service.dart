@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/services/notification_service.dart';
-import 'package:attendly/features/onboarding/presentation/providers/onboarding_provider.dart';
+import 'package:attendly/core/providers/shared_preferences_provider.dart';
 
 const String _dailyReminderEnabledKey = 'pref_daily_reminder_enabled_v1';
 const String _dailyReminderHourKey = 'pref_daily_reminder_hour_v1';

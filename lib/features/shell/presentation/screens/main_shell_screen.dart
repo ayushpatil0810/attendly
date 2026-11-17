@@ -11,7 +11,8 @@ import 'package:attendly/features/attendance/presentation/providers/attendance_p
 import 'package:attendly/features/attendance/presentation/widgets/quick_log_sheet.dart';
 import 'package:attendly/features/subjects/presentation/screens/subjects_screen.dart';
 
-import 'history_screen.dart';
+import 'package:attendly/features/attendance/presentation/screens/history_screen.dart';
+
 import 'home_screen.dart';
 import 'insights_screen.dart';
 

@@ -279,8 +279,19 @@ final semesterAttendanceSummaryProvider =
       final subjectsAsync = ref.watch(activeSemesterSubjectsProvider);
       final sessionsAsync = ref.watch(activeSemesterSessionsStreamProvider);
 
-      if (subjectsAsync.isLoading || sessionsAsync.isLoading) {
-        // If we already have previous data, we can keep it or show loading
+      if (!subjectsAsync.hasValue || !sessionsAsync.hasValue) {
+        if (subjectsAsync.hasError) {
+          return AsyncError(
+            subjectsAsync.error!,
+            subjectsAsync.stackTrace ?? StackTrace.current,
+          );
+        }
+        if (sessionsAsync.hasError) {
+          return AsyncError(
+            sessionsAsync.error!,
+            sessionsAsync.stackTrace ?? StackTrace.current,
+          );
+        }
         return const AsyncLoading();
       }
 
@@ -322,7 +333,19 @@ final currentMonthAttendanceSummaryProvider =
       final subjectsAsync = ref.watch(activeSemesterSubjectsProvider);
       final sessionsAsync = ref.watch(activeSemesterSessionsStreamProvider);
 
-      if (subjectsAsync.isLoading || sessionsAsync.isLoading) {
+      if (!subjectsAsync.hasValue || !sessionsAsync.hasValue) {
+        if (subjectsAsync.hasError) {
+          return AsyncError(
+            subjectsAsync.error!,
+            subjectsAsync.stackTrace ?? StackTrace.current,
+          );
+        }
+        if (sessionsAsync.hasError) {
+          return AsyncError(
+            sessionsAsync.error!,
+            sessionsAsync.stackTrace ?? StackTrace.current,
+          );
+        }
         return const AsyncLoading();
       }
 
