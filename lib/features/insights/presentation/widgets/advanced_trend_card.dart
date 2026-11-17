@@ -4,6 +4,7 @@ import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
+import 'package:attendly/core/theme/app_theme_colors.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_trend_point.dart';
 
@@ -19,46 +20,53 @@ class AdvancedTrendCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Attendance History & Trend', style: AppTypography.sectionTitle),
+        Text(
+          'Attendance History & Trend',
+          style: AppTypography.sectionTitle.copyWith(color: colors.textPrimary),
+        ),
         const SizedBox(height: AppSpacing.sm),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.cardPadding),
           decoration: BoxDecoration(
-            color: AppColors.pureWhite,
+            color: colors.surface,
             borderRadius: AppRadius.xlBorder,
+            border: Border.all(color: colors.divider),
             boxShadow: [
               BoxShadow(
-                color: AppColors.ink.withAlpha(6),
-                blurRadius: 14,
+                color: colors.textPrimary.withValues(
+                  alpha: colors.isDark ? 0.12 : 0.03,
+                ),
+                blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
             ],
           ),
           child: trendPoints.length < 2
-              ? _buildEmptyState()
-              : _buildTrendChart(),
+              ? _buildEmptyState(colors)
+              : _buildTrendChart(colors),
         ),
       ],
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(AppThemeColors colors) {
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(10),
-          decoration: const BoxDecoration(
-            color: AppColors.softLavender,
+          decoration: BoxDecoration(
+            color: colors.brandPrimarySoft,
             shape: BoxShape.circle,
           ),
-          child: const AppIcon(
+          child: AppIcon(
             AppIcons.insights,
             size: 20,
-            color: AppColors.brandViolet,
+            color: colors.brandPrimary,
           ),
         ),
         const SizedBox(width: AppSpacing.md),
@@ -66,12 +74,17 @@ class AdvancedTrendCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('More Data Needed', style: AppTypography.itemTitle),
+              Text(
+                'More Data Needed',
+                style: AppTypography.itemTitle.copyWith(
+                  color: colors.textPrimary,
+                ),
+              ),
               const SizedBox(height: 2),
               Text(
                 'Attendance trend requires sessions recorded across at least two different dates.',
                 style: AppTypography.bodySmall.copyWith(
-                  color: AppColors.mutedInk,
+                  color: colors.textSecondary,
                 ),
               ),
             ],
@@ -81,7 +94,7 @@ class AdvancedTrendCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTrendChart() {
+  Widget _buildTrendChart(AppThemeColors colors) {
     final firstDate = trendPoints.first.date;
     final lastDate = trendPoints.last.date;
     final dateFormat = DateFormat('MMM d');
@@ -106,14 +119,14 @@ class AdvancedTrendCard extends StatelessWidget {
                 Text(
                   rangeText,
                   style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.ink,
+                    color: colors.textPrimary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
                   '${trendPoints.length} active recording dates',
                   style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.mutedInk,
+                    color: colors.textSecondary,
                     fontSize: 12,
                   ),
                 ),
@@ -122,7 +135,9 @@ class AdvancedTrendCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: meetsTarget ? AppColors.softMint : AppColors.softCoral,
+                color: meetsTarget
+                    ? colors.accentMintSoft
+                    : colors.accentCoralSoft,
                 borderRadius: AppRadius.pillBorder,
               ),
               child: Row(
@@ -131,7 +146,7 @@ class AdvancedTrendCard extends StatelessWidget {
                   Text(
                     'Latest: ',
                     style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.mutedInk,
+                      color: colors.textSecondary,
                       fontSize: 12,
                     ),
                   ),
@@ -139,8 +154,8 @@ class AdvancedTrendCard extends StatelessWidget {
                     '${latestPct.toStringAsFixed(1)}%',
                     style: AppTypography.labelSmall.copyWith(
                       color: meetsTarget
-                          ? AppColors.inkMint
-                          : AppColors.inkCoral,
+                          ? colors.accentMintInk
+                          : colors.accentCoralInk,
                       fontWeight: FontWeight.w700,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
@@ -160,6 +175,9 @@ class AdvancedTrendCard extends StatelessWidget {
             painter: _AdvancedTrendLinePainter(
               points: trendPoints,
               threshold: threshold,
+              lineColor: colors.brandPrimary,
+              dividerColor: colors.divider,
+              dotBorderColor: colors.surface,
             ),
           ),
         ),
@@ -173,7 +191,7 @@ class AdvancedTrendCard extends StatelessWidget {
               child: Text(
                 'Chronological cumulative attendance',
                 style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.mutedInk,
+                  color: colors.textSecondary,
                   fontSize: 12,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -186,13 +204,13 @@ class AdvancedTrendCard extends StatelessWidget {
                 Container(
                   width: 12,
                   height: 2,
-                  color: AppColors.ink.withAlpha(128),
+                  color: colors.textPrimary.withValues(alpha: 0.5),
                 ),
                 const SizedBox(width: 4),
                 Text(
                   '${(threshold * 100).round()}% Target',
                   style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.mutedInk,
+                    color: colors.textSecondary,
                     fontSize: 12,
                   ),
                 ),
@@ -209,10 +227,16 @@ class _AdvancedTrendLinePainter extends CustomPainter {
   const _AdvancedTrendLinePainter({
     required this.points,
     required this.threshold,
+    required this.lineColor,
+    required this.dividerColor,
+    required this.dotBorderColor,
   });
 
   final List<AttendanceTrendPoint> points;
   final double threshold;
+  final Color lineColor;
+  final Color dividerColor;
+  final Color dotBorderColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -230,7 +254,7 @@ class _AdvancedTrendLinePainter extends CustomPainter {
     // Threshold dashed line
     final thresholdY = getY(threshold * 100);
     final dashPaint = Paint()
-      ..color = AppColors.divider
+      ..color = dividerColor
       ..strokeWidth = 1.2
       ..style = PaintingStyle.stroke;
 
@@ -272,8 +296,8 @@ class _AdvancedTrendLinePainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          AppColors.brandViolet.withAlpha(50),
-          AppColors.brandViolet.withAlpha(0),
+          lineColor.withValues(alpha: 0.22),
+          lineColor.withValues(alpha: 0.0),
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
 
@@ -287,7 +311,7 @@ class _AdvancedTrendLinePainter extends CustomPainter {
     }
 
     final linePaint = Paint()
-      ..color = AppColors.brandViolet
+      ..color = lineColor
       ..strokeWidth = 2.5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -297,14 +321,14 @@ class _AdvancedTrendLinePainter extends CustomPainter {
 
     // Draw dots at each point
     final dotBorderPaint = Paint()
-      ..color = AppColors.pureWhite
+      ..color = dotBorderColor
       ..style = PaintingStyle.fill;
 
     for (final coord in coordinates) {
       canvas.drawCircle(coord, 4.0, dotBorderPaint);
 
       final dotPaint = Paint()
-        ..color = AppColors.brandViolet
+        ..color = lineColor
         ..style = PaintingStyle.fill;
       canvas.drawCircle(coord, 2.5, dotPaint);
     }
@@ -312,6 +336,10 @@ class _AdvancedTrendLinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _AdvancedTrendLinePainter oldDelegate) {
-    return oldDelegate.points != points || oldDelegate.threshold != threshold;
+    return oldDelegate.points != points ||
+        oldDelegate.threshold != threshold ||
+        oldDelegate.lineColor != lineColor ||
+        oldDelegate.dividerColor != dividerColor ||
+        oldDelegate.dotBorderColor != dotBorderColor;
   }
 }

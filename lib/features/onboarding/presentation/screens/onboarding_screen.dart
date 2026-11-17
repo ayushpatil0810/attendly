@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:attendly/core/services/notification_service.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_motion.dart';
@@ -20,7 +21,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<_OnboardingPageData> _pages = const [
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(notificationServiceProvider).requestPermissions();
+    });
+  }
+
+  final List<_OnboardingPageData> _pages = [
     _OnboardingPageData(
       title: 'Track Lectures & Labs',
       subtitle: 'Record attendance for theory classes and practical labs independently with one quick tap.',
@@ -76,10 +85,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final isLastPage = _currentPage == _pages.length - 1;
 
     return Scaffold(
-      backgroundColor: AppColors.warmWhite,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Column(
           children: [

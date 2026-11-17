@@ -5,7 +5,6 @@ import 'package:attendly/core/shared/widgets/app_bottom_sheet.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_radius.dart';
-import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/semesters/domain/entities/semester.dart';
 import 'package:attendly/features/semesters/presentation/widgets/semester_switcher_sheet.dart';
@@ -77,7 +76,7 @@ class DashboardHeader extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        const AppIcon(
+                        AppIcon(
                           AppIcons.arrowDown,
                           size: 16,
                           color: AppColors.inkViolet,
@@ -112,7 +111,7 @@ class DashboardHeader extends StatelessWidget {
                       width: 44,
                       height: 44,
                       alignment: Alignment.center,
-                      child: const AppIcon(
+                      child: AppIcon(
                         AppIcons.settings,
                         size: 23,
                         color: AppColors.ink,

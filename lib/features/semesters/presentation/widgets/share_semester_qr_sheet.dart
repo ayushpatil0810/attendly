@@ -43,7 +43,7 @@ class ShareSemesterQrSheet extends ConsumerWidget {
             Container(
               width: 36,
               height: 4,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.divider,
                 borderRadius: AppRadius.pillBorder,
               ),
@@ -66,7 +66,7 @@ class ShareSemesterQrSheet extends ConsumerWidget {
             const SizedBox(height: 16),
 
             payloadAsync.when(
-              loading: () => const SizedBox(
+              loading: () => SizedBox(
                 height: 280,
                 child: Center(
                   child: CircularProgressIndicator(
@@ -92,12 +92,12 @@ class ShareSemesterQrSheet extends ConsumerWidget {
                         Container(
                           width: 52,
                           height: 52,
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             color: AppColors.softPeach,
                             shape: BoxShape.circle,
                           ),
                           alignment: Alignment.center,
-                          child: const AppIcon(
+                          child: AppIcon(
                             AppIcons.alert,
                             size: 24,
                             color: AppColors.inkPeach,
@@ -190,11 +190,11 @@ class ShareSemesterQrSheet extends ConsumerWidget {
                               version: QrVersions.auto,
                               size: 210.0,
                               backgroundColor: AppColors.pureWhite,
-                              eyeStyle: const QrEyeStyle(
+                              eyeStyle: QrEyeStyle(
                                 eyeShape: QrEyeShape.square,
                                 color: AppColors.ink,
                               ),
-                              dataModuleStyle: const QrDataModuleStyle(
+                              dataModuleStyle: QrDataModuleStyle(
                                 dataModuleShape: QrDataModuleShape.square,
                                 color: AppColors.ink,
                               ),
@@ -208,7 +208,7 @@ class ShareSemesterQrSheet extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const AppIcon(
+                            AppIcon(
                               AppIcons.scan,
                               size: 16,
                               color: AppColors.inkViolet,
@@ -233,7 +233,7 @@ class ShareSemesterQrSheet extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const AppIcon(
+                            AppIcon(
                               AppIcons.shield,
                               size: 13,
                               color: AppColors.subtleInk,
@@ -255,7 +255,7 @@ class ShareSemesterQrSheet extends ConsumerWidget {
                         // Primary Action
                         AppButton(
                           label: 'Copy Code Data',
-                          icon: const AppIcon(
+                          icon: AppIcon(
                             AppIcons.exportFile,
                             size: 16,
                             color: AppColors.pureWhite,
@@ -299,7 +299,7 @@ class _MetaBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.softLavender,
         borderRadius: AppRadius.pillBorder,
       ),

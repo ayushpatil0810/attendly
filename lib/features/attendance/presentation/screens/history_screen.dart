@@ -92,11 +92,12 @@ class HistoryScreen extends ConsumerWidget {
                   const SizedBox(width: 12),
                   AppButton(
                     label: 'Add Session',
-                    icon: const AppIcon(
+                    icon: AppIcon(
                       AppIcons.add,
-                      size: 16,
+                      size: 14,
                       color: AppColors.pureWhite,
                     ),
+                    size: AppButtonSize.small,
                     variant: AppButtonVariant.primary,
                     onPressed: () {
                       showSessionFormSheet(
@@ -113,7 +114,7 @@ class HistoryScreen extends ConsumerWidget {
 
               // Session list for selected date
               sessionsAsync.when(
-                loading: () => const Padding(
+                loading: () => Padding(
                   padding: EdgeInsets.symmetric(vertical: 32),
                   child: Center(
                     child: CircularProgressIndicator(
@@ -228,15 +229,16 @@ class _NoSessionsPlaceholder extends StatelessWidget {
           Container(
             width: 48,
             height: 48,
-            decoration: const BoxDecoration(
-              color: AppColors.softLavender,
+            decoration: BoxDecoration(
+              color: Colors.transparent,
               shape: BoxShape.circle,
+              border: Border.all(color: AppColors.divider, width: 1.5),
             ),
             alignment: Alignment.center,
-            child: const AppIcon(
+            child: AppIcon(
               AppIcons.calendar,
-              size: 24,
-              color: AppColors.brandViolet,
+              size: 22,
+              color: AppColors.inkViolet,
             ),
           ),
           const SizedBox(height: 12),
@@ -276,7 +278,6 @@ class _SessionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isPresent = session.status == AttendanceStatus.present;
     final statusColor = isPresent ? AppColors.inkMint : AppColors.inkCoral;
-    final statusBg = isPresent ? AppColors.softMint : AppColors.softCoral;
 
     final semanticLabel = StringBuffer(session.status.displayName)
       ..write(' session for ')
@@ -307,30 +308,25 @@ class _SessionCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Status indicator pill with high contrast
+            // Minimal status indicator icon without light background or text
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              width: 32,
+              height: 32,
               decoration: BoxDecoration(
-                color: statusBg,
-                borderRadius: AppRadius.mdBorder,
+                color: Colors.transparent,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isPresent
+                      ? AppColors.inkMint.withValues(alpha: 0.35)
+                      : AppColors.inkCoral.withValues(alpha: 0.35),
+                  width: 1.5,
+                ),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AppIcon(
-                    isPresent ? AppIcons.check : AppIcons.close,
-                    size: 15,
-                    color: statusColor,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    session.status.displayName,
-                    style: AppTypography.labelSmall.copyWith(
-                      color: statusColor,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
+              alignment: Alignment.center,
+              child: AppIcon(
+                isPresent ? AppIcons.check : AppIcons.close,
+                size: 16,
+                color: statusColor,
               ),
             ),
             const SizedBox(width: 12),
@@ -386,11 +382,7 @@ class _SessionCard extends StatelessWidget {
             IconButton(
               key: Key('edit_session_${session.id}'),
               tooltip: 'Edit session',
-              icon: const AppIcon(
-                AppIcons.edit,
-                size: 18,
-                color: AppColors.mutedInk,
-              ),
+              icon: AppIcon(AppIcons.edit, size: 18, color: AppColors.mutedInk),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
               onPressed: onEdit,
@@ -400,7 +392,7 @@ class _SessionCard extends StatelessWidget {
             IconButton(
               key: Key('delete_session_${session.id}'),
               tooltip: 'Delete session',
-              icon: const AppIcon(
+              icon: AppIcon(
                 AppIcons.delete,
                 size: 18,
                 color: AppColors.mutedInk,

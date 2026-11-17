@@ -39,37 +39,34 @@ class DayNoteBanner extends ConsumerWidget {
             borderRadius: AppRadius.pillBorder,
             child: Semantics(
               button: true,
-              label: 'Add note for this day',
+              label: '+ Add note for this day',
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
+                  horizontal: 12,
+                  vertical: 7,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.softLavender.withValues(alpha: 0.5),
+                  color: Colors.transparent,
                   borderRadius: AppRadius.pillBorder,
                   border: Border.all(
-                    color: AppColors.brandViolet.withValues(alpha: 0.2),
+                    color: AppColors.inkViolet.withValues(alpha: 0.4),
                   ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const AppIcon(
+                    AppIcon(
                       AppIcons.note,
-                      size: 13,
+                      size: 14,
                       color: AppColors.inkViolet,
                     ),
-                    const SizedBox(width: 5),
-                    Flexible(
-                      child: Text(
-                        '+ Add note for this day',
-                        style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.inkViolet,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+                    const SizedBox(width: 6),
+                    Text(
+                      '+ Add note for this day',
+                      style: AppTypography.labelSmall.copyWith(
+                        color: AppColors.inkViolet,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12.5,
                       ),
                     ),
                   ],
@@ -104,20 +101,14 @@ class DayNoteBanner extends ConsumerWidget {
               isCompact ? 8 : 10,
             ),
             decoration: BoxDecoration(
-              color: AppColors.softLavender,
+              color: Colors.transparent,
               borderRadius: AppRadius.mdBorder,
-              border: Border.all(
-                color: AppColors.brandViolet.withValues(alpha: 0.25),
-              ),
+              border: Border.all(color: AppColors.divider),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const AppIcon(
-                  AppIcons.note,
-                  size: 15,
-                  color: AppColors.brandViolet,
-                ),
+                AppIcon(AppIcons.note, size: 15, color: AppColors.inkViolet),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -132,7 +123,7 @@ class DayNoteBanner extends ConsumerWidget {
                 const SizedBox(width: 4),
                 IconButton(
                   tooltip: 'Edit day note',
-                  icon: const AppIcon(
+                  icon: AppIcon(
                     AppIcons.edit,
                     size: 14,
                     color: AppColors.inkViolet,
@@ -154,7 +145,7 @@ class DayNoteBanner extends ConsumerWidget {
                 ),
                 IconButton(
                   tooltip: 'Delete day note',
-                  icon: const AppIcon(
+                  icon: AppIcon(
                     AppIcons.close,
                     size: 14,
                     color: AppColors.mutedInk,
@@ -165,36 +156,12 @@ class DayNoteBanner extends ConsumerWidget {
                   ),
                   padding: EdgeInsets.zero,
                   onPressed: () async {
-                    AppHaptics.lightImpact(ref);
-                    try {
-                      await ref
-                          .read(dayNoteControllerProvider.notifier)
-                          .deleteNote(date: dateStr);
-                      if (context.mounted) {
-                        AppToast.showInfo(
-                          context,
-                          message: 'Day note deleted.',
-                          actionLabel: 'Undo',
-                          onAction: () async {
-                            await ref
-                                .read(dayNoteControllerProvider.notifier)
-                                .saveNote(date: dateStr, content: note.content);
-                            if (context.mounted) {
-                              AppToast.showSuccess(
-                                context,
-                                message: 'Day note restored.',
-                              );
-                            }
-                          },
-                        );
-                      }
-                    } catch (_) {
-                      if (context.mounted) {
-                        AppToast.showError(
-                          context,
-                          message: 'Could not delete note.',
-                        );
-                      }
+                    AppHaptics.selectionClick(ref);
+                    await ref
+                        .read(dayNoteControllerProvider.notifier)
+                        .deleteNote(date: dateStr);
+                    if (context.mounted) {
+                      AppToast.showInfo(context, message: 'Day note deleted.');
                     }
                   },
                 ),

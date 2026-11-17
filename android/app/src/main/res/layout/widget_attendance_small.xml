@@ -19,19 +19,21 @@
         android:text="ATTENDANCE"
         android:textAllCaps="true"
         android:textColor="@color/widget_subtle_ink"
-        android:textSize="11sp" />
+        android:textSize="10.5sp" />
 
     <!-- Center Progress Ring & Percentage -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="2dp">
 
         <ProgressBar
             android:id="@+id/widget_small_progress_ring"
             style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
+            android:layout_width="76dp"
+            android:layout_height="76dp"
             android:layout_gravity="center"
             android:indeterminate="false"
             android:max="100"
@@ -47,7 +49,7 @@
             android:includeFontPadding="false"
             android:text="—"
             android:textColor="@color/widget_ink"
-            android:textSize="19sp"
+            android:textSize="20sp"
             android:textStyle="bold" />
     </FrameLayout>
 
@@ -60,10 +62,10 @@
         android:ellipsize="end"
         android:fontFamily="sans-serif-medium"
         android:maxLines="1"
-        android:paddingStart="8dp"
-        android:paddingTop="2dp"
-        android:paddingEnd="8dp"
-        android:paddingBottom="2dp"
+        android:paddingStart="10dp"
+        android:paddingTop="3dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="3dp"
         android:text="On Track"
         android:textColor="@color/widget_ink_mint"
         android:textSize="11sp" />

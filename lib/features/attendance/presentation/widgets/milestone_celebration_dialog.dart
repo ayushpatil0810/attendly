@@ -102,7 +102,7 @@ class _MilestoneCelebrationDialogState extends State<MilestoneCelebrationDialog>
                       ],
                     ),
                     alignment: Alignment.center,
-                    child: const AppIcon(
+                    child: AppIcon(
                       AppIcons.trophy,
                       size: 36,
                       color: AppColors.inkMint,

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
+import 'package:attendly/core/theme/app_theme_colors.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_trend_point.dart';
 
@@ -18,24 +19,27 @@ class DashboardTrendCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Attendance Trend',
-          style: AppTypography.sectionTitle
+          style: AppTypography.sectionTitle.copyWith(color: colors.textPrimary),
         ),
         const SizedBox(height: AppSpacing.xs + 2),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.cardPadding),
           decoration: BoxDecoration(
-            color: AppColors.pureWhite,
+            color: colors.surface,
             borderRadius: AppRadius.mdBorder,
-            border: Border.all(color: AppColors.divider),
+            border: Border.all(color: colors.divider),
             boxShadow: [
               BoxShadow(
-                color: AppColors.ink.withValues(alpha: 0.03),
+                color: colors.textPrimary.withValues(
+                  alpha: colors.isDark ? 0.12 : 0.03,
+                ),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -43,7 +47,7 @@ class DashboardTrendCard extends StatelessWidget {
           ),
           child: trendPoints.length < 2
               ? _buildEmptyState()
-              : _buildTrendChart(),
+              : _buildTrendChart(colors),
         ),
       ],
     );
@@ -52,8 +56,7 @@ class DashboardTrendCard extends StatelessWidget {
   Widget _buildEmptyState() {
     return Semantics(
       container: true,
-      label:
-          'Attendance Trend: More Data Needed. Trend visualization appears after sessions across at least two dates are logged.',
+      label: 'Attendance Trend: More Data Needed. Trend visualization appears after sessions across at least two dates are logged.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -62,33 +65,28 @@ class DashboardTrendCard extends StatelessWidget {
               Container(
                 width: 6,
                 height: 6,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.brandViolet,
                   shape: BoxShape.circle,
                 ),
               ),
               const SizedBox(width: 8),
               const Expanded(
-                child: Text(
-                  'More Data Needed',
-                  style: AppTypography.itemTitle,
-                ),
+                child: Text('More Data Needed', style: AppTypography.itemTitle),
               ),
             ],
           ),
           const SizedBox(height: 4),
           Text(
             'Trend visualization appears after sessions across at least two dates are logged.',
-            style: AppTypography.bodySmall.copyWith(
-              color: AppColors.mutedInk,
-            ),
+            style: AppTypography.bodySmall.copyWith(color: AppColors.mutedInk),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTrendChart() {
+  Widget _buildTrendChart(AppThemeColors colors) {
     final firstDate = trendPoints.first.date;
     final lastDate = trendPoints.last.date;
     final dateFormat = DateFormat('MMM d');
@@ -113,7 +111,7 @@ class DashboardTrendCard extends StatelessWidget {
               Text(
                 rangeText,
                 style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.mutedInk,
+                  color: colors.textSecondary,
                 ),
               ),
               Row(
@@ -122,15 +120,15 @@ class DashboardTrendCard extends StatelessWidget {
                   Text(
                     'Latest: ',
                     style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.mutedInk,
+                      color: colors.textSecondary,
                     ),
                   ),
                   Text(
                     '${currentPct.toStringAsFixed(1)}%',
                     style: AppTypography.labelSmall.copyWith(
                       color: currentPct >= threshold * 100 - 1e-9
-                          ? AppColors.inkMint
-                          : AppColors.inkCoral,
+                          ? colors.accentMintInk
+                          : colors.accentCoralInk,
                       fontWeight: FontWeight.w700,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
@@ -149,6 +147,9 @@ class DashboardTrendCard extends StatelessWidget {
               painter: _TrendLinePainter(
                 points: trendPoints,
                 threshold: threshold,
+                lineColor: colors.brandPrimary,
+                dividerColor: colors.divider,
+                dotBorderColor: colors.surface,
               ),
             ),
           ),
@@ -162,7 +163,7 @@ class DashboardTrendCard extends StatelessWidget {
                 width: 12,
                 height: 2,
                 decoration: BoxDecoration(
-                  color: AppColors.mutedInk.withAlpha(120),
+                  color: colors.textSecondary.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(1),
                 ),
               ),
@@ -170,7 +171,7 @@ class DashboardTrendCard extends StatelessWidget {
               Text(
                 '${(threshold * 100).round()}% Target',
                 style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.mutedInk,
+                  color: colors.textSecondary,
                   fontSize: 12,
                 ),
               ),
@@ -183,10 +184,19 @@ class DashboardTrendCard extends StatelessWidget {
 }
 
 class _TrendLinePainter extends CustomPainter {
-  const _TrendLinePainter({required this.points, required this.threshold});
+  const _TrendLinePainter({
+    required this.points,
+    required this.threshold,
+    required this.lineColor,
+    required this.dividerColor,
+    required this.dotBorderColor,
+  });
 
   final List<AttendanceTrendPoint> points;
   final double threshold;
+  final Color lineColor;
+  final Color dividerColor;
+  final Color dotBorderColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -202,11 +212,11 @@ class _TrendLinePainter extends CustomPainter {
       return size.height - bottomPadding - (ratio * chartHeight);
     }
 
-    // Threshold dashed line
+    // Target threshold reference line
     final thresholdY = getY(threshold * 100);
     final dashPaint = Paint()
-      ..color = AppColors.mutedInk.withAlpha(120)
-      ..strokeWidth = 1.2
+      ..color = dividerColor
+      ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke
       ..isAntiAlias = true;
 
@@ -248,8 +258,8 @@ class _TrendLinePainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          AppColors.brandViolet.withAlpha(40),
-          AppColors.brandViolet.withAlpha(0),
+          lineColor.withValues(alpha: 0.22),
+          lineColor.withValues(alpha: 0.0),
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
       ..isAntiAlias = true;
@@ -264,7 +274,7 @@ class _TrendLinePainter extends CustomPainter {
     }
 
     final linePaint = Paint()
-      ..color = AppColors.brandViolet
+      ..color = lineColor
       ..strokeWidth = 2.5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -275,12 +285,12 @@ class _TrendLinePainter extends CustomPainter {
 
     // Draw dots at each point
     final dotBorderPaint = Paint()
-      ..color = AppColors.pureWhite
+      ..color = dotBorderColor
       ..style = PaintingStyle.fill
       ..isAntiAlias = true;
 
     final dotPaint = Paint()
-      ..color = AppColors.brandViolet
+      ..color = lineColor
       ..style = PaintingStyle.fill
       ..isAntiAlias = true;
 
@@ -292,6 +302,10 @@ class _TrendLinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _TrendLinePainter oldDelegate) {
-    return oldDelegate.points != points || oldDelegate.threshold != threshold;
+    return oldDelegate.points != points ||
+        oldDelegate.threshold != threshold ||
+        oldDelegate.lineColor != lineColor ||
+        oldDelegate.dividerColor != dividerColor ||
+        oldDelegate.dotBorderColor != dotBorderColor;
   }
 }

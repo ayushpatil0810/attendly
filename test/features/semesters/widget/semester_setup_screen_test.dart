@@ -2,13 +2,40 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:attendly/core/database/app_database.dart';
 import 'package:attendly/core/providers/database_provider.dart';
+import 'package:attendly/core/services/notification_service.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:attendly/features/semesters/data/repositories/semester_repository_impl.dart';
 import 'package:attendly/features/semesters/presentation/screens/semester_setup_screen.dart';
+
+class _FakeNotificationService implements NotificationService {
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<bool> requestPermissions() async => true;
+
+  @override
+  Future<void> scheduleDailyAttendanceReminder({
+    required int hour,
+    required int minute,
+    String? title,
+    String? body,
+  }) async {}
+
+  @override
+  Future<void> cancelDailyAttendanceReminder() async {}
+
+  @override
+  Future<void> showTestNotification({String? title, String? body}) async {}
+
+  @override
+  Future<bool> areNotificationsEnabled() async => true;
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -27,12 +54,26 @@ void main() {
   });
 
   Widget createWidgetUnderTest() {
+    final router = GoRouter(
+      initialLocation: '/setup',
+      routes: [
+        GoRoute(path: '/setup', builder: (_, _) => const SemesterSetupScreen()),
+        GoRoute(
+          path: '/home',
+          builder: (_, _) => const Scaffold(body: Text('Home Screen')),
+        ),
+      ],
+    );
+
     return ProviderScope(
       overrides: [
         databaseProvider.overrideWithValue(db),
         sharedPreferencesProvider.overrideWithValue(prefs),
+        notificationServiceProvider.overrideWithValue(
+          _FakeNotificationService(),
+        ),
       ],
-      child: const MaterialApp(home: SemesterSetupScreen()),
+      child: MaterialApp.router(routerConfig: router),
     );
   }
 

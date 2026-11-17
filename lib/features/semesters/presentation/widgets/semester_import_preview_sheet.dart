@@ -112,7 +112,7 @@ class _SemesterImportPreviewSheetState
             Container(
               width: 36,
               height: 4,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.divider,
                 borderRadius: AppRadius.pillBorder,
               ),
@@ -134,7 +134,7 @@ class _SemesterImportPreviewSheetState
                 ],
               ),
             ),
-            const Divider(color: AppColors.divider, height: 20),
+            Divider(color: AppColors.divider, height: 20),
 
             Expanded(
               child: SingleChildScrollView(
@@ -197,7 +197,7 @@ class _SemesterImportPreviewSheetState
                           children: [
                             Row(
                               children: [
-                                const AppIcon(
+                                AppIcon(
                                   AppIcons.alert,
                                   size: 16,
                                   color: AppColors.inkPeach,
@@ -335,7 +335,7 @@ class _SemesterImportPreviewSheetState
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: widget.payload.subjects.length,
-                        separatorBuilder: (_, _) => const Divider(
+                        separatorBuilder: (_, _) => Divider(
                           height: 1,
                           indent: 14,
                           endIndent: 14,
@@ -390,7 +390,7 @@ class _SemesterImportPreviewSheetState
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const AppIcon(
+                                        AppIcon(
                                           AppIcons.lecture,
                                           size: 11,
                                           color: AppColors.inkViolet,
@@ -423,7 +423,7 @@ class _SemesterImportPreviewSheetState
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const AppIcon(
+                                        AppIcon(
                                           AppIcons.lab,
                                           size: 11,
                                           color: AppColors.inkMint,
@@ -455,7 +455,7 @@ class _SemesterImportPreviewSheetState
             // Sticky Bottom Actions
             Container(
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.pureWhite,
                 border: Border(top: BorderSide(color: AppColors.divider)),
               ),
@@ -473,7 +473,7 @@ class _SemesterImportPreviewSheetState
                     flex: 2,
                     child: AppButton(
                       label: 'Import Semester',
-                      icon: const AppIcon(
+                      icon: AppIcon(
                         AppIcons.check,
                         size: 16,
                         color: AppColors.pureWhite,

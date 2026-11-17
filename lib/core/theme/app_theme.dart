@@ -1,280 +1,209 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'app_colors.dart';
+import 'app_palettes.dart';
 import 'app_radius.dart';
+import 'app_theme_colors.dart';
+import 'app_theme_id.dart';
 import 'app_typography.dart';
 
-/// App ThemeData configuration for light and dark themes.
+/// App ThemeData configuration for all 8 pastel themes across light and dark appearances.
 abstract final class AppTheme {
+  /// Currently active theme tokens for global/static access.
+  /// Kept in sync by AttendlyApp on build.
+  static AppThemeColors currentColors = AppPalettes.lavenderDreamLight;
+
+  static void setCurrentColors(AppThemeColors colors) {
+    currentColors = colors;
+  }
+
   // ─────────────────────────────────────────────
-  // Light Theme
+  // Theme Builder for Any Theme & Brightness
   // ─────────────────────────────────────────────
 
-  static ThemeData get lightTheme {
-    final base = ThemeData.light(useMaterial3: true);
+  static ThemeData buildTheme(AppThemeId themeId, Brightness brightness) {
+    final isDark = brightness == Brightness.dark;
+    final colors = themeId.colorsFor(brightness);
+
+    final base = isDark
+        ? ThemeData.dark(useMaterial3: true)
+        : ThemeData.light(useMaterial3: true);
+
+    final colorScheme = ColorScheme(
+      brightness: brightness,
+      primary: colors.brandPrimaryInk,
+      onPrimary: isDark ? colors.background : Colors.white,
+      primaryContainer: colors.brandPrimarySoft,
+      onPrimaryContainer: colors.brandPrimaryInk,
+      secondary: colors.accentMint,
+      onSecondary: isDark ? colors.background : colors.textPrimary,
+      secondaryContainer: colors.accentMintSoft,
+      onSecondaryContainer: colors.accentMintInk,
+      tertiary: colors.accentPeach,
+      onTertiary: isDark ? colors.background : colors.textPrimary,
+      error: colors.accentCoralInk,
+      onError: Colors.white,
+      errorContainer: colors.accentCoralSoft,
+      onErrorContainer: colors.accentCoralInk,
+      surface: colors.surface,
+      onSurface: colors.textPrimary,
+      surfaceContainer: colors.surface,
+      surfaceContainerLow: colors.surface,
+      surfaceContainerLowest: colors.background,
+      surfaceContainerHighest: colors.surfaceSubtle,
+      surfaceDim: colors.background,
+      surfaceBright: colors.surfaceElevated,
+      outline: colors.border,
+      outlineVariant: colors.divider,
+    );
 
     return base.copyWith(
-      scaffoldBackgroundColor: AppColors.warmWhite,
-      colorScheme: const ColorScheme(
-        brightness: Brightness.light,
-        primary: AppColors.inkViolet,
-        onPrimary: AppColors.pureWhite,
-        primaryContainer: AppColors.softLavender,
-        onPrimaryContainer: AppColors.ink,
-        secondary: AppColors.brandMint,
-        onSecondary: AppColors.ink,
-        secondaryContainer: AppColors.softMint,
-        onSecondaryContainer: AppColors.ink,
-        tertiary: AppColors.brandPeach,
-        onTertiary: AppColors.ink,
-        error: AppColors.inkCoral,
-        onError: AppColors.pureWhite,
-        errorContainer: AppColors.softCoral,
-        onErrorContainer: AppColors.ink,
-        surface: AppColors.pureWhite,
-        onSurface: AppColors.ink,
-        surfaceContainerHighest: AppColors.surfaceTint,
-        outline: AppColors.border,
-        outlineVariant: AppColors.divider,
-      ),
-      textTheme: const TextTheme(
-        headlineLarge: AppTypography.heroNumber,
-        headlineMedium: AppTypography.metricLarge,
-        headlineSmall: AppTypography.screenTitle,
-        titleLarge: AppTypography.sectionTitle,
-        titleMedium: AppTypography.itemTitle,
-        titleSmall: AppTypography.labelLarge,
-        bodyLarge: AppTypography.bodyLarge,
-        bodyMedium: AppTypography.bodyMedium,
-        bodySmall: AppTypography.bodyMuted,
-        labelLarge: AppTypography.labelLarge,
-        labelMedium: AppTypography.labelMedium,
-        labelSmall: AppTypography.labelSmall,
-      ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.warmWhite,
-        foregroundColor: AppColors.ink,
+      scaffoldBackgroundColor: colors.background,
+      canvasColor: colors.surface,
+      cardColor: colors.surface,
+      dialogBackgroundColor: colors.surface,
+      colorScheme: colorScheme,
+      extensions: [colors],
+      textTheme: (isDark
+          ? const TextTheme(
+              headlineLarge: AppTypography.heroNumber,
+              headlineMedium: AppTypography.metricLarge,
+              headlineSmall: AppTypography.screenTitle,
+              titleLarge: AppTypography.sectionTitle,
+              titleMedium: AppTypography.itemTitle,
+              titleSmall: AppTypography.labelLarge,
+              bodyLarge: AppTypography.bodyLarge,
+              bodyMedium: AppTypography.bodyMedium,
+              bodySmall: AppTypography.bodyMuted,
+              labelLarge: AppTypography.labelLarge,
+              labelMedium: AppTypography.labelMedium,
+              labelSmall: AppTypography.labelSmall,
+            ).apply(
+              bodyColor: colors.textPrimary,
+              displayColor: colors.textPrimary,
+            )
+          : const TextTheme(
+              headlineLarge: AppTypography.heroNumber,
+              headlineMedium: AppTypography.metricLarge,
+              headlineSmall: AppTypography.screenTitle,
+              titleLarge: AppTypography.sectionTitle,
+              titleMedium: AppTypography.itemTitle,
+              titleSmall: AppTypography.labelLarge,
+              bodyLarge: AppTypography.bodyLarge,
+              bodyMedium: AppTypography.bodyMedium,
+              bodySmall: AppTypography.bodyMuted,
+              labelLarge: AppTypography.labelLarge,
+              labelMedium: AppTypography.labelMedium,
+              labelSmall: AppTypography.labelSmall,
+            ).apply(
+              bodyColor: colors.textPrimary,
+              displayColor: colors.textPrimary,
+            )),
+      appBarTheme: AppBarTheme(
+        backgroundColor: colors.background,
+        foregroundColor: colors.textPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.light,
+          statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+          statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
         ),
-        titleTextStyle: AppTypography.screenTitle,
+        titleTextStyle: AppTypography.screenTitle.copyWith(
+          color: colors.textPrimary,
+        ),
       ),
-      dividerTheme: const DividerThemeData(
-        color: AppColors.divider,
+      dividerTheme: DividerThemeData(
+        color: colors.divider,
         thickness: 1,
         space: 1,
       ),
       cardTheme: CardThemeData(
-        color: AppColors.pureWhite,
+        color: colors.surface,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.lgBorder,
-          side: const BorderSide(color: AppColors.border),
+          side: BorderSide(color: colors.border),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.pureWhite,
+        fillColor: colors.surfaceSubtle,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
         ),
         hintStyle: AppTypography.bodyMedium.copyWith(
-          color: AppColors.subtleInk,
+          color: colors.textTertiary,
         ),
-        labelStyle: AppTypography.labelMedium,
+        labelStyle: AppTypography.labelMedium.copyWith(
+          color: colors.textSecondary,
+        ),
         border: OutlineInputBorder(
           borderRadius: AppRadius.mdBorder,
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: colors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: AppRadius.mdBorder,
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: colors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: AppRadius.mdBorder,
-          borderSide: const BorderSide(color: AppColors.inkViolet, width: 1.5),
+          borderSide: BorderSide(color: colors.brandPrimaryInk, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: AppRadius.mdBorder,
-          borderSide: const BorderSide(color: AppColors.inkCoral),
+          borderSide: BorderSide(color: colors.accentCoralInk),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: AppRadius.mdBorder,
-          borderSide: const BorderSide(color: AppColors.inkCoral, width: 1.5),
+          borderSide: BorderSide(color: colors.accentCoralInk, width: 1.5),
         ),
       ),
-      bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: AppColors.pureWhite,
-        modalBackgroundColor: AppColors.pureWhite,
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: colors.surface,
+        modalBackgroundColor: colors.surface,
+        surfaceTintColor: Colors.transparent,
         elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.sheetTop),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.sheetTop),
         showDragHandle: false,
-        dragHandleColor: AppColors.divider,
+        dragHandleColor: colors.divider,
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: AppColors.pureWhite,
+        backgroundColor: colors.surface,
+        surfaceTintColor: Colors.transparent,
         elevation: 8,
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.xlBorder),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.xlBorder),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: colors.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
+        textStyle: AppTypography.bodyMedium.copyWith(color: colors.textPrimary),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: colors.dockBackground,
+        surfaceTintColor: Colors.transparent,
+        indicatorColor: colors.brandPrimarySoft,
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: AppColors.ink,
+        backgroundColor: colors.surfaceElevated,
         contentTextStyle: AppTypography.bodyMedium.copyWith(
-          color: AppColors.pureWhite,
+          color: colors.textPrimary,
         ),
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
         behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
-  // ─────────────────────────────────────────────
-  // Dark Theme
-  // ─────────────────────────────────────────────
+  // Convenience getters for default theme
+  static ThemeData get lightTheme =>
+      buildTheme(AppThemeId.lavenderDream, Brightness.light);
 
-  static ThemeData get darkTheme {
-    const background = Color(0xFF12111A);
-    const surface = Color(0xFF1C1A26);
-    const surfaceElevated = Color(0xFF262332);
-    const border = Color(0xFF383446);
-    const divider = Color(0xFF302D3C);
-
-    const primary = Color(0xFFB9A5FF);
-    const primaryContainer = Color(0xFF39304F);
-
-    const mint = Color(0xFF8EDCC5);
-    const mintContainer = Color(0xFF263E39);
-
-    const peach = Color(0xFFFFB995);
-    const coral = Color(0xFFFF8F91);
-
-    const ink = Color(0xFFF3EFFB);
-    const mutedInk = Color(0xFFAAA4B8);
-    const subtleInk = Color(0xFF858093);
-
-    final base = ThemeData.dark(useMaterial3: true);
-
-    return base.copyWith(
-      scaffoldBackgroundColor: background,
-      colorScheme: const ColorScheme(
-        brightness: Brightness.dark,
-        primary: primary,
-        onPrimary: Color(0xFF211936),
-        primaryContainer: primaryContainer,
-        onPrimaryContainer: Color(0xFFE8DEFF),
-        secondary: mint,
-        onSecondary: Color(0xFF19332C),
-        secondaryContainer: mintContainer,
-        onSecondaryContainer: Color(0xFFC2F4E3),
-        tertiary: peach,
-        onTertiary: Color(0xFF382013),
-        error: coral,
-        onError: Color(0xFF3B1119),
-        errorContainer: Color(0xFF51252D),
-        onErrorContainer: Color(0xFFFFDADB),
-        surface: surface,
-        onSurface: ink,
-        surfaceContainerHighest: surfaceElevated,
-        outline: border,
-        outlineVariant: divider,
-      ),
-      textTheme: const TextTheme(
-        headlineLarge: AppTypography.heroNumber,
-        headlineMedium: AppTypography.metricLarge,
-        headlineSmall: AppTypography.screenTitle,
-        titleLarge: AppTypography.sectionTitle,
-        titleMedium: AppTypography.itemTitle,
-        titleSmall: AppTypography.labelLarge,
-        bodyLarge: AppTypography.bodyLarge,
-        bodyMedium: AppTypography.bodyMedium,
-        bodySmall: AppTypography.bodyMuted,
-        labelLarge: AppTypography.labelLarge,
-        labelMedium: AppTypography.labelMedium,
-        labelSmall: AppTypography.labelSmall,
-      ).apply(bodyColor: ink, displayColor: ink),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: background,
-        foregroundColor: ink,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: false,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.dark,
-        ),
-        titleTextStyle: AppTypography.screenTitle,
-      ),
-      dividerTheme: const DividerThemeData(
-        color: divider,
-        thickness: 1,
-        space: 1,
-      ),
-      cardTheme: CardThemeData(
-        color: surface,
-        elevation: 0,
-        margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(
-          borderRadius: AppRadius.lgBorder,
-          side: const BorderSide(color: border),
-        ),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: surfaceElevated,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-        hintStyle: AppTypography.bodyMedium.copyWith(color: subtleInk),
-        labelStyle: AppTypography.labelMedium.copyWith(color: mutedInk),
-        border: OutlineInputBorder(
-          borderRadius: AppRadius.mdBorder,
-          borderSide: const BorderSide(color: border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: AppRadius.mdBorder,
-          borderSide: const BorderSide(color: border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: AppRadius.mdBorder,
-          borderSide: const BorderSide(color: primary, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: AppRadius.mdBorder,
-          borderSide: const BorderSide(color: coral),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: AppRadius.mdBorder,
-          borderSide: const BorderSide(color: coral, width: 1.5),
-        ),
-      ),
-      bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: surface,
-        modalBackgroundColor: surface,
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.sheetTop),
-        showDragHandle: false,
-        dragHandleColor: divider,
-      ),
-      dialogTheme: DialogThemeData(
-        backgroundColor: surface,
-        elevation: 8,
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.xlBorder),
-      ),
-      snackBarTheme: SnackBarThemeData(
-        backgroundColor: surfaceElevated,
-        contentTextStyle: AppTypography.bodyMedium.copyWith(color: ink),
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
+  static ThemeData get darkTheme =>
+      buildTheme(AppThemeId.lavenderDream, Brightness.dark);
 }

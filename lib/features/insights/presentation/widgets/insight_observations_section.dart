@@ -17,10 +17,15 @@ class InsightObservationsSection extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final colors = context.colors;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Key Observations', style: AppTypography.sectionTitle),
+        Text(
+          'Key Observations',
+          style: AppTypography.sectionTitle.copyWith(color: colors.textPrimary),
+        ),
         const SizedBox(height: AppSpacing.sm),
         ListView.separated(
           shrinkWrap: true,
@@ -42,29 +47,29 @@ class _ObservationTile extends StatelessWidget {
 
   final InsightObservation observation;
 
-  Color get _accentColor {
+  Color _accentColor(dynamic colors) {
     switch (observation.type) {
       case InsightObservationType.positive:
-        return AppColors.inkMint;
+        return colors.accentMintInk as Color;
       case InsightObservationType.warning:
-        return AppColors.inkCoral;
+        return colors.accentCoralInk as Color;
       case InsightObservationType.info:
-        return AppColors.brandViolet;
+        return colors.brandPrimaryInk as Color;
       case InsightObservationType.neutral:
-        return AppColors.inkPeach;
+        return colors.accentPeachInk as Color;
     }
   }
 
-  Color get _bgColor {
+  Color _bgColor(dynamic colors) {
     switch (observation.type) {
       case InsightObservationType.positive:
-        return AppColors.softMint;
+        return colors.accentMintSoft as Color;
       case InsightObservationType.warning:
-        return AppColors.softCoral;
+        return colors.accentCoralSoft as Color;
       case InsightObservationType.info:
-        return AppColors.softLavender;
+        return colors.brandPrimarySoft as Color;
       case InsightObservationType.neutral:
-        return AppColors.softPeach;
+        return colors.accentPeachSoft as Color;
     }
   }
 
@@ -83,16 +88,23 @@ class _ObservationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+    final accent = _accentColor(colors);
+    final bg = _bgColor(colors);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.pureWhite,
+        color: colors.surface,
         borderRadius: AppRadius.lgBorder,
+        border: Border.all(color: colors.divider),
         boxShadow: [
           BoxShadow(
-            color: AppColors.ink.withAlpha(5),
-            blurRadius: 10,
+            color: colors.textPrimary.withValues(
+              alpha: colors.isDark ? 0.12 : 0.03,
+            ),
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
@@ -103,10 +115,10 @@ class _ObservationTile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(
-              color: _bgColor,
+              color: bg,
               borderRadius: AppRadius.smBorder,
             ),
-            child: AppIcon(_icon, size: 16, color: _accentColor),
+            child: AppIcon(_icon, size: 16, color: accent),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -119,7 +131,10 @@ class _ObservationTile extends StatelessWidget {
                     Expanded(
                       child: Text(
                         observation.title,
-                        style: AppTypography.itemTitle.copyWith(fontSize: 13),
+                        style: AppTypography.itemTitle.copyWith(
+                          fontSize: 13,
+                          color: colors.textPrimary,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -130,13 +145,13 @@ class _ObservationTile extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: _bgColor,
+                          color: bg,
                           borderRadius: AppRadius.pillBorder,
                         ),
                         child: Text(
                           observation.badgeText!,
                           style: AppTypography.labelSmall.copyWith(
-                            color: _accentColor,
+                            color: accent,
                             fontWeight: FontWeight.w700,
                             fontSize: 12,
                           ),
@@ -148,7 +163,7 @@ class _ObservationTile extends StatelessWidget {
                 Text(
                   observation.message,
                   style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.mutedInk,
+                    color: colors.textSecondary,
                     fontSize: 12,
                   ),
                 ),

@@ -49,10 +49,22 @@ void main() {
       // Initially on Home
       expect(find.text('attendly'), findsOneWidget);
       expect(find.text('Fall 2026'), findsOneWidget);
+      // Empty dashboard verifies duplicate "Your Courses" is removed
+      expect(find.text('Start Semester Setup'), findsOneWidget);
+      expect(find.text('Your Courses'), findsNothing);
+
+      // Verify dock has tab labels and quick log button
+      expect(find.text('Home'), findsOneWidget);
+      expect(find.text('Subjects'), findsOneWidget);
+      expect(find.byKey(const Key('quick_log_dock_button')), findsOneWidget);
+      expect(find.text('History'), findsOneWidget);
+      expect(find.text('Insights'), findsOneWidget);
 
       // Tap Subjects tab
       await tester.tap(find.text('Subjects'));
       await tester.pumpAndSettle();
+      expect(find.text('Enrolled Courses and Attendance'), findsOneWidget);
+      expect(find.text('Add Subject'), findsOneWidget);
       expect(find.text('No Subjects Added'), findsOneWidget);
 
       // Tap History tab

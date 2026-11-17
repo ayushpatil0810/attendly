@@ -63,7 +63,7 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
                   Container(
                     width: 7,
                     height: 7,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.brandMint,
                       shape: BoxShape.circle,
                     ),
@@ -132,7 +132,7 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
                   Container(
                     width: 7,
                     height: 7,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.brandCoral,
                       shape: BoxShape.circle,
                     ),

@@ -13,11 +13,12 @@ abstract final class AppToast {
     Duration duration = const Duration(seconds: 4),
     bool persist = false,
   }) {
+    final colors = context.colors;
     _show(
       context,
       message: message,
-      backgroundColor: AppColors.ink,
-      textColor: AppColors.pureWhite,
+      backgroundColor: colors.surfaceElevated,
+      textColor: colors.textPrimary,
       actionLabel: actionLabel,
       onAction: onAction,
       duration: duration,
@@ -31,11 +32,12 @@ abstract final class AppToast {
     Duration duration = const Duration(seconds: 4),
     bool persist = false,
   }) {
+    final colors = context.colors;
     _show(
       context,
       message: message,
-      backgroundColor: AppColors.inkCoral,
-      textColor: AppColors.pureWhite,
+      backgroundColor: colors.accentCoralInk,
+      textColor: Colors.white,
       duration: duration,
       persist: persist,
     );
@@ -49,11 +51,12 @@ abstract final class AppToast {
     Duration duration = const Duration(seconds: 3),
     bool persist = false,
   }) {
+    final colors = context.colors;
     _show(
       context,
       message: message,
-      backgroundColor: AppColors.ink,
-      textColor: AppColors.pureWhite,
+      backgroundColor: colors.surfaceElevated,
+      textColor: colors.textPrimary,
       actionLabel: actionLabel,
       onAction: onAction,
       duration: duration,

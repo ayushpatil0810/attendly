@@ -34,21 +34,29 @@ class SubjectComparisonCard extends StatelessWidget {
         return a.subjectName.compareTo(b.subjectName);
       });
 
+    final colors = context.colors;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Subject Comparison', style: AppTypography.sectionTitle),
+        Text(
+          'Subject Comparison',
+          style: AppTypography.sectionTitle.copyWith(color: colors.textPrimary),
+        ),
         const SizedBox(height: AppSpacing.sm),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.cardPadding),
           decoration: BoxDecoration(
-            color: AppColors.pureWhite,
+            color: colors.surface,
             borderRadius: AppRadius.xlBorder,
+            border: Border.all(color: colors.divider),
             boxShadow: [
               BoxShadow(
-                color: AppColors.ink.withAlpha(6),
-                blurRadius: 14,
+                color: colors.textPrimary.withValues(
+                  alpha: colors.isDark ? 0.12 : 0.03,
+                ),
+                blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
             ],
@@ -63,7 +71,7 @@ class SubjectComparisonCard extends StatelessWidget {
                   Text(
                     '${subjectSummaries.length} Subject${subjectSummaries.length == 1 ? '' : 's'}',
                     style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.mutedInk,
+                      color: colors.textSecondary,
                     ),
                   ),
                   Row(
@@ -71,13 +79,13 @@ class SubjectComparisonCard extends StatelessWidget {
                       Container(
                         width: 2,
                         height: 10,
-                        color: AppColors.ink.withAlpha(150),
+                        color: colors.textPrimary.withValues(alpha: 0.6),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         '${(threshold * 100).round()}% Target',
                         style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.mutedInk,
+                          color: colors.textSecondary,
                           fontSize: 12,
                         ),
                       ),
@@ -118,19 +126,20 @@ class _SubjectComparisonRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final isAvailable = summary.isAvailable;
     final isProvisional = summary.isProvisional;
     final pct = summary.percentage;
 
     Color barColor;
     if (summary.meetsThreshold) {
-      barColor = AppColors.brandMint;
+      barColor = colors.accentMint;
     } else if (summary.isBelowThreshold) {
-      barColor = AppColors.brandCoral;
+      barColor = colors.accentCoral;
     } else if (isProvisional) {
-      barColor = AppColors.brandPeach;
+      barColor = colors.accentPeach;
     } else {
-      barColor = AppColors.track;
+      barColor = colors.track;
     }
 
     final double fillRatio = pct != null ? (pct / 100.0).clamp(0.0, 1.0) : 0.0;
@@ -148,7 +157,10 @@ class _SubjectComparisonRow extends StatelessWidget {
                   Flexible(
                     child: Text(
                       summary.subjectName,
-                      style: AppTypography.itemTitle.copyWith(fontSize: 14),
+                      style: AppTypography.itemTitle.copyWith(
+                        fontSize: 14,
+                        color: colors.textPrimary,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -157,7 +169,7 @@ class _SubjectComparisonRow extends StatelessWidget {
                     Text(
                       '${summary.totalPresent}/${summary.totalConducted}',
                       style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.mutedInk,
+                        color: colors.textSecondary,
                         fontSize: 11,
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
@@ -174,9 +186,9 @@ class _SubjectComparisonRow extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isAvailable
                     ? (summary.meetsThreshold
-                          ? AppColors.softMint
-                          : AppColors.softCoral)
-                    : (isProvisional ? AppColors.softPeach : AppColors.track),
+                          ? colors.accentMintSoft
+                          : colors.accentCoralSoft)
+                    : (isProvisional ? colors.accentPeachSoft : colors.track),
                 borderRadius: AppRadius.pillBorder,
               ),
               child: Text(
@@ -186,11 +198,11 @@ class _SubjectComparisonRow extends StatelessWidget {
                 style: AppTypography.labelSmall.copyWith(
                   color: isAvailable
                       ? (summary.meetsThreshold
-                            ? AppColors.inkMint
-                            : AppColors.inkCoral)
+                            ? colors.accentMintInk
+                            : colors.accentCoralInk)
                       : (isProvisional
-                            ? AppColors.inkPeach
-                            : AppColors.mutedInk),
+                            ? colors.accentPeachInk
+                            : colors.textSecondary),
                   fontWeight: FontWeight.w700,
                   fontSize: 11,
                   fontFeatures: const [FontFeature.tabularFigures()],
@@ -215,7 +227,7 @@ class _SubjectComparisonRow extends StatelessWidget {
                   height: 8,
                   width: barWidth,
                   decoration: BoxDecoration(
-                    color: AppColors.track,
+                    color: colors.track,
                     borderRadius: AppRadius.pillBorder,
                   ),
                 ),
@@ -239,7 +251,7 @@ class _SubjectComparisonRow extends StatelessWidget {
                     width: 2,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: AppColors.ink.withAlpha(180),
+                      color: colors.textPrimary.withValues(alpha: 0.7),
                       borderRadius: BorderRadius.circular(1),
                     ),
                   ),

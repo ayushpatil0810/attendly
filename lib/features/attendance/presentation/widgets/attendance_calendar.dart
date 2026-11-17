@@ -99,7 +99,7 @@ class AttendanceCalendar extends ConsumerWidget {
               ],
               IconButton(
                 tooltip: 'Previous month',
-                icon: const AppIcon(
+                icon: AppIcon(
                   AppIcons.back,
                   size: 20,
                   color: AppColors.ink,
@@ -113,7 +113,7 @@ class AttendanceCalendar extends ConsumerWidget {
               ),
               IconButton(
                 tooltip: 'Next month',
-                icon: const AppIcon(
+                icon: AppIcon(
                   AppIcons.forward,
                   size: 20,
                   color: AppColors.ink,
@@ -354,7 +354,7 @@ class _CalendarDayCell extends StatelessWidget {
                         width: 4,
                         height: 4,
                         margin: const EdgeInsets.symmetric(horizontal: 1),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppColors.inkMint,
                           shape: BoxShape.circle,
                         ),
@@ -364,7 +364,7 @@ class _CalendarDayCell extends StatelessWidget {
                         width: 4,
                         height: 4,
                         margin: const EdgeInsets.symmetric(horizontal: 1),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppColors.inkCoral,
                           shape: BoxShape.circle,
                         ),
@@ -374,7 +374,7 @@ class _CalendarDayCell extends StatelessWidget {
                         width: 4,
                         height: 4,
                         margin: const EdgeInsets.symmetric(horizontal: 1),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppColors.brandViolet,
                           shape: BoxShape.circle,
                         ),

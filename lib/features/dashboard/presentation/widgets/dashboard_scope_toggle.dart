@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_typography.dart';
+
 import '../providers/dashboard_scope_provider.dart';
 
 class DashboardScopeToggle extends StatelessWidget {

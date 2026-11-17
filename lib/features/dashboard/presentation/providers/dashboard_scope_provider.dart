@@ -12,10 +12,11 @@ class DashboardAttendanceScopeNotifier
   void setScope(DashboardAttendanceScope scope) => state = scope;
 }
 
-final dashboardAttendanceScopeProvider = NotifierProvider<
-  DashboardAttendanceScopeNotifier,
-  DashboardAttendanceScope
->(DashboardAttendanceScopeNotifier.new);
+final dashboardAttendanceScopeProvider =
+    NotifierProvider<
+      DashboardAttendanceScopeNotifier,
+      DashboardAttendanceScope
+    >(DashboardAttendanceScopeNotifier.new);
 
 final activeDashboardAttendanceSummaryProvider =
     Provider<AsyncValue<SemesterAttendanceSummary?>>((ref) {

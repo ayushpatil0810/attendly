@@ -89,16 +89,18 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
       index: _currentIndex,
       children: [
         HomeScreen(onNavigateToSubjects: () => _onDestinationSelected(1)),
-        const SubjectsScreen(),
-        const HistoryScreen(),
-        const InsightsScreen(),
+        SubjectsScreen(),
+        HistoryScreen(),
+        InsightsScreen(),
       ],
     );
 
     final useRail = AppFrame.useSideRail(context);
 
+    final colors = context.colors;
+
     return Scaffold(
-      backgroundColor: AppColors.warmWhite,
+      backgroundColor: colors.background,
       resizeToAvoidBottomInset: false,
       body: useRail
           ? Row(

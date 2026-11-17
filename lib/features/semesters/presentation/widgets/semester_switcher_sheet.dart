@@ -307,7 +307,7 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
                                   : 'Archive',
                             ),
                             IconButton(
-                              icon: const AppIcon(
+                              icon: AppIcon(
                                 AppIcons.delete,
                                 size: 18,
                                 color: AppColors.inkCoral,
@@ -341,11 +341,7 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
           const SizedBox(height: 24),
           AppButton(
             label: 'Add New Semester',
-            icon: const AppIcon(
-              AppIcons.add,
-              size: 18,
-              color: AppColors.pureWhite,
-            ),
+            icon: AppIcon(AppIcons.add, size: 18, color: AppColors.pureWhite),
             onPressed: _openCreateSemester,
             isFullWidth: true,
             size: AppButtonSize.medium,
@@ -353,11 +349,7 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
           const SizedBox(height: 10),
           AppButton(
             label: 'Scan QR to Import',
-            icon: const AppIcon(
-              AppIcons.scan,
-              size: 18,
-              color: AppColors.inkViolet,
-            ),
+            icon: AppIcon(AppIcons.scan, size: 18, color: AppColors.inkViolet),
             variant: AppButtonVariant.outline,
             onPressed: () async {
               Navigator.of(context).pop();

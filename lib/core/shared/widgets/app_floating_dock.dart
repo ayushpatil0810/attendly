@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_icons.dart';
-import '../../theme/app_radius.dart';
 import '../../theme/app_typography.dart';
 
 class AppFloatingDock extends StatelessWidget {
@@ -19,15 +18,16 @@ class AppFloatingDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Material(
-      color: AppColors.pureWhite,
+      color: colors.dockBackground,
       child: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(
-          color: AppColors.pureWhite,
-          border: Border(top: BorderSide(color: AppColors.divider)),
+        decoration: BoxDecoration(
+          color: colors.dockBackground,
+          border: Border(top: BorderSide(color: colors.divider)),
         ),
         padding: EdgeInsets.fromLTRB(
           8,
@@ -40,12 +40,14 @@ class AppFloatingDock extends StatelessWidget {
           children: [
             _DockItem(
               icon: AppIcons.home,
+              selectedIcon: AppIcons.homeFill,
               label: 'Home',
               isSelected: currentIndex == 0,
               onTap: () => onDestinationSelected(0),
             ),
             _DockItem(
               icon: AppIcons.subjects,
+              selectedIcon: AppIcons.subjectsFill,
               label: 'Subjects',
               isSelected: currentIndex == 1,
               onTap: () => onDestinationSelected(1),
@@ -56,12 +58,14 @@ class AppFloatingDock extends StatelessWidget {
             ),
             _DockItem(
               icon: AppIcons.history,
+              selectedIcon: AppIcons.historyFill,
               label: 'History',
               isSelected: currentIndex == 2,
               onTap: () => onDestinationSelected(2),
             ),
             _DockItem(
               icon: AppIcons.insights,
+              selectedIcon: AppIcons.insightsFill,
               label: 'Insights',
               isSelected: currentIndex == 3,
               onTap: () => onDestinationSelected(3),
@@ -76,27 +80,31 @@ class AppFloatingDock extends StatelessWidget {
 class _DockItem extends StatelessWidget {
   const _DockItem({
     required this.icon,
+    required this.selectedIcon,
     required this.label,
     required this.isSelected,
     required this.onTap,
   });
 
-  final dynamic icon;
+  final IconData icon;
+  final IconData selectedIcon;
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final disableAnimations =
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     final duration = disableAnimations
         ? Duration.zero
         : const Duration(milliseconds: 180);
 
-    // Active tab animates into the violet highlight.
-    // Inactive tab immediately returns to default without undergoing a grey transition.
-    final targetColor = isSelected ? AppColors.inkViolet : AppColors.mutedInk;
+    // Active tab animates into the brand highlight.
+    final targetColor = isSelected
+        ? colors.brandPrimaryInk
+        : colors.textSecondary;
     final activeDuration = isSelected ? duration : Duration.zero;
 
     return Semantics(
@@ -110,31 +118,27 @@ class _DockItem extends StatelessWidget {
           constraints: const BoxConstraints(minWidth: 58, minHeight: 48),
           child: TweenAnimationBuilder<Color?>(
             key: ValueKey(isSelected),
-            tween: ColorTween(begin: AppColors.mutedInk, end: targetColor),
+            tween: ColorTween(begin: colors.textSecondary, end: targetColor),
             duration: activeDuration,
             curve: Curves.easeInOutCubic,
             builder: (context, animatedColor, _) {
               final currentColor = isSelected
                   ? (animatedColor ?? targetColor)
-                  : AppColors.mutedInk;
+                  : colors.textSecondary;
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  AnimatedContainer(
-                    duration: activeDuration,
-                    curve: Curves.easeInOutCubic,
+                  Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 4,
                     ),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.softLavender
-                          : Colors.transparent,
-                      borderRadius: AppRadius.pillBorder,
+                    child: AppIcon(
+                      isSelected ? selectedIcon : icon,
+                      color: currentColor,
+                      size: 24,
                     ),
-                    child: AppIcon(icon, color: currentColor, size: 22),
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -173,6 +177,7 @@ class _QuickLogButtonState extends State<_QuickLogButton> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final disableAnimations =
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
 
@@ -192,16 +197,12 @@ class _QuickLogButtonState extends State<_QuickLogButton> {
           child: Container(
             width: 48,
             height: 48,
-            decoration: const BoxDecoration(
-              color: AppColors.brandViolet,
+            decoration: BoxDecoration(
+              color: colors.primaryAction,
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: const AppIcon(
-              AppIcons.add,
-              color: AppColors.pureWhite,
-              size: 24,
-            ),
+            child: AppIcon(AppIcons.add, color: Colors.white, size: 24),
           ),
         ),
       ),
@@ -225,10 +226,11 @@ class AppSideRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: AppColors.pureWhite,
-        border: Border(right: BorderSide(color: AppColors.divider)),
+      decoration: BoxDecoration(
+        color: colors.dockBackground,
+        border: Border(right: BorderSide(color: colors.divider)),
       ),
       child: SafeArea(
         child: SizedBox(
@@ -243,24 +245,28 @@ class AppSideRail extends StatelessWidget {
               const SizedBox(height: 16),
               _DockItem(
                 icon: AppIcons.home,
+                selectedIcon: AppIcons.homeFill,
                 label: 'Home',
                 isSelected: currentIndex == 0,
                 onTap: () => onDestinationSelected(0),
               ),
               _DockItem(
                 icon: AppIcons.subjects,
+                selectedIcon: AppIcons.subjectsFill,
                 label: 'Subjects',
                 isSelected: currentIndex == 1,
                 onTap: () => onDestinationSelected(1),
               ),
               _DockItem(
                 icon: AppIcons.history,
+                selectedIcon: AppIcons.historyFill,
                 label: 'History',
                 isSelected: currentIndex == 2,
                 onTap: () => onDestinationSelected(2),
               ),
               _DockItem(
                 icon: AppIcons.insights,
+                selectedIcon: AppIcons.insightsFill,
                 label: 'Insights',
                 isSelected: currentIndex == 3,
                 onTap: () => onDestinationSelected(3),

@@ -53,8 +53,9 @@ class HomeScreen extends ConsumerWidget {
     }
 
     final summaryAsync = ref.watch(semesterAttendanceSummaryProvider);
-    final activeSummaryAsync =
-        ref.watch(activeDashboardAttendanceSummaryProvider);
+    final activeSummaryAsync = ref.watch(
+      activeDashboardAttendanceSummaryProvider,
+    );
     final scope = ref.watch(dashboardAttendanceScopeProvider);
 
     return Scaffold(
@@ -101,10 +102,7 @@ class HomeScreen extends ConsumerWidget {
                   ],
 
                   // Overall Attendance Hero Banner (circular gauge & large %)
-                  OverallAttendanceHero(
-                    summary: displaySummary,
-                    scope: scope,
-                  ),
+                  OverallAttendanceHero(summary: displaySummary, scope: scope),
                   const SizedBox(height: 20),
 
                   if (!hasConductedSessions) ...[
@@ -113,15 +111,17 @@ class HomeScreen extends ConsumerWidget {
                       semester: activeSemester,
                       hasSubjects: summary.subjectSummaries.isNotEmpty,
                     ),
-                    const SizedBox(height: 20),
 
-                    // Subjects Preview
-                    DashboardSubjectPreview(
-                      semesterId: activeSemester.id,
-                      subjects: summary.subjectSummaries,
-                      threshold: activeSemester.attendanceThreshold,
-                      onNavigateToSubjects: onNavigateToSubjects,
-                    ),
+                    // Subjects Preview - only display when subjects exist to avoid duplicate empty state cards
+                    if (summary.subjectSummaries.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      DashboardSubjectPreview(
+                        semesterId: activeSemester.id,
+                        subjects: summary.subjectSummaries,
+                        threshold: activeSemester.attendanceThreshold,
+                        onNavigateToSubjects: onNavigateToSubjects,
+                      ),
+                    ],
                   ] else ...[
                     // Compact session counts (conducted, present, absent + components)
                     CompactAttendanceStats(summary: displaySummary),

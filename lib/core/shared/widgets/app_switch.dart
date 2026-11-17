@@ -25,6 +25,7 @@ class AppSwitchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return GestureDetector(
       onTap: enabled && onChanged != null ? () => onChanged!(!value) : null,
       behavior: HitTestBehavior.opaque,
@@ -35,10 +36,10 @@ class AppSwitchTile extends StatelessWidget {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: value ? AppColors.softLavender : AppColors.pureWhite,
+          color: value ? colors.brandPrimarySoft : colors.surface,
           borderRadius: AppRadius.lgBorder,
           border: Border.all(
-            color: value ? AppColors.brandViolet : AppColors.border,
+            color: value ? colors.brandPrimary : colors.border,
             width: value ? 1.5 : 1.0,
           ),
         ),
@@ -53,7 +54,7 @@ class AppSwitchTile extends StatelessWidget {
                   Text(
                     title,
                     style: AppTypography.itemTitle.copyWith(
-                      color: enabled ? AppColors.ink : AppColors.subtleInk,
+                      color: enabled ? colors.textPrimary : colors.textTertiary,
                     ),
                   ),
                   if (subtitle != null) ...[
@@ -62,8 +63,8 @@ class AppSwitchTile extends StatelessWidget {
                       subtitle!,
                       style: AppTypography.labelSmall.copyWith(
                         color: enabled
-                            ? AppColors.mutedInk
-                            : AppColors.subtleInk,
+                            ? colors.textSecondary
+                            : colors.textTertiary,
                       ),
                     ),
                   ],
@@ -81,7 +82,7 @@ class AppSwitchTile extends StatelessWidget {
               padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
                 borderRadius: AppRadius.pillBorder,
-                color: value ? AppColors.brandViolet : AppColors.track,
+                color: value ? colors.brandPrimary : colors.track,
               ),
               child: AnimatedAlign(
                 duration: AppMotion.duration(
@@ -92,9 +93,9 @@ class AppSwitchTile extends StatelessWidget {
                 child: Container(
                   width: 22,
                   height: 22,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.pureWhite,
+                    color: Colors.white,
                   ),
                 ),
               ),

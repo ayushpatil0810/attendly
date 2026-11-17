@@ -51,7 +51,7 @@ class SimulatorProjectionCard extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const AppIcon(
+                    AppIcon(
                       AppIcons.insights,
                       size: 12,
                       color: AppColors.brandViolet,
@@ -93,11 +93,11 @@ class SimulatorProjectionCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Container(
                   padding: const EdgeInsets.all(6),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppColors.track,
                     shape: BoxShape.circle,
                   ),
-                  child: const AppIcon(
+                  child: AppIcon(
                     AppIcons.forward,
                     size: 14,
                     color: AppColors.mutedInk,

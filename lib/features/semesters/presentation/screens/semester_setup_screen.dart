@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:attendly/core/services/notification_preferences_service.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/shared/widgets/app_frame.dart';
 import 'package:attendly/core/shared/widgets/app_segmented_control.dart';
@@ -27,9 +28,10 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   double _thresholdPercent = 75.0;
-  double _targetGoalPercent = 85.0;
   AttendanceCalculationMethod _calculationMethod =
       AttendanceCalculationMethod.rawCombined;
+  bool _dailyReminderEnabled = true;
+  TimeOfDay _reminderTime = const TimeOfDay(hour: 20, minute: 0);
   bool _isLoading = false;
 
   @override
@@ -45,15 +47,23 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
 
     try {
       final threshold = _thresholdPercent / 100.0;
-      final targetGoal = _targetGoalPercent / 100.0;
       await ref
           .read(semesterControllerProvider.notifier)
           .createSemester(
             name: _nameController.text.trim(),
             attendanceThreshold: threshold,
             calculationMethod: _calculationMethod,
-            targetGoal: targetGoal,
+            targetGoal: threshold,
           );
+
+      // Save daily reminder settings
+      final notifNotifier = ref.read(notificationPreferencesProvider.notifier);
+      if (_dailyReminderEnabled) {
+        await notifNotifier.setReminderTime(_reminderTime);
+        await notifNotifier.setDailyReminderEnabled(true);
+      } else {
+        await notifNotifier.setDailyReminderEnabled(false);
+      }
 
       if (mounted) {
         AppToast.showSuccess(
@@ -171,85 +181,6 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                       color: AppColors.mutedInk,
                     ),
                   ),
-                  const SizedBox(height: 24),
-
-                  // Personal Goal Slider
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Text(
-                            'Personal Goal',
-                            style: AppTypography.labelMedium,
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 1.5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.softMint,
-                              borderRadius: AppRadius.pillBorder,
-                            ),
-                            child: Text(
-                              'Target',
-                              style: AppTypography.labelSmall.copyWith(
-                                color: AppColors.inkMint,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.softMint,
-                          borderRadius: AppRadius.pillBorder,
-                        ),
-                        child: Text(
-                          '${_targetGoalPercent.round()}%',
-                          style: AppTypography.labelLarge.copyWith(
-                            color: AppColors.inkMint,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  SliderTheme(
-                    data: SliderTheme.of(context).copyWith(
-                      activeTrackColor: AppColors.inkMint,
-                      inactiveTrackColor: AppColors.track,
-                      thumbColor: AppColors.inkMint,
-                      overlayColor: AppColors.brandMint.withOpacity(0.15),
-                      trackHeight: 6,
-                      thumbShape: const RoundSliderThumbShape(
-                        enabledThumbRadius: 10,
-                      ),
-                    ),
-                    child: Slider(
-                      value: _targetGoalPercent,
-                      min: 50,
-                      max: 100,
-                      divisions: 50,
-                      onChanged: (val) {
-                        setState(() => _targetGoalPercent = val);
-                      },
-                    ),
-                  ),
-                  Text(
-                    'Your personal ambition (e.g. 85%). Kept separate from university rules.',
-                    style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.mutedInk,
-                    ),
-                  ),
                   const SizedBox(height: 28),
 
                   // Calculation Method
@@ -284,7 +215,90 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                       color: AppColors.mutedInk,
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 28),
+
+                  // Daily Reminder Card
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.pureWhite,
+                      borderRadius: AppRadius.mdBorder,
+                      border: Border.all(color: AppColors.divider),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            AppIcon(
+                              AppIcons.notification,
+                              size: 20,
+                              color: AppColors.brandViolet,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Daily Reminder',
+                                    style: AppTypography.itemTitle,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Get reminded to log your classes',
+                                    style: AppTypography.bodySmall.copyWith(
+                                      color: AppColors.mutedInk,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch.adaptive(
+                              value: _dailyReminderEnabled,
+                              activeColor: AppColors.brandViolet,
+                              onChanged: (val) {
+                                setState(() => _dailyReminderEnabled = val);
+                              },
+                            ),
+                          ],
+                        ),
+                        if (_dailyReminderEnabled) ...[
+                          const SizedBox(height: 14),
+                          Divider(height: 1, color: AppColors.divider),
+                          const SizedBox(height: 14),
+                          Text(
+                            'Preferred Reminder Time',
+                            style: AppTypography.labelSmall.copyWith(
+                              color: AppColors.ink,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _buildTimePresetChip(
+                                label: '7:00 PM',
+                                time: const TimeOfDay(hour: 19, minute: 0),
+                              ),
+                              _buildTimePresetChip(
+                                label: '8:00 PM',
+                                time: const TimeOfDay(hour: 20, minute: 0),
+                              ),
+                              _buildTimePresetChip(
+                                label: '9:00 PM',
+                                time: const TimeOfDay(hour: 21, minute: 0),
+                              ),
+                              _buildCustomTimeChip(context),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
 
                   // Continue Button
                   AppButton(
@@ -297,7 +311,7 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      const Expanded(child: Divider(color: AppColors.divider)),
+                      Expanded(child: Divider(color: AppColors.divider)),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Text(
@@ -308,13 +322,13 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                           ),
                         ),
                       ),
-                      const Expanded(child: Divider(color: AppColors.divider)),
+                      Expanded(child: Divider(color: AppColors.divider)),
                     ],
                   ),
                   const SizedBox(height: 16),
                   AppButton(
                     label: 'Scan QR to Import Semester',
-                    icon: const AppIcon(
+                    icon: AppIcon(
                       AppIcons.scan,
                       size: 18,
                       color: AppColors.inkViolet,
@@ -334,6 +348,102 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimePresetChip({
+    required String label,
+    required TimeOfDay time,
+  }) {
+    final isSelected =
+        _reminderTime.hour == time.hour && _reminderTime.minute == time.minute;
+    return GestureDetector(
+      onTap: () => setState(() => _reminderTime = time),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.softLavender : AppColors.pureWhite,
+          borderRadius: AppRadius.pillBorder,
+          border: Border.all(
+            color: isSelected ? AppColors.brandViolet : AppColors.divider,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: AppTypography.labelSmall.copyWith(
+            color: isSelected ? AppColors.inkViolet : AppColors.ink,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomTimeChip(BuildContext context) {
+    final isPreset =
+        (_reminderTime.hour == 19 && _reminderTime.minute == 0) ||
+        (_reminderTime.hour == 20 && _reminderTime.minute == 0) ||
+        (_reminderTime.hour == 21 && _reminderTime.minute == 0);
+    final isSelected = !isPreset;
+
+    final hour12 = _reminderTime.hour % 12 == 0 ? 12 : _reminderTime.hour % 12;
+    final minPadded = _reminderTime.minute.toString().padLeft(2, '0');
+    final period = _reminderTime.hour >= 12 ? 'PM' : 'AM';
+    final customLabel = isSelected ? '$hour12:$minPadded $period' : 'Custom';
+
+    return GestureDetector(
+      onTap: () async {
+        final picked = await showTimePicker(
+          context: context,
+          initialTime: _reminderTime,
+          builder: (context, child) {
+            return Theme(
+              data: Theme.of(context).copyWith(
+                colorScheme: ColorScheme.light(
+                  primary: AppColors.inkViolet,
+                  onPrimary: AppColors.pureWhite,
+                  onSurface: AppColors.ink,
+                  surface: AppColors.pureWhite,
+                ),
+              ),
+              child: child!,
+            );
+          },
+        );
+        if (picked != null) {
+          setState(() => _reminderTime = picked);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.softLavender : AppColors.pureWhite,
+          borderRadius: AppRadius.pillBorder,
+          border: Border.all(
+            color: isSelected ? AppColors.brandViolet : AppColors.divider,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              customLabel,
+              style: AppTypography.labelSmall.copyWith(
+                color: isSelected ? AppColors.inkViolet : AppColors.ink,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+            const SizedBox(width: 4),
+            AppIcon(
+              AppIcons.arrowDown,
+              size: 12,
+              color: isSelected ? AppColors.inkViolet : AppColors.mutedInk,
+            ),
+          ],
         ),
       ),
     );

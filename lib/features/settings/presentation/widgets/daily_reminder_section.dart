@@ -26,7 +26,7 @@ class DailyReminderSection extends ConsumerWidget {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
+            colorScheme: ColorScheme.light(
               primary: AppColors.inkViolet,
               onPrimary: AppColors.pureWhite,
               onSurface: AppColors.ink,
@@ -77,7 +77,7 @@ class DailyReminderSection extends ConsumerWidget {
           AppSwitchTile(
             title: 'Daily Attendance Reminder',
             subtitle: 'Prompt to log your classes for the day',
-            icon: const AppIcon(
+            icon: AppIcon(
               AppIcons.notification,
               size: 20,
               color: AppColors.brandViolet,
@@ -157,7 +157,7 @@ class DailyReminderSection extends ConsumerWidget {
                         ),
                         child: Row(
                           children: [
-                            const AppIcon(
+                            AppIcon(
                               AppIcons.clock,
                               size: 18,
                               color: AppColors.inkViolet,
@@ -212,7 +212,7 @@ class DailyReminderSection extends ConsumerWidget {
                                     ),
                                   ),
                                   const SizedBox(width: 6),
-                                  const AppIcon(
+                                  AppIcon(
                                     AppIcons.edit,
                                     size: 13,
                                     color: AppColors.inkViolet,
@@ -230,7 +230,7 @@ class DailyReminderSection extends ConsumerWidget {
                   // Send Test Notification Button
                   AppButton(
                     label: 'Send Test Notification',
-                    icon: const AppIcon(
+                    icon: AppIcon(
                       AppIcons.notification,
                       size: 15,
                       color: AppColors.inkViolet,
@@ -268,7 +268,7 @@ class DailyReminderSection extends ConsumerWidget {
                     ),
                     child: Row(
                       children: [
-                        const AppIcon(
+                        AppIcon(
                           AppIcons.shield,
                           size: 16,
                           color: AppColors.inkViolet,

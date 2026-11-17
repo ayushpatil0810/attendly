@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_motion.dart';
-import 'package:attendly/core/theme/app_radius.dart';
-import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/attendance/domain/entities/semester_attendance_summary.dart';
 import 'package:attendly/features/attendance/domain/entities/threshold_status.dart';
@@ -259,7 +257,8 @@ class _CircularGaugePainter extends CustomPainter {
     }
 
     // Target threshold marker tick
-    final thresholdAngle = -math.pi / 2 + (2 * math.pi * threshold.clamp(0.0, 1.0));
+    final thresholdAngle =
+        -math.pi / 2 + (2 * math.pi * threshold.clamp(0.0, 1.0));
     final tickPaint = Paint()
       ..color = AppColors.ink
       ..strokeWidth = 2.5

@@ -10,27 +10,28 @@ class AppLoadingState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(
+            SizedBox(
               width: 32,
               height: 32,
               child: CircularProgressIndicator(
                 strokeWidth: 2.5,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  AppColors.brandViolet,
-                ),
+                valueColor: AlwaysStoppedAnimation<Color>(colors.brandPrimary),
               ),
             ),
             if (message != null) ...[
               const SizedBox(height: 16),
               Text(
                 message!,
-                style: AppTypography.bodyMuted,
+                style: AppTypography.bodyMuted.copyWith(
+                  color: colors.textSecondary,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],

@@ -13,12 +13,13 @@ Future<T?> showAppBottomSheet<T>({
   bool isDismissible = true,
   bool enableDrag = true,
 }) {
+  final colors = context.colors;
   return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: isScrollControlled,
     isDismissible: isDismissible,
     enableDrag: enableDrag,
-    backgroundColor: AppColors.pureWhite,
+    backgroundColor: colors.surface,
     shape: const RoundedRectangleBorder(borderRadius: AppRadius.sheetTop),
     builder: (context) {
       final mediaQuery = MediaQuery.of(context);
@@ -34,7 +35,7 @@ Future<T?> showAppBottomSheet<T>({
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.divider,
+                  color: colors.divider,
                   borderRadius: AppRadius.pillBorder,
                 ),
               ),
@@ -76,25 +77,26 @@ class AppCloseButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Semantics(
       button: true,
       label: label,
       child: Tooltip(
         message: label,
         child: Material(
-          color: AppColors.track,
+          color: colors.track,
           shape: const CircleBorder(),
           child: InkWell(
             customBorder: const CircleBorder(),
             onTap: onPressed,
-            child: const SizedBox(
+            child: SizedBox(
               width: 48,
               height: 48,
               child: Center(
                 child: AppIcon(
                   AppIcons.close,
                   size: 20,
-                  color: AppColors.mutedInk,
+                  color: colors.textSecondary,
                 ),
               ),
             ),

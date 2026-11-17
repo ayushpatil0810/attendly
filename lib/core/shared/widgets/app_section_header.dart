@@ -21,6 +21,7 @@ class AppSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -32,10 +33,20 @@ class AppSectionHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(title, style: AppTypography.sectionTitle),
+                Text(
+                  title,
+                  style: AppTypography.sectionTitle.copyWith(
+                    color: colors.textPrimary,
+                  ),
+                ),
                 if (subtitle != null) ...[
                   const SizedBox(height: 2),
-                  Text(subtitle!, style: AppTypography.bodySmall),
+                  Text(
+                    subtitle!,
+                    style: AppTypography.bodySmall.copyWith(
+                      color: colors.textSecondary,
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -51,7 +62,7 @@ class AppSectionHeader extends StatelessWidget {
                 child: Text(
                   actionLabel!,
                   style: AppTypography.labelLarge.copyWith(
-                    color: AppColors.inkViolet,
+                    color: colors.brandPrimaryInk,
                   ),
                 ),
               ),

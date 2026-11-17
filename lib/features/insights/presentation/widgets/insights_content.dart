@@ -22,6 +22,7 @@ class InsightsContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.colors;
     final summaryAsync = ref.watch(filteredSemesterAttendanceSummaryProvider);
     final observations = ref.watch(insightObservationsProvider);
 
@@ -39,10 +40,15 @@ class InsightsContent extends ConsumerWidget {
       ),
       data: (summary) {
         if (summary == null) {
-          return const Center(
+          return Center(
             child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Text('No active semester selected.'),
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                'No active semester selected.',
+                style: AppTypography.bodyMedium.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
             ),
           );
         }
@@ -62,21 +68,23 @@ class InsightsContent extends ConsumerWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const AppIcon(
+                        AppIcon(
                           AppIcons.calendar,
                           size: 32,
-                          color: AppColors.mutedInk,
+                          color: colors.textSecondary,
                         ),
                         const SizedBox(height: 12),
-                        const Text(
+                        Text(
                           'No Records in Selected Filter',
-                          style: AppTypography.itemTitle,
+                          style: AppTypography.itemTitle.copyWith(
+                            color: colors.textPrimary,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'No attendance sessions match the selected date range or subject filter.',
                           style: AppTypography.bodySmall.copyWith(
-                            color: AppColors.mutedInk,
+                            color: colors.textSecondary,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -87,7 +95,7 @@ class InsightsContent extends ConsumerWidget {
                           child: Text(
                             'Clear Filter',
                             style: AppTypography.labelMedium.copyWith(
-                              color: AppColors.inkViolet,
+                              color: colors.brandPrimaryInk,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -103,10 +111,10 @@ class InsightsContent extends ConsumerWidget {
           return AppEmptyState(
             title: 'No Attendance Data Yet',
             description: 'Log your first class session to start seeing deep analytics, lecture vs. lab comparisons, and attendance trends.',
-            icon: const AppIcon(
+            icon: AppIcon(
               AppIcons.insights,
               size: 32,
-              color: AppColors.brandViolet,
+              color: colors.brandPrimary,
             ),
             actionLabel: 'Log First Class',
             onAction: () => showQuickLogSheet(context: context),
