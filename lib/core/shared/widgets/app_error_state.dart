@@ -13,6 +13,7 @@ class AppErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       child: Column(
@@ -20,7 +21,9 @@ class AppErrorState extends StatelessWidget {
         children: [
           Text(
             message,
-            style: AppTypography.bodySmall.copyWith(color: AppColors.inkCoral),
+            style: AppTypography.bodySmall.copyWith(
+              color: colors.accentCoralInk,
+            ),
             textAlign: TextAlign.center,
           ),
           if (onRetry != null) ...[

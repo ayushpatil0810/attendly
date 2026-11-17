@@ -44,11 +44,7 @@ class DashboardEmptyState extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Clean, unboxed icon (no colored bubble container)
-          const AppIcon(
-            AppIcons.calendar,
-            size: 32,
-            color: AppColors.brandViolet,
-          ),
+          AppIcon(AppIcons.calendar, size: 32, color: AppColors.brandViolet),
           const SizedBox(height: AppSpacing.sm),
           Text(
             hasSubjects ? 'No Classes Recorded Yet' : 'Start Semester Setup',
@@ -63,20 +59,14 @@ class DashboardEmptyState extends StatelessWidget {
             hasSubjects
                 ? 'Log your first class session to calculate safe absences and track progress.'
                 : 'Add your courses to this semester to begin tracking attendance.',
-            style: AppTypography.bodySmall.copyWith(
-              color: AppColors.mutedInk,
-            ),
+            style: AppTypography.bodySmall.copyWith(color: AppColors.mutedInk),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.md),
           if (hasSubjects)
             AppButton(
               label: 'Quick Log Session',
-              icon: const AppIcon(
-                AppIcons.add,
-                size: 16,
-                color: AppColors.pureWhite,
-              ),
+              icon: AppIcon(AppIcons.add, size: 16, color: AppColors.pureWhite),
               size: AppButtonSize.small,
               onPressed: () {
                 showQuickLogSheet(context: context);
@@ -85,11 +75,7 @@ class DashboardEmptyState extends StatelessWidget {
           else
             AppButton(
               label: 'Add First Subject',
-              icon: const AppIcon(
-                AppIcons.add,
-                size: 16,
-                color: AppColors.pureWhite,
-              ),
+              icon: AppIcon(AppIcons.add, size: 16, color: AppColors.pureWhite),
               size: AppButtonSize.small,
               onPressed: () {
                 showAppBottomSheet(

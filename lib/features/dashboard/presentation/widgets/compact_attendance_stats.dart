@@ -33,11 +33,7 @@ class CompactAttendanceStats extends StatelessWidget {
                     valueColor: AppColors.ink,
                   ),
                 ),
-                Container(
-                  width: 1,
-                  height: 28,
-                  color: AppColors.divider,
-                ),
+                Container(width: 1, height: 28, color: AppColors.divider),
                 Expanded(
                   child: _StatColumn(
                     label: 'Present',

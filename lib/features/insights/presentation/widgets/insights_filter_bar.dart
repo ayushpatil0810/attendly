@@ -23,6 +23,7 @@ class InsightsFilterBar extends ConsumerWidget {
     InsightsFilter currentFilter,
   ) async {
     final now = DateTime.now();
+    final colors = context.colors;
     final picked = await showDateRangePicker(
       context: context,
       firstDate: DateTime(now.year - 2),
@@ -41,12 +42,19 @@ class InsightsFilterBar extends ConsumerWidget {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.inkViolet,
-              onPrimary: AppColors.pureWhite,
-              surface: AppColors.pureWhite,
-              onSurface: AppColors.ink,
-            ),
+            colorScheme: colors.isDark
+                ? ColorScheme.dark(
+                    primary: colors.brandPrimary,
+                    onPrimary: colors.background,
+                    surface: colors.surface,
+                    onSurface: colors.textPrimary,
+                  )
+                : ColorScheme.light(
+                    primary: colors.brandPrimaryInk,
+                    onPrimary: Colors.white,
+                    surface: colors.surface,
+                    onSurface: colors.textPrimary,
+                  ),
           ),
           child: child!,
         );
@@ -66,6 +74,7 @@ class InsightsFilterBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.colors;
     final filter = ref.watch(insightsFilterProvider);
     final subjectsAsync = ref.watch(activeSemesterSubjectsProvider);
     final subjects = subjectsAsync.asData?.value ?? <Subject>[];
@@ -122,22 +131,22 @@ class InsightsFilterBar extends ConsumerWidget {
                       ),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: AppColors.softCoral,
+                        color: colors.accentCoralSoft,
                         borderRadius: AppRadius.pillBorder,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const AppIcon(
+                          AppIcon(
                             AppIcons.close,
                             size: 14,
-                            color: AppColors.inkCoral,
+                            color: colors.accentCoralInk,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             'Reset',
                             style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.inkCoral,
+                              color: colors.accentCoralInk,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -191,6 +200,7 @@ class _InsightsScopeSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.colors;
     final filter = ref.watch(insightsFilterProvider);
     final subjects =
         ref.watch(activeSemesterSubjectsProvider).asData?.value ?? [];
@@ -200,7 +210,12 @@ class _InsightsScopeSheet extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (subjects.length > 1) ...[
-          Text('Subject', style: AppTypography.labelMedium),
+          Text(
+            'Subject',
+            style: AppTypography.labelMedium.copyWith(
+              color: colors.textPrimary,
+            ),
+          ),
           const SizedBox(height: AppSpacing.xs),
           Wrap(
             spacing: AppSpacing.xs,
@@ -225,7 +240,10 @@ class _InsightsScopeSheet extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.md),
         ],
-        Text('Class type', style: AppTypography.labelMedium),
+        Text(
+          'Class type',
+          style: AppTypography.labelMedium.copyWith(color: colors.textPrimary),
+        ),
         const SizedBox(height: AppSpacing.xs),
         Wrap(
           spacing: AppSpacing.xs,
@@ -271,6 +289,7 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -283,15 +302,19 @@ class _FilterChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.inkViolet : AppColors.pureWhite,
+          color: isSelected
+              ? (colors.isDark ? colors.brandPrimary : colors.brandPrimaryInk)
+              : colors.surface,
           borderRadius: AppRadius.pillBorder,
           border: Border.all(
-            color: isSelected ? AppColors.inkViolet : AppColors.border,
+            color: isSelected
+                ? (colors.isDark ? colors.brandPrimary : colors.brandPrimaryInk)
+                : colors.border,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppColors.brandViolet.withAlpha(50),
+                    color: colors.brandPrimary.withValues(alpha: 0.3),
                     blurRadius: 4,
                     offset: const Offset(0, 1),
                   ),
@@ -301,7 +324,9 @@ class _FilterChip extends StatelessWidget {
         child: Text(
           label,
           style: AppTypography.labelSmall.copyWith(
-            color: isSelected ? AppColors.pureWhite : AppColors.ink,
+            color: isSelected
+                ? (colors.isDark ? colors.background : Colors.white)
+                : colors.textPrimary,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
@@ -323,6 +348,7 @@ class _SecondaryFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -330,10 +356,10 @@ class _SecondaryFilterChip extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 48),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.softLavender : Colors.transparent,
+          color: isSelected ? colors.brandPrimarySoft : Colors.transparent,
           borderRadius: AppRadius.smBorder,
           border: Border.all(
-            color: isSelected ? AppColors.inkViolet : AppColors.border,
+            color: isSelected ? colors.brandPrimaryInk : colors.border,
             width: 0.8,
           ),
         ),
@@ -341,7 +367,7 @@ class _SecondaryFilterChip extends StatelessWidget {
           label,
           style: AppTypography.labelSmall.copyWith(
             fontSize: 11,
-            color: isSelected ? AppColors.inkViolet : AppColors.mutedInk,
+            color: isSelected ? colors.brandPrimaryInk : colors.textSecondary,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),

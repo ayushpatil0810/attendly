@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:attendly/core/shared/widgets/app_bottom_sheet.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
@@ -119,7 +120,7 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
             ),
             child: Column(
               children: [
-                const AppIcon(
+                AppIcon(
                   AppIcons.subjects,
                   size: 32,
                   color: AppColors.brandViolet,
@@ -132,7 +133,7 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
                 const SizedBox(height: 12),
                 AppButton(
                   label: 'Add Subject',
-                  icon: const AppIcon(
+                  icon: AppIcon(
                     AppIcons.add,
                     size: 16,
                     color: AppColors.pureWhite,
@@ -181,11 +182,11 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
                       Container(
                         width: 42,
                         height: 42,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppColors.softMint,
                           shape: BoxShape.circle,
                         ),
-                        child: const Center(
+                        child: Center(
                           child: AppIcon(
                             AppIcons.check,
                             size: 20,
@@ -217,7 +218,7 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const AppIcon(
+                      AppIcon(
                         AppIcons.forward,
                         size: 16,
                         color: AppColors.mutedInk,
@@ -268,7 +269,7 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
                         ),
                       ),
                       if (!isLast)
-                        const Divider(
+                        Divider(
                           height: 1,
                           indent: 16,
                           endIndent: 16,
@@ -278,7 +279,7 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
                   );
                 }),
                 if (attentionSubjects.length > 4) ...[
-                  const Divider(height: 1, color: AppColors.divider),
+                  Divider(height: 1, color: AppColors.divider),
                   Semantics(
                     button: true,
                     label:
@@ -313,10 +314,7 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
 
 /// Mini Donut Ring Subject Row
 class _SubjectPreviewRow extends StatelessWidget {
-  const _SubjectPreviewRow({
-    required this.subject,
-    required this.threshold,
-  });
+  const _SubjectPreviewRow({required this.subject, required this.threshold});
 
   static const double _ringSize = 46;
   static const double _strokeWidth = 4.0;
@@ -385,8 +383,9 @@ class _SubjectPreviewRow extends StatelessWidget {
         statusColor = AppColors.inkCoral;
         statusWeight = FontWeight.w600;
       } else {
-        statusNote =
-            componentsText.isNotEmpty ? componentsText : 'Action needed';
+        statusNote = componentsText.isNotEmpty
+            ? componentsText
+            : 'Action needed';
         if (componentsText.isEmpty) {
           statusColor = AppColors.inkCoral;
           statusWeight = FontWeight.w600;
@@ -405,7 +404,9 @@ class _SubjectPreviewRow extends StatelessWidget {
       statusColor = AppColors.inkPeach;
       statusWeight = FontWeight.w500;
     } else {
-      statusNote = componentsText.isNotEmpty ? componentsText : 'Meeting target';
+      statusNote = componentsText.isNotEmpty
+          ? componentsText
+          : 'Meeting target';
     }
 
     return Semantics(
@@ -499,11 +500,7 @@ class _SubjectPreviewRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 4),
-                const AppIcon(
-                  AppIcons.forward,
-                  size: 14,
-                  color: AppColors.mutedInk,
-                ),
+                AppIcon(AppIcons.forward, size: 14, color: AppColors.mutedInk),
               ],
             ),
           ],

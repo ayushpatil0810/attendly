@@ -154,7 +154,7 @@ class _ScanSemesterQrScreenState extends ConsumerState<ScanSemesterQrScreen> {
                           shape: BoxShape.circle,
                         ),
                         child: IconButton(
-                          icon: const AppIcon(
+                          icon: AppIcon(
                             AppIcons.close,
                             size: 20,
                             color: AppColors.pureWhite,
@@ -164,7 +164,7 @@ class _ScanSemesterQrScreenState extends ConsumerState<ScanSemesterQrScreen> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Expanded(
+                      Expanded(
                         child: Text(
                           'Scan Semester QR',
                           style: TextStyle(
@@ -226,7 +226,7 @@ class _ScanSemesterQrScreenState extends ConsumerState<ScanSemesterQrScreen> {
                       ],
                     ),
                     child: _isProcessing
-                        ? const Center(
+                        ? Center(
                             child: CircularProgressIndicator(
                               color: AppColors.brandViolet,
                             ),
@@ -245,7 +245,7 @@ class _ScanSemesterQrScreenState extends ConsumerState<ScanSemesterQrScreen> {
                     color: Colors.black.withValues(alpha: 0.6),
                     borderRadius: AppRadius.pillBorder,
                   ),
-                  child: const Text(
+                  child: Text(
                     'Point camera at an Attendly Semester QR code',
                     style: TextStyle(
                       fontFamily: 'PlusJakartaSans',
@@ -263,7 +263,7 @@ class _ScanSemesterQrScreenState extends ConsumerState<ScanSemesterQrScreen> {
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 28),
                   child: AppButton(
                     label: 'Paste Code Manually',
-                    icon: const AppIcon(
+                    icon: AppIcon(
                       AppIcons.importFile,
                       size: 16,
                       color: AppColors.ink,
@@ -299,19 +299,19 @@ class _CameraErrorView extends StatelessWidget {
             Container(
               width: 56,
               height: 56,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.softCoral,
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
-              child: const AppIcon(
+              child: AppIcon(
                 AppIcons.alert,
                 size: 28,
                 color: AppColors.inkCoral,
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Camera Unavailable',
               style: TextStyle(
                 fontFamily: 'PlusJakartaSans',
@@ -321,7 +321,7 @@ class _CameraErrorView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Please grant camera permission in system settings, or paste the semester code manually.',
               style: TextStyle(
                 fontFamily: 'PlusJakartaSans',

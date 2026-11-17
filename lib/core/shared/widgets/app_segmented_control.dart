@@ -33,10 +33,11 @@ class AppSegmentedControl<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.track,
+        color: colors.track,
         borderRadius: AppRadius.lgBorder,
       ),
       child: Row(
@@ -57,12 +58,12 @@ class AppSegmentedControl<T> extends StatelessWidget {
                   horizontal: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.pureWhite : Colors.transparent,
+                  color: isSelected ? colors.surface : Colors.transparent,
                   borderRadius: AppRadius.mdBorder,
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: AppColors.ink.withOpacity(0.06),
+                            color: colors.textPrimary.withOpacity(0.06),
                             blurRadius: 4,
                             offset: const Offset(0, 1),
                           ),
@@ -81,8 +82,8 @@ class AppSegmentedControl<T> extends StatelessWidget {
                         item.label,
                         style: AppTypography.labelMedium.copyWith(
                           color: isSelected
-                              ? AppColors.ink
-                              : AppColors.mutedInk,
+                              ? colors.textPrimary
+                              : colors.textSecondary,
                           fontWeight: isSelected
                               ? FontWeight.w600
                               : FontWeight.w500,

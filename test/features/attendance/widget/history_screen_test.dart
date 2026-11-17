@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:attendly/core/database/app_database.dart';
 import 'package:attendly/core/providers/database_provider.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
+import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/features/attendance/data/repositories/attendance_repository_impl.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_status.dart';
 import 'package:attendly/features/attendance/domain/entities/session_component.dart';
@@ -114,8 +115,8 @@ void main() {
         expect(find.text('Distributed Systems'), findsNWidgets(2));
         expect(find.text('Lecture'), findsOneWidget);
         expect(find.text('Lab'), findsOneWidget);
-        expect(find.text('Present'), findsOneWidget);
-        expect(find.text('Absent'), findsOneWidget);
+        expect(find.byIcon(AppIcons.check), findsOneWidget);
+        expect(find.byIcon(AppIcons.close), findsOneWidget);
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);
@@ -263,7 +264,7 @@ void main() {
         expect(find.text('Record Historical Session'), findsNothing);
         expect(find.text('Distributed Systems'), findsOneWidget);
         expect(find.text('Lecture'), findsOneWidget);
-        expect(find.text('Present'), findsOneWidget);
+        expect(find.byIcon(AppIcons.check), findsOneWidget);
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);

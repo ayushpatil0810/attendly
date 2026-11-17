@@ -23,6 +23,7 @@ class AppEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -33,8 +34,8 @@ class AppEmptyState extends StatelessWidget {
               Container(
                 width: 64,
                 height: 64,
-                decoration: const BoxDecoration(
-                  color: AppColors.softLavender,
+                decoration: BoxDecoration(
+                  color: colors.brandPrimarySoft,
                   borderRadius: AppRadius.xlBorder,
                 ),
                 alignment: Alignment.center,
@@ -44,14 +45,18 @@ class AppEmptyState extends StatelessWidget {
             ],
             Text(
               title,
-              style: AppTypography.sectionTitle,
+              style: AppTypography.sectionTitle.copyWith(
+                color: colors.textPrimary,
+              ),
               textAlign: TextAlign.center,
             ),
             if (description != null) ...[
               const SizedBox(height: 8),
               Text(
                 description!,
-                style: AppTypography.bodyMuted,
+                style: AppTypography.bodyMuted.copyWith(
+                  color: colors.textSecondary,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],

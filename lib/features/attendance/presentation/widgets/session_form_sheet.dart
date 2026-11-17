@@ -79,7 +79,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
+            colorScheme: ColorScheme.light(
               primary: AppColors.inkViolet,
               onPrimary: AppColors.pureWhite,
               onSurface: AppColors.ink,
@@ -240,7 +240,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
     final subjectsAsync = ref.watch(activeSemesterSubjectsProvider);
 
     return subjectsAsync.when(
-      loading: () => const Padding(
+      loading: () => Padding(
         padding: EdgeInsets.all(32),
         child: Center(
           child: CircularProgressIndicator(color: AppColors.brandViolet),
@@ -289,7 +289,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                 ),
                 child: Row(
                   children: [
-                    const AppIcon(
+                    AppIcon(
                       AppIcons.subjects,
                       size: 18,
                       color: AppColors.inkViolet,
@@ -328,7 +328,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                   ),
                   child: Row(
                     children: [
-                      const AppIcon(
+                      AppIcon(
                         AppIcons.calendar,
                         size: 18,
                         color: AppColors.brandViolet,
@@ -340,7 +340,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                           style: AppTypography.itemTitle,
                         ),
                       ),
-                      const AppIcon(
+                      AppIcon(
                         AppIcons.edit,
                         size: 16,
                         color: AppColors.mutedInk,
@@ -385,7 +385,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                         horizontal: 8,
                         vertical: 2,
                       ),
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: AppColors.softLavender,
                         borderRadius: AppRadius.smBorder,
                       ),
@@ -406,7 +406,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
               const Text('Status', style: AppTypography.labelSmall),
               const SizedBox(height: 6),
               AppSegmentedControl<AttendanceStatus>(
-                items: const [
+                items: [
                   SegmentItem(
                     value: AttendanceStatus.present,
                     label: 'Present',
@@ -451,7 +451,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                 children: [
                   AppButton(
                     label: 'Delete',
-                    icon: const AppIcon(
+                    icon: AppIcon(
                       AppIcons.delete,
                       size: 16,
                       color: AppColors.pureWhite,
@@ -463,7 +463,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                   Expanded(
                     child: AppButton(
                       label: 'Save Changes',
-                      icon: const AppIcon(
+                      icon: AppIcon(
                         AppIcons.check,
                         size: 16,
                         color: AppColors.pureWhite,
@@ -516,7 +516,7 @@ void showSessionFormSheet({
                 Container(
                   width: 36,
                   height: 4,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppColors.divider,
                     borderRadius: AppRadius.pillBorder,
                   ),
@@ -538,7 +538,7 @@ void showSessionFormSheet({
                     ],
                   ),
                 ),
-                const Divider(color: AppColors.divider, height: 20),
+                Divider(color: AppColors.divider, height: 20),
                 Expanded(
                   child: SessionFormSheet(
                     sessionToEdit: sessionToEdit,

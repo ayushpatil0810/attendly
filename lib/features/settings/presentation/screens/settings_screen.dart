@@ -10,6 +10,7 @@ import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/semesters/presentation/providers/semesters_provider.dart';
 
+import '../widgets/appearance_section.dart';
 import '../widgets/app_preferences_section.dart';
 import '../widgets/backup_restore_section.dart';
 import '../widgets/daily_reminder_section.dart';
@@ -42,7 +43,7 @@ class SettingsScreen extends ConsumerWidget {
                       button: true,
                       child: IconButton(
                         tooltip: 'Back',
-                        icon: const AppIcon(
+                        icon: AppIcon(
                           AppIcons.back,
                           size: 20,
                           color: AppColors.ink,
@@ -86,6 +87,16 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 10),
                       SemesterSettingsSection(activeSemester: activeSemester),
+                      const SizedBox(height: 28),
+
+                      // Section: Appearance & Theme
+                      const AppSectionHeader(
+                        title: 'Appearance & Theme',
+                        subtitle:
+                            'Light/Dark appearance & pastel color palette',
+                      ),
+                      const SizedBox(height: 10),
+                      const AppearanceSection(),
                       const SizedBox(height: 28),
 
                       // Section B: Daily Reminder

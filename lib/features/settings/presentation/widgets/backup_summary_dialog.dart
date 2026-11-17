@@ -39,11 +39,11 @@ class BackupSummaryDialog extends StatelessWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppColors.softLavender,
                     shape: BoxShape.circle,
                   ),
-                  child: const AppIcon(
+                  child: AppIcon(
                     AppIcons.importFile,
                     color: AppColors.brandViolet,
                     size: 22,
@@ -83,18 +83,18 @@ class BackupSummaryDialog extends StatelessWidget {
               child: Column(
                 children: [
                   _SummaryRow(label: 'Exported', value: formattedDate),
-                  const Divider(height: 16, color: AppColors.divider),
+                  Divider(height: 16, color: AppColors.divider),
                   _SummaryRow(
                     label: 'Semesters',
                     value:
                         '${summary.semestersCount} (${summary.semesterNames.join(', ')})',
                   ),
-                  const Divider(height: 16, color: AppColors.divider),
+                  Divider(height: 16, color: AppColors.divider),
                   _SummaryRow(
                     label: 'Subjects',
                     value: '${summary.subjectsCount}',
                   ),
-                  const Divider(height: 16, color: AppColors.divider),
+                  Divider(height: 16, color: AppColors.divider),
                   _SummaryRow(
                     label: 'Attendance Sessions',
                     value:
@@ -116,7 +116,7 @@ class BackupSummaryDialog extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(top: 2),
                     child: AppIcon(
                       AppIcons.alert,

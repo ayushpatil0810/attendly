@@ -18,6 +18,7 @@
 | **Phase 4** | **Insights, Advanced Charts & Attendance Simulator** | **Completed** |
 | **Phase 5** | **Settings, Local Backup & Data Safety** | **Completed** |
 | **Phase 6** | **Polish, Quality Assurance & Release Preparation** | **Completed** |
+| **Phase 7** | **Multi-Theme Design System & Dark Mode** | **Completed** |
 
 ---
 
@@ -130,6 +131,40 @@
 
 ---
 
+## Phase 7 Progress & Achievements — Multi-Theme Design System & Dark Mode
+
+### 1. 8 Distinct Pastel Themes (Light & Dark)
+- [x] **Lavender Dream (Default):** Soft violet and mint accents.
+- [x] **Ocean Breeze:** Coastal sky blue and seafoam mint accents.
+- [x] **Peach Blossom:** Warm apricot, sunny coral, and soft mint accents.
+- [x] **Sage Garden:** Calm eucalyptus, forest green, and earthy terracotta accents.
+- [x] **Midnight Blue:** Twilight navy, soft cornflower, and rose accents.
+- [x] **Buttercream:** Warm golden vanilla, honey amber, and meadow mint accents.
+- [x] **Rose Quartz:** Powdery dusty rose, cranberry coral, and turquoise accents.
+- [x] **Graphite Mint:** Sleek slate charcoal, crisp pastel mint, and soft coral accents.
+
+### 2. Tailored Dark Mode Architecture
+- [x] Comfort-focused dark backgrounds and elevated surface cards (avoiding plain color inversions).
+- [x] High-contrast readable typography clearing WCAG AA contrast standards.
+- [x] Consistent semantic attendance colors across all themes (Present = mint/success, Absent = coral/error, Warning = warning, Neutral = neutral).
+
+### 3. Settings UI & Persistence
+- [x] Appearance Section in Settings featuring 3-way mode segmented control (System, Light, Dark) and interactive 2-column pastel palette grid.
+- [x] Local persistence using `SharedPreferences` (`pref_theme_mode_v1` and `pref_color_theme_id_v1`), automatically restoring preferences on app restart.
+- [x] Instant reactive application without app restart.
+
+### 4. Android Home Screen Widget Theme Synchronization
+- [x] Widget theme synchronization via `HomeWidgetService.updateThemeColors` passing active theme ID, dark mode state, and primary/background ARGB colors.
+
+### 5. Automated Testing & Verification
+- [x] Comprehensive test suite (`test/core/theme/theme_system_test.dart` and `test/core/theme/app_theme_toggle_test.dart`) covering palette tokens, light/dark variants, reactive full-tree switching across all 8 palettes, persistence, restoration, semantic color invariants, and widget settings interaction.
+- [x] All 285 automated tests passing across the codebase.
+- [x] `flutter analyze` passing with 0 warnings/errors.
+- [x] Resolved root architectural theme-switching inconsistency in `AttendlyApp` and Material surface alignments.
+- [x] Resolved Insights screen theme reactivity, card border definition, and chart custom painter cache invalidation across all 8 palettes and light/dark modes.
+
+---
+
 ## Known Issues & Debt
 - None. All features are implemented, audited, tested, and passing with zero static analysis issues.
 
@@ -145,4 +180,4 @@ Before publishing to Google Play or distributing production builds:
 ---
 
 ## Last Updated
-2026-11-16 (Phase 7 Completed)
+2026-11-17 (Global Theme Switching & Reactivity Audit Completed)

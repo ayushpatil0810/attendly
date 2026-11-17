@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_radius.dart';
+import '../../theme/app_theme_colors.dart';
 import '../../theme/app_typography.dart';
 
 enum AppButtonVariant { primary, secondary, outline, text, destructive }
@@ -59,60 +60,74 @@ class _AppButtonState extends State<AppButton> {
     }
   }
 
-  Color get _backgroundColor {
+  double get _minHeight {
+    switch (widget.size) {
+      case AppButtonSize.small:
+        return 36;
+      case AppButtonSize.medium:
+        return 44;
+      case AppButtonSize.large:
+        return 52;
+    }
+  }
+
+  Color _backgroundColor(AppThemeColors colors) {
     if (!_isEnabled) {
-      return AppColors.track;
+      return colors.track;
     }
     switch (widget.variant) {
       case AppButtonVariant.primary:
         return _isPressed
-            ? AppColors.inkViolet.withOpacity(0.85)
-            : AppColors.inkViolet;
+            ? colors.primaryAction.withOpacity(0.85)
+            : colors.primaryAction;
       case AppButtonVariant.secondary:
         return _isPressed
-            ? AppColors.softLavender.withOpacity(0.8)
-            : AppColors.softLavender;
+            ? colors.brandPrimarySoft.withOpacity(0.8)
+            : colors.brandPrimarySoft;
       case AppButtonVariant.outline:
       case AppButtonVariant.text:
         return Colors.transparent;
       case AppButtonVariant.destructive:
         return _isPressed
-            ? AppColors.brandCoral.withOpacity(0.85)
-            : AppColors.brandCoral;
+            ? colors.accentCoralSoft.withOpacity(0.85)
+            : colors.accentCoralSoft;
     }
   }
 
-  Color get _textColor {
+  Color _textColor(AppThemeColors colors) {
     if (!_isEnabled) {
-      return AppColors.mutedInk;
+      return colors.textSecondary;
     }
     switch (widget.variant) {
       case AppButtonVariant.primary:
-        return AppColors.pureWhite;
+        return Colors.white;
       case AppButtonVariant.destructive:
-        return AppColors.ink;
+        return colors.accentCoralInk;
       case AppButtonVariant.secondary:
-        return AppColors.inkViolet;
+        return colors.brandPrimaryInk;
       case AppButtonVariant.outline:
       case AppButtonVariant.text:
-        return AppColors.ink;
+        return colors.textPrimary;
     }
   }
 
-  BorderSide? get _border {
+  BorderSide? _border(AppThemeColors colors) {
     if (widget.variant == AppButtonVariant.outline) {
-      return BorderSide(
-        color: _isEnabled ? AppColors.border : AppColors.divider,
-      );
+      return BorderSide(color: _isEnabled ? colors.border : colors.divider);
     }
     if (widget.variant == AppButtonVariant.destructive && _isEnabled) {
-      return const BorderSide(color: AppColors.inkCoral, width: 1.5);
+      return BorderSide(color: colors.accentCoralInk, width: 1.5);
     }
     return null;
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+    final bg = _backgroundColor(colors);
+    final fg = _textColor(colors);
+    final border = _border(colors);
+
     Widget content = Row(
       mainAxisSize: widget.isFullWidth ? MainAxisSize.max : MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -123,7 +138,7 @@ class _AppButtonState extends State<AppButton> {
             height: 16,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(_textColor),
+              valueColor: AlwaysStoppedAnimation<Color>(fg),
             ),
           ),
           const SizedBox(width: 8),
@@ -135,7 +150,7 @@ class _AppButtonState extends State<AppButton> {
           child: Text(
             widget.label,
             style: AppTypography.labelLarge.copyWith(
-              color: _textColor,
+              color: fg,
               fontSize: _fontSize,
             ),
             maxLines: 1,
@@ -166,12 +181,12 @@ class _AppButtonState extends State<AppButton> {
               : const Duration(milliseconds: 100),
           child: Container(
             width: widget.isFullWidth ? double.infinity : null,
-            constraints: const BoxConstraints(minHeight: 48),
+            constraints: BoxConstraints(minHeight: _minHeight),
             padding: _padding,
             decoration: BoxDecoration(
-              color: _backgroundColor,
+              color: bg,
               borderRadius: AppRadius.mdBorder,
-              border: _border != null ? Border.fromBorderSide(_border!) : null,
+              border: border != null ? Border.fromBorderSide(border) : null,
             ),
             child: content,
           ),

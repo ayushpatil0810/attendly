@@ -9,24 +9,27 @@ class AppProgressBar extends StatelessWidget {
     super.key,
     required this.progress,
     this.height = 8.0,
-    this.color = AppColors.brandMint,
-    this.trackColor = AppColors.track,
+    this.color,
+    this.trackColor,
   });
 
   /// Progress clamped between 0.0 and 1.0
   final double progress;
   final double height;
-  final Color color;
-  final Color trackColor;
+  final Color? color;
+  final Color? trackColor;
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+    final effectiveColor = color ?? colors.accentMint;
+    final effectiveTrack = trackColor ?? colors.track;
     final clamped = progress.clamp(0.0, 1.0);
     return ClipRRect(
       borderRadius: AppRadius.pillBorder,
       child: Container(
         height: height,
-        color: trackColor,
+        color: effectiveTrack,
         child: LayoutBuilder(
           builder: (context, constraints) {
             return Align(
@@ -40,7 +43,7 @@ class AppProgressBar extends StatelessWidget {
                 width: constraints.maxWidth * clamped,
                 height: height,
                 decoration: BoxDecoration(
-                  color: color,
+                  color: effectiveColor,
                   borderRadius: AppRadius.pillBorder,
                 ),
               ),
@@ -58,20 +61,23 @@ class AppProgressRing extends StatelessWidget {
     required this.progress,
     this.size = 80.0,
     this.strokeWidth = 8.0,
-    this.color = AppColors.brandMint,
-    this.trackColor = AppColors.track,
+    this.color,
+    this.trackColor,
     this.child,
   });
 
   final double progress;
   final double size;
   final double strokeWidth;
-  final Color color;
-  final Color trackColor;
+  final Color? color;
+  final Color? trackColor;
   final Widget? child;
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+    final effectiveColor = color ?? colors.accentMint;
+    final effectiveTrack = trackColor ?? colors.track;
     final clamped = progress.clamp(0.0, 1.0);
     return SizedBox(
       width: size,
@@ -83,8 +89,8 @@ class AppProgressRing extends StatelessWidget {
             value: clamped,
             strokeWidth: strokeWidth,
             strokeCap: StrokeCap.round,
-            backgroundColor: trackColor,
-            valueColor: AlwaysStoppedAnimation<Color>(color),
+            backgroundColor: effectiveTrack,
+            valueColor: AlwaysStoppedAnimation<Color>(effectiveColor),
           ),
           ?child,
         ],

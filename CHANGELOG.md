@@ -5,6 +5,49 @@ All notable changes to the College Attendance Tracker (attendly) project will be
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-11-17
+
+### Added
+- **Multi-Theme Design System & Dark Mode:**
+  - Implemented 8 handcrafted pastel color themes with both Light and Dark mode appearances:
+    1. **Lavender Dream (Default):** Soft violet and mint accents.
+    2. **Ocean Breeze:** Coastal sky blue and seafoam mint accents.
+    3. **Peach Blossom:** Warm apricot, sunny coral, and soft mint accents.
+    4. **Sage Garden:** Calm eucalyptus, forest green, and earthy terracotta accents.
+    5. **Midnight Blue:** Twilight navy, soft cornflower, and rose accents.
+    6. **Buttercream:** Warm golden vanilla, honey amber, and meadow mint accents.
+    7. **Rose Quartz:** Powdery dusty rose, cranberry coral, and turquoise accents.
+    8. **Graphite Mint:** Sleek slate charcoal, crisp pastel mint, and soft coral accents.
+  - **Appearance Section in Settings:**
+    - Mode selector: System Default, Light Mode, and Dark Mode.
+    - Color Theme selector: Interactive grid displaying all 8 pastel themes with 4-swatch color previews, active checkmark, and instant application.
+    - Local persistence using `SharedPreferences` (`pref_theme_mode_v1` and `pref_color_theme_id_v1`), automatically restoring preferences on app restart.
+  - **Centralized Design Token Architecture:**
+    - Custom `ThemeExtension<AppThemeColors>` managing semantic tokens for brand, secondary, surfaces, backgrounds, text hierarchy, borders, dividers, tracks, dock, and overlays.
+    - Integrated with standard Flutter `ThemeData` and `ColorScheme`.
+    - Dynamic delegation in `AppColors` enabling existing widgets to immediately respond to active theme and brightness changes.
+  - **Tailored Dark Mode Palettes:**
+    - Comfort-focused dark backgrounds and elevated surface cards (avoiding plain color inversions).
+    - High-contrast readable typography clearing accessibility standards.
+    - Consistent semantic attendance colors across all themes (Present = mint/success, Absent = coral/error, Warning = warning, Neutral = neutral).
+  - **Android Home Screen Widget Theme Synchronization:**
+    - Widget data synchronization via `HomeWidgetService.updateThemeColors` passing active theme ID, dark mode state, and primary/background ARGB colors.
+  - **Comprehensive Theme Test Suite:**
+    - Unit and widget tests covering all 8 theme palettes, light/dark variants, persistence, restoration, semantic attendance color consistency, and settings interaction.
+
+### Fixed
+- **Global Theme Switching & Route Color Synchronization:**
+  - Resolved root architectural issue in `AttendlyApp` where `Theme.of(context).brightness` was inspected before `MaterialApp` initialized, preventing dark mode and theme changes from updating existing route trees.
+  - Bound effective platform brightness via `MediaQuery.maybePlatformBrightnessOf(context) ?? WidgetsBinding.instance.platformDispatcher.platformBrightness` combined with `themeState.themeMode`.
+  - Added reactive `ValueKey` to `MaterialApp.router` ensuring instant, full-tree color reconstitution upon any palette or appearance change without losing navigation state.
+  - Updated centralized `AppTheme.buildTheme()` to populate all Material theme surfaces (`canvasColor`, `cardColor`, `dialogBackgroundColor`, `colorScheme`, `bottomSheetTheme`, `dialogTheme`, `popupMenuTheme`) preventing black flashes during route transitions.
+  - Refactored reusable core widgets (`AppFloatingDock`, `AppButton`, `AppTextField`, `AppSwitchTile`, `AppProgressBar`, `AppProgressRing`, `AppBottomSheet`, `AppCloseButton`, `AppEmptyState`, `AppErrorState`, `AppLoadingState`, `AppSegmentedControl`, `AppToast`) to derive colors directly from `context.colors`.
+  - Fixed theme switching and dark mode synchronization on `InsightsScreen` and its component tree (`InsightsOverviewCard`, `SubjectComparisonCard`, `LectureLabComparisonCard`, `AdvancedTrendCard`, `InsightObservationsSection`, `InsightsFilterBar`):
+    - Subscribed all widgets and text styles to `context.colors`.
+    - Added explicit color tokens to custom painters (`_AttendanceDistributionPainter`, `_AdvancedTrendLinePainter`, `_TrendLinePainter`) and updated their `shouldRepaint` implementations to detect theme and color changes immediately.
+    - Added crisp surface borders (`Border.all(color: colors.divider)`) and adaptive shadows across all insights cards to ensure comfortable card definition and elevation across all 8 light and dark palettes.
+    - Updated `MainShellScreen`'s `IndexedStack` to recreate child elements reactively on theme updates.
+
 ## [1.1.0] - 2026-11-16
 
 ### Added

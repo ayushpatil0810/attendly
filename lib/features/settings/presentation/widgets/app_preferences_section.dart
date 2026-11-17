@@ -37,7 +37,7 @@ class AppPreferencesSection extends ConsumerWidget {
             title: 'Haptic Feedback',
             subtitle:
                 'Tactile vibration when logging classes and tapping actions',
-            icon: const AppIcon(
+            icon: AppIcon(
               AppIcons.device,
               size: 20,
               color: AppColors.brandViolet,
@@ -64,11 +64,7 @@ class AppPreferencesSection extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                const AppIcon(
-                  AppIcons.info,
-                  size: 16,
-                  color: AppColors.inkViolet,
-                ),
+                AppIcon(AppIcons.info, size: 16, color: AppColors.inkViolet),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(

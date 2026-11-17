@@ -52,7 +52,7 @@ class HypotheticalSessionList extends ConsumerWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const AppIcon(
+                      AppIcon(
                         AppIcons.delete,
                         size: 14,
                         color: AppColors.inkCoral,
@@ -95,11 +95,11 @@ class HypotheticalSessionList extends ConsumerWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppColors.softLavender,
                     shape: BoxShape.circle,
                   ),
-                  child: const AppIcon(
+                  child: AppIcon(
                     AppIcons.insights,
                     size: 20,
                     color: AppColors.brandViolet,
@@ -271,11 +271,7 @@ class _HypotheticalRow extends StatelessWidget {
         IconButton(
           tooltip: 'Delete simulated session',
           onPressed: onDelete,
-          icon: const AppIcon(
-            AppIcons.delete,
-            size: 16,
-            color: AppColors.mutedInk,
-          ),
+          icon: AppIcon(AppIcons.delete, size: 16, color: AppColors.mutedInk),
           visualDensity: VisualDensity.compact,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 48, minHeight: 48),

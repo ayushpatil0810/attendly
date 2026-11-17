@@ -14,11 +14,8 @@ import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_session.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_status.dart';
 import 'package:attendly/features/attendance/domain/entities/session_component.dart';
-import 'package:attendly/features/attendance/domain/services/milestone_service.dart';
 import 'package:attendly/features/attendance/presentation/providers/attendance_providers.dart';
 import 'package:attendly/features/attendance/presentation/widgets/day_note_banner.dart';
-import 'package:attendly/features/attendance/presentation/widgets/milestone_celebration_dialog.dart';
-import 'package:attendly/features/semesters/presentation/providers/semesters_provider.dart';
 import 'package:attendly/features/subjects/domain/entities/subject.dart';
 import 'package:attendly/features/subjects/presentation/providers/subjects_provider.dart';
 
@@ -60,7 +57,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
+            colorScheme: ColorScheme.light(
               primary: AppColors.inkViolet,
               onPrimary: AppColors.pureWhite,
               onSurface: AppColors.ink,
@@ -119,35 +116,6 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
           }
         },
       );
-
-      // Check for milestone celebration if session was present
-      if (status == AttendanceStatus.present) {
-        final semester = ref.read(activeSemesterProvider);
-        if (semester != null) {
-          final summary = ref.read(semesterAttendanceSummaryProvider).value;
-          if (summary != null && summary.overallPercentage != null) {
-            final uncelebrated = ref
-                .read(milestoneServiceProvider)
-                .getUncelebratedReachedMilestones(
-                  semesterId: semester.id,
-                  currentPercentage: summary.overallPercentage,
-                );
-            if (uncelebrated.isNotEmpty && mounted) {
-              final topMilestone = uncelebrated.last;
-              await ref
-                  .read(milestoneServiceProvider)
-                  .markMilestoneCelebrated(semester.id, topMilestone);
-              if (mounted) {
-                MilestoneCelebrationDialog.show(
-                  context,
-                  milestone: topMilestone,
-                  currentPercentage: summary.overallPercentage,
-                );
-              }
-            }
-          }
-        }
-      }
     } catch (e) {
       if (!mounted) return;
       AppToast.showError(
@@ -217,7 +185,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
         Container(
           width: 36,
           height: 4,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.divider,
             borderRadius: AppRadius.pillBorder,
           ),
@@ -243,7 +211,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
 
         Expanded(
           child: subjectsAsync.when(
-            loading: () => const Center(
+            loading: () => Center(
               child: CircularProgressIndicator(color: AppColors.brandViolet),
             ),
             error: (err, _) => Center(
@@ -265,12 +233,12 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                       Container(
                         width: 56,
                         height: 56,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppColors.softPeach,
                           shape: BoxShape.circle,
                         ),
                         alignment: Alignment.center,
-                        child: const AppIcon(
+                        child: AppIcon(
                           AppIcons.subjects,
                           size: 28,
                           color: AppColors.inkPeach,
@@ -343,7 +311,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const AppIcon(
+                                  AppIcon(
                                     AppIcons.calendar,
                                     size: 15,
                                     color: AppColors.brandViolet,
@@ -360,7 +328,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                                     ),
                                   ),
                                   const SizedBox(width: 4),
-                                  const AppIcon(
+                                  AppIcon(
                                     AppIcons.arrowDown,
                                     size: 13,
                                     color: AppColors.brandViolet,
@@ -391,7 +359,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                     child: DayNoteBanner(dateStr: dateStr, isCompact: true),
                   ),
                   const SizedBox(height: 8),
-                  const Divider(height: 1, color: AppColors.divider),
+                  Divider(height: 1, color: AppColors.divider),
 
                   // Vertical Subject List
                   Expanded(
@@ -431,7 +399,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                   // Bottom Sticky Done Button
                   Container(
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.pureWhite,
                       border: Border(top: BorderSide(color: AppColors.divider)),
                     ),
@@ -507,7 +475,7 @@ class _SubjectLogCard extends StatelessWidget {
                       horizontal: 8,
                       vertical: 3,
                     ),
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.softLavender,
                       borderRadius: AppRadius.pillBorder,
                     ),
@@ -522,7 +490,7 @@ class _SubjectLogCard extends StatelessWidget {
               ],
             ),
           ),
-          const Divider(height: 1, color: AppColors.divider),
+          Divider(height: 1, color: AppColors.divider),
 
           // Component rows
           if (subject.lectureEnabled)
@@ -536,7 +504,7 @@ class _SubjectLogCard extends StatelessWidget {
             ),
 
           if (subject.hasBothComponents)
-            const Divider(
+            Divider(
               height: 1,
               indent: 16,
               endIndent: 16,

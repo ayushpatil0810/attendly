@@ -350,11 +350,7 @@ class _GoalAdviceBox extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const AppIcon(
-              AppIcons.info,
-              size: 16,
-              color: AppColors.brandViolet,
-            ),
+            AppIcon(AppIcons.info, size: 16, color: AppColors.brandViolet),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -381,7 +377,7 @@ class _GoalAdviceBox extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(top: 2),
               child: AppIcon(
                 AppIcons.info,
@@ -428,7 +424,7 @@ class _GoalAdviceBox extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(top: 2),
               child: AppIcon(
                 AppIcons.check,
@@ -477,7 +473,7 @@ class _GoalAdviceBox extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(top: 2),
               child: AppIcon(
                 AppIcons.alert,
@@ -513,7 +509,7 @@ class _GoalAdviceBox extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(top: 2),
             child: AppIcon(
               AppIcons.target,

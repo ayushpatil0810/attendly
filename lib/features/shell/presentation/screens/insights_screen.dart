@@ -11,8 +11,9 @@ class InsightsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Scaffold(
-      backgroundColor: AppColors.warmWhite,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(
@@ -34,15 +35,17 @@ class InsightsScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Insights',
-                          style: AppTypography.screenTitle,
+                          style: AppTypography.screenTitle.copyWith(
+                            color: colors.textPrimary,
+                          ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           'Attendance analytics & patterns',
                           style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.mutedInk,
+                            color: colors.textSecondary,
                           ),
                         ),
                       ],
@@ -52,7 +55,7 @@ class InsightsScreen extends StatelessWidget {
                     onPressed: () => context.push(RouteNames.simulatorPath),
                     style: TextButton.styleFrom(
                       minimumSize: const Size(48, 48),
-                      foregroundColor: AppColors.inkViolet,
+                      foregroundColor: colors.brandPrimaryInk,
                     ),
                     child: const Text('What-if'),
                   ),

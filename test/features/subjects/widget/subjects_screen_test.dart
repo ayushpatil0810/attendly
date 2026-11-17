@@ -51,7 +51,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Subjects'), findsOneWidget);
-      expect(find.text('Fall 2026'), findsOneWidget);
+      expect(find.text('Enrolled Courses and Attendance'), findsOneWidget);
       expect(find.text('No Subjects Added'), findsOneWidget);
 
       // Create a subject
@@ -135,12 +135,12 @@ void main() {
       await tester.tap(find.text('Operating Systems'));
       await tester.pumpAndSettle();
 
-      // Expanded card reveals all subject metrics, standing, and actions directly
+      // Expanded card reveals subject metrics and actions directly
       expect(find.text('Target'), findsOneWidget);
-      expect(find.textContaining('Meeting Target'), findsOneWidget);
+      expect(find.text('Present'), findsOneWidget);
       expect(find.text('Log Attendance'), findsOneWidget);
-      expect(find.byTooltip('Edit'), findsOneWidget);
-      expect(find.byTooltip('Delete'), findsOneWidget);
+      expect(find.byTooltip('Edit Subject'), findsOneWidget);
+      expect(find.byTooltip('Delete Subject'), findsOneWidget);
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);

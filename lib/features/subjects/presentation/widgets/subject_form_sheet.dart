@@ -149,10 +149,7 @@ class _SubjectFormSheetState extends ConsumerState<SubjectFormSheet> {
             AppSwitchTile(
               title: 'Theory Lecture',
               subtitle: 'Track lecture classroom sessions',
-              icon: const AppIcon(
-                AppIcons.lecture,
-                color: AppColors.brandViolet,
-              ),
+              icon: AppIcon(AppIcons.lecture, color: AppColors.brandViolet),
               value: _lectureEnabled,
               onChanged: (val) {
                 if (!val && !_labEnabled) {
@@ -171,7 +168,7 @@ class _SubjectFormSheetState extends ConsumerState<SubjectFormSheet> {
             AppSwitchTile(
               title: 'Practical Lab',
               subtitle: 'Track laboratory or workshop sessions',
-              icon: const AppIcon(AppIcons.lab, color: AppColors.inkMint),
+              icon: AppIcon(AppIcons.lab, color: AppColors.inkMint),
               value: _labEnabled,
               onChanged: (val) {
                 if (!val && !_lectureEnabled) {

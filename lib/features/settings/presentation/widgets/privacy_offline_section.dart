@@ -33,12 +33,12 @@ class PrivacyOfflineSection extends StatelessWidget {
               Container(
                 width: 36,
                 height: 36,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.softMint,
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
-                child: const AppIcon(
+                child: AppIcon(
                   AppIcons.shield,
                   color: AppColors.inkMint,
                   size: 18,
@@ -67,10 +67,10 @@ class PrivacyOfflineSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          const Divider(height: 1, color: AppColors.divider),
+          Divider(height: 1, color: AppColors.divider),
           const SizedBox(height: 14),
 
-          const _PrivacyItem(
+          _PrivacyItem(
             icon: AppIcons.database,
             iconBgColor: AppColors.softLavender,
             iconColor: AppColors.inkViolet,
@@ -79,7 +79,7 @@ class PrivacyOfflineSection extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          const _PrivacyItem(
+          _PrivacyItem(
             icon: AppIcons.shield,
             iconBgColor: AppColors.softMint,
             iconColor: AppColors.inkMint,
@@ -88,7 +88,7 @@ class PrivacyOfflineSection extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          const _PrivacyItem(
+          _PrivacyItem(
             icon: AppIcons.info,
             iconBgColor: AppColors.softLavender,
             iconColor: AppColors.inkViolet,
@@ -97,7 +97,7 @@ class PrivacyOfflineSection extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          const _PrivacyItem(
+          _PrivacyItem(
             icon: AppIcons.exportFile,
             iconBgColor: AppColors.softPeach,
             iconColor: AppColors.inkPeach,
@@ -106,7 +106,7 @@ class PrivacyOfflineSection extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          const _PrivacyItem(
+          _PrivacyItem(
             icon: AppIcons.alert,
             iconBgColor: AppColors.softCoral,
             iconColor: AppColors.inkCoral,
@@ -114,7 +114,7 @@ class PrivacyOfflineSection extends StatelessWidget {
             description: 'Uninstalling the app or losing your device will delete local attendance records unless you have exported a backup.',
           ),
           const SizedBox(height: 16),
-          const Divider(height: 1, color: AppColors.divider),
+          Divider(height: 1, color: AppColors.divider),
           const SizedBox(height: 12),
 
           // App identity badge

@@ -52,6 +52,7 @@ class AppTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -76,7 +77,7 @@ class AppTextField extends StatelessWidget {
           maxLines: maxLines,
           minLines: minLines,
           maxLength: maxLength,
-          cursorColor: AppColors.brandViolet,
+          cursorColor: colors.brandPrimaryInk,
           decoration: InputDecoration(
             hintText: hint,
             errorText: errorText,
@@ -85,36 +86,30 @@ class AppTextField extends StatelessWidget {
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: enabled ? AppColors.pureWhite : AppColors.softLavender,
+            fillColor: enabled ? colors.surface : colors.surfaceSubtle,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 14,
             ),
             border: OutlineInputBorder(
               borderRadius: AppRadius.mdBorder,
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: colors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: AppRadius.mdBorder,
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: colors.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: AppRadius.mdBorder,
-              borderSide: const BorderSide(
-                color: AppColors.inkViolet,
-                width: 1.5,
-              ),
+              borderSide: BorderSide(color: colors.brandPrimaryInk, width: 1.5),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: AppRadius.mdBorder,
-              borderSide: const BorderSide(color: AppColors.inkCoral),
+              borderSide: BorderSide(color: colors.accentCoralInk),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: AppRadius.mdBorder,
-              borderSide: const BorderSide(
-                color: AppColors.inkCoral,
-                width: 1.5,
-              ),
+              borderSide: BorderSide(color: colors.accentCoralInk, width: 1.5),
             ),
           ),
         ),

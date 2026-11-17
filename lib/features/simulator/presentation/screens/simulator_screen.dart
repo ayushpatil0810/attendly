@@ -27,11 +27,7 @@ class SimulatorScreen extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: 'Reset Simulation',
-            icon: const AppIcon(
-              AppIcons.delete,
-              size: 20,
-              color: AppColors.mutedInk,
-            ),
+            icon: AppIcon(AppIcons.delete, size: 20, color: AppColors.mutedInk),
             constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             onPressed: () {
               ref.read(simulatorControllerProvider.notifier).reset();

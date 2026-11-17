@@ -76,12 +76,12 @@ class _DayNoteDialogState extends ConsumerState<_DayNoteDialog> {
           Container(
             width: 32,
             height: 32,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.softLavender,
               borderRadius: AppRadius.smBorder,
             ),
             alignment: Alignment.center,
-            child: const AppIcon(
+            child: AppIcon(
               AppIcons.note,
               size: 16,
               color: AppColors.brandViolet,
@@ -131,7 +131,7 @@ class _DayNoteDialogState extends ConsumerState<_DayNoteDialog> {
             if (isEditing)
               IconButton(
                 tooltip: 'Delete note',
-                icon: const AppIcon(
+                icon: AppIcon(
                   AppIcons.delete,
                   size: 18,
                   color: AppColors.inkCoral,

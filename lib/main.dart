@@ -10,11 +10,13 @@ import 'features/onboarding/presentation/providers/onboarding_provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Set system UI overlay style
+  // Set system UI overlay style with edge-to-edge mode
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
       systemNavigationBarColor: Colors.transparent,
       systemNavigationBarIconBrightness: Brightness.dark,
     ),

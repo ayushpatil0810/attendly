@@ -14,21 +14,22 @@ class InsightsOverviewCard extends StatelessWidget {
 
   final SemesterAttendanceSummary summary;
 
-  Color _getStatusColor() {
+  Color _getStatusColor(dynamic colors) {
     switch (summary.thresholdStatus) {
       case ThresholdStatus.meeting:
-        return AppColors.brandMint;
+        return colors.accentMint as Color;
       case ThresholdStatus.below:
-        return AppColors.brandCoral;
+        return colors.accentCoral as Color;
       case ThresholdStatus.notAvailable:
-        if (summary.isProvisional) return AppColors.brandPeach;
-        return AppColors.mutedInk;
+        if (summary.isProvisional) return colors.accentPeach as Color;
+        return colors.textSecondary as Color;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = _getStatusColor();
+    final colors = context.colors;
+    final statusColor = _getStatusColor(colors);
     final isAvailable = summary.isAvailable;
     final isProvisional = summary.isProvisional;
 
@@ -43,12 +44,15 @@ class InsightsOverviewCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
       decoration: BoxDecoration(
-        color: AppColors.pureWhite,
+        color: colors.surface,
         borderRadius: AppRadius.xlBorder,
+        border: Border.all(color: colors.divider),
         boxShadow: [
           BoxShadow(
-            color: AppColors.ink.withAlpha(6),
-            blurRadius: 14,
+            color: colors.textPrimary.withValues(
+              alpha: colors.isDark ? 0.12 : 0.03,
+            ),
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
@@ -65,20 +69,25 @@ class InsightsOverviewCard extends StatelessWidget {
               spacing: AppSpacing.xs,
               runSpacing: AppSpacing.xs,
               children: [
-                Text('Attendance Overview', style: AppTypography.itemTitle),
+                Text(
+                  'Attendance Overview',
+                  style: AppTypography.itemTitle.copyWith(
+                    color: colors.textPrimary,
+                  ),
+                ),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.sm,
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.softLavender,
+                    color: colors.brandPrimarySoft,
                     borderRadius: AppRadius.pillBorder,
                   ),
                   child: Text(
                     summary.calculationMethod.displayName,
                     style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.inkViolet,
+                      color: colors.brandPrimaryInk,
                       fontWeight: FontWeight.w600,
                       fontSize: 11,
                     ),
@@ -102,6 +111,9 @@ class InsightsOverviewCard extends StatelessWidget {
                     presentCount: summary.totalPresent,
                     absentCount: summary.totalAbsent,
                     threshold: summary.threshold,
+                    trackColor: colors.track,
+                    presentColor: colors.accentMint,
+                    absentColor: colors.accentCoral,
                   ),
                   child: Center(
                     child: Column(
@@ -114,8 +126,8 @@ class InsightsOverviewCard extends StatelessWidget {
                             fontSize: 16,
                             fontFeatures: const [FontFeature.tabularFigures()],
                             color: isAvailable
-                                ? AppColors.ink
-                                : AppColors.mutedInk,
+                                ? colors.textPrimary
+                                : colors.textSecondary,
                           ),
                         ),
                         if (isProvisional)
@@ -123,7 +135,7 @@ class InsightsOverviewCard extends StatelessWidget {
                             'Prov.',
                             style: AppTypography.labelSmall.copyWith(
                               fontSize: 12,
-                              color: AppColors.inkPeach,
+                              color: colors.accentPeachInk,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -147,10 +159,10 @@ class InsightsOverviewCard extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: summary.meetsThreshold
-                            ? AppColors.softMint
+                            ? colors.accentMintSoft
                             : (summary.isBelowThreshold
-                                  ? AppColors.softCoral
-                                  : AppColors.softLavender),
+                                  ? colors.accentCoralSoft
+                                  : colors.brandPrimarySoft),
                         borderRadius: AppRadius.pillBorder,
                       ),
                       child: Row(
@@ -177,10 +189,10 @@ class InsightsOverviewCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               style: AppTypography.labelSmall.copyWith(
                                 color: summary.meetsThreshold
-                                    ? AppColors.inkMint
+                                    ? colors.accentMintInk
                                     : (summary.isBelowThreshold
-                                          ? AppColors.inkCoral
-                                          : AppColors.mutedInk),
+                                          ? colors.accentCoralInk
+                                          : colors.textSecondary),
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -192,14 +204,14 @@ class InsightsOverviewCard extends StatelessWidget {
 
                     // Present & Absent Breakdown Rows
                     _CountRow(
-                      color: AppColors.inkMint,
+                      color: colors.accentMint,
                       label: 'Present',
                       count: summary.totalPresent,
                       percentage: presentPct,
                     ),
                     const SizedBox(height: 4),
                     _CountRow(
-                      color: AppColors.inkCoral,
+                      color: colors.accentCoral,
                       label: 'Absent',
                       count: summary.totalAbsent,
                       percentage: absentPct,
@@ -210,7 +222,7 @@ class InsightsOverviewCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.mutedInk,
+                        color: colors.textSecondary,
                         fontSize: 11,
                       ),
                     ),
@@ -226,15 +238,15 @@ class InsightsOverviewCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.softPeach,
+                  color: colors.accentPeachSoft,
                   borderRadius: AppRadius.smBorder,
                 ),
                 child: Row(
                   children: [
-                    const AppIcon(
+                    AppIcon(
                       AppIcons.alert,
                       size: 16,
-                      color: AppColors.inkPeach,
+                      color: colors.accentPeachInk,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -242,7 +254,7 @@ class InsightsOverviewCard extends StatelessWidget {
                         'Both a lecture and a lab need to be logged before the split total can be calculated.',
                         style: AppTypography.bodySmall.copyWith(
                           fontSize: 11,
-                          color: AppColors.inkPeach,
+                          color: colors.accentPeachInk,
                         ),
                       ),
                     ),
@@ -271,6 +283,7 @@ class _CountRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -287,7 +300,7 @@ class _CountRow extends StatelessWidget {
                 TextSpan(
                   text: '$label: ',
                   style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.mutedInk,
+                    color: colors.textSecondary,
                     fontSize: 12,
                   ),
                 ),
@@ -297,13 +310,13 @@ class _CountRow extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
                     fontFeatures: const [FontFeature.tabularFigures()],
-                    color: AppColors.ink,
+                    color: colors.textPrimary,
                   ),
                 ),
                 TextSpan(
                   text: '(${percentage.toStringAsFixed(0)}%)',
                   style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.mutedInk,
+                    color: colors.textSecondary,
                     fontSize: 11,
                     fontFeatures: const [FontFeature.tabularFigures()],
                   ),
@@ -324,11 +337,17 @@ class _AttendanceDistributionPainter extends CustomPainter {
     required this.presentCount,
     required this.absentCount,
     required this.threshold,
+    required this.trackColor,
+    required this.presentColor,
+    required this.absentColor,
   });
 
   final int presentCount;
   final int absentCount;
   final double threshold;
+  final Color trackColor;
+  final Color presentColor;
+  final Color absentColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -339,7 +358,7 @@ class _AttendanceDistributionPainter extends CustomPainter {
 
     // Track
     final trackPaint = Paint()
-      ..color = AppColors.track
+      ..color = trackColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
     canvas.drawCircle(center, radius, trackPaint);
@@ -350,12 +369,12 @@ class _AttendanceDistributionPainter extends CustomPainter {
     final absentSweep = (absentCount / total) * 2 * math.pi;
 
     final presentPaint = Paint()
-      ..color = AppColors.brandMint
+      ..color = presentColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
 
     final absentPaint = Paint()
-      ..color = AppColors.brandCoral
+      ..color = absentColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
 
@@ -388,6 +407,9 @@ class _AttendanceDistributionPainter extends CustomPainter {
   bool shouldRepaint(covariant _AttendanceDistributionPainter oldDelegate) {
     return oldDelegate.presentCount != presentCount ||
         oldDelegate.absentCount != absentCount ||
-        oldDelegate.threshold != threshold;
+        oldDelegate.threshold != threshold ||
+        oldDelegate.trackColor != trackColor ||
+        oldDelegate.presentColor != presentColor ||
+        oldDelegate.absentColor != absentColor;
   }
 }

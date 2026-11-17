@@ -27,21 +27,29 @@ class LectureLabComparisonCard extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final colors = context.colors;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Lecture vs. Lab Breakdown', style: AppTypography.sectionTitle),
+        Text(
+          'Lecture vs. Lab Breakdown',
+          style: AppTypography.sectionTitle.copyWith(color: colors.textPrimary),
+        ),
         const SizedBox(height: AppSpacing.sm),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.cardPadding),
           decoration: BoxDecoration(
-            color: AppColors.pureWhite,
+            color: colors.surface,
             borderRadius: AppRadius.xlBorder,
+            border: Border.all(color: colors.divider),
             boxShadow: [
               BoxShadow(
-                color: AppColors.ink.withAlpha(6),
-                blurRadius: 14,
+                color: colors.textPrimary.withValues(
+                  alpha: colors.isDark ? 0.12 : 0.03,
+                ),
+                blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
             ],
@@ -52,7 +60,7 @@ class LectureLabComparisonCard extends StatelessWidget {
             itemCount: multiComponentSubjects.length,
             separatorBuilder: (_, _) => Padding(
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-              child: Divider(color: AppColors.divider, height: 1),
+              child: Divider(color: colors.divider, height: 1),
             ),
             itemBuilder: (context, index) {
               final subject = multiComponentSubjects[index];
@@ -79,6 +87,7 @@ class _SubjectComponentComparison extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final lec = subject.lectureSummary;
     final lab = subject.labSummary;
 
@@ -86,23 +95,23 @@ class _SubjectComponentComparison extends StatelessWidget {
     final labPct = lab?.percentage;
 
     String? diffText;
-    Color diffBg = AppColors.softLavender;
-    Color diffFg = AppColors.inkViolet;
+    Color diffBg = colors.brandPrimarySoft;
+    Color diffFg = colors.brandPrimaryInk;
 
     if (lecPct != null && labPct != null) {
       final diff = labPct - lecPct;
       if (diff.abs() < 0.05) {
         diffText = 'Equal (${lecPct.toStringAsFixed(0)}%)';
-        diffBg = AppColors.softMint;
-        diffFg = AppColors.inkMint;
+        diffBg = colors.accentMintSoft;
+        diffFg = colors.accentMintInk;
       } else if (diff > 0) {
         diffText = 'Lab +${diff.toStringAsFixed(0)}% vs Lecture';
-        diffBg = AppColors.softMint;
-        diffFg = AppColors.inkMint;
+        diffBg = colors.accentMintSoft;
+        diffFg = colors.accentMintInk;
       } else {
         diffText = 'Lecture +${(-diff).toStringAsFixed(0)}% vs Lab';
-        diffBg = AppColors.softCoral;
-        diffFg = AppColors.inkCoral;
+        diffBg = colors.accentCoralSoft;
+        diffFg = colors.accentCoralInk;
       }
     }
 
@@ -116,7 +125,10 @@ class _SubjectComponentComparison extends StatelessWidget {
             Expanded(
               child: Text(
                 subject.subjectName,
-                style: AppTypography.itemTitle.copyWith(fontSize: 14),
+                style: AppTypography.itemTitle.copyWith(
+                  fontSize: 14,
+                  color: colors.textPrimary,
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -168,13 +180,14 @@ class _ComponentBarRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final hasData = summary.isAvailable && summary.percentage != null;
     final pct = summary.percentage;
     final meetsTarget = hasData && pct! >= (threshold * 100.0 - 1e-9);
 
     final barColor = hasData
-        ? (meetsTarget ? AppColors.brandMint : AppColors.brandCoral)
-        : AppColors.track;
+        ? (meetsTarget ? colors.accentMint : colors.accentCoral)
+        : colors.track;
 
     final fillRatio = hasData ? (pct! / 100.0).clamp(0.0, 1.0) : 0.0;
 
@@ -192,6 +205,7 @@ class _ComponentBarRow extends StatelessWidget {
                     style: AppTypography.bodySmall.copyWith(
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
+                      color: colors.textPrimary,
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -201,7 +215,7 @@ class _ComponentBarRow extends StatelessWidget {
                           ? '(${summary.presentCount}P / ${summary.absentCount}A • ${summary.conductedCount} total)'
                           : '(No sessions)',
                       style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.mutedInk,
+                        color: colors.textSecondary,
                         fontSize: 12,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -218,8 +232,10 @@ class _ComponentBarRow extends StatelessWidget {
                 fontSize: 11,
                 fontFeatures: const [FontFeature.tabularFigures()],
                 color: hasData
-                    ? (meetsTarget ? AppColors.inkMint : AppColors.inkCoral)
-                    : AppColors.mutedInk,
+                    ? (meetsTarget
+                          ? colors.accentMintInk
+                          : colors.accentCoralInk)
+                    : colors.textSecondary,
               ),
             ),
           ],
@@ -234,7 +250,7 @@ class _ComponentBarRow extends StatelessWidget {
               height: 6,
               width: width,
               decoration: BoxDecoration(
-                color: AppColors.track,
+                color: colors.track,
                 borderRadius: AppRadius.pillBorder,
               ),
               child: Align(

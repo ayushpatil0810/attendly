@@ -68,11 +68,7 @@ class BackupRestoreSection extends ConsumerWidget {
           shape: const RoundedRectangleBorder(borderRadius: AppRadius.lgBorder),
           title: Row(
             children: [
-              const AppIcon(
-                AppIcons.alert,
-                color: AppColors.inkCoral,
-                size: 20,
-              ),
+              AppIcon(AppIcons.alert, color: AppColors.inkCoral, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Invalid Backup File',
@@ -174,12 +170,12 @@ class BackupRestoreSection extends ConsumerWidget {
               Container(
                 width: 38,
                 height: 38,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.softMint,
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
-                child: const AppIcon(
+                child: AppIcon(
                   AppIcons.exportFile,
                   color: AppColors.inkMint,
                   size: 18,
@@ -205,7 +201,7 @@ class BackupRestoreSection extends ConsumerWidget {
                     const SizedBox(height: 10),
                     AppButton(
                       label: 'Export Backup',
-                      icon: const AppIcon(
+                      icon: AppIcon(
                         AppIcons.exportFile,
                         size: 16,
                         color: AppColors.pureWhite,
@@ -223,7 +219,7 @@ class BackupRestoreSection extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 16),
-          const Divider(height: 1, color: AppColors.divider),
+          Divider(height: 1, color: AppColors.divider),
           const SizedBox(height: 16),
 
           // Restore Card Block
@@ -233,12 +229,12 @@ class BackupRestoreSection extends ConsumerWidget {
               Container(
                 width: 38,
                 height: 38,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.softLavender,
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
-                child: const AppIcon(
+                child: AppIcon(
                   AppIcons.importFile,
                   color: AppColors.brandViolet,
                   size: 18,
@@ -265,7 +261,7 @@ class BackupRestoreSection extends ConsumerWidget {
                     AppButton(
                       label: 'Restore Backup',
                       variant: AppButtonVariant.secondary,
-                      icon: const AppIcon(
+                      icon: AppIcon(
                         AppIcons.importFile,
                         size: 16,
                         color: AppColors.brandViolet,
@@ -293,11 +289,7 @@ class BackupRestoreSection extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                const AppIcon(
-                  AppIcons.check,
-                  size: 14,
-                  color: AppColors.inkMint,
-                ),
+                AppIcon(AppIcons.check, size: 14, color: AppColors.inkMint),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
