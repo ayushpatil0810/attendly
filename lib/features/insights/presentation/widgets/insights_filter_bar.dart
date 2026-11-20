@@ -26,7 +26,7 @@ class InsightsFilterBar extends ConsumerWidget {
     final colors = context.colors;
     final picked = await showDateRangePicker(
       context: context,
-      firstDate: DateTime(now.year - 2),
+      firstDate: DateTime(now.year - 5),
       lastDate: now,
       initialDateRange:
           currentFilter.customStartDate != null &&
@@ -131,22 +131,30 @@ class InsightsFilterBar extends ConsumerWidget {
                       ),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: colors.accentCoralSoft,
+                        color: colors.surfaceSubtle.withValues(
+                          alpha: colors.isDark ? 0.6 : 0.8,
+                        ),
                         borderRadius: AppRadius.pillBorder,
+                        border: Border.all(
+                          color: colors.border.withValues(
+                            alpha: colors.isDark ? 0.4 : 0.6,
+                          ),
+                          width: 0.5,
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           AppIcon(
                             AppIcons.close,
-                            size: 14,
-                            color: colors.accentCoralInk,
+                            size: 13,
+                            color: colors.textSecondary,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             'Reset',
-                            style: AppTypography.labelSmall.copyWith(
-                              color: colors.accentCoralInk,
+                            style: AppTypography.caption1.copyWith(
+                              color: colors.textSecondary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -309,17 +317,9 @@ class _FilterChip extends StatelessWidget {
           border: Border.all(
             color: isSelected
                 ? (colors.isDark ? colors.brandPrimary : colors.brandPrimaryInk)
-                : colors.border,
+                : colors.border.withValues(alpha: colors.isDark ? 0.35 : 0.6),
+            width: 0.5,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: colors.brandPrimary.withValues(alpha: 0.3),
-                    blurRadius: 4,
-                    offset: const Offset(0, 1),
-                  ),
-                ]
-              : null,
         ),
         child: Text(
           label,

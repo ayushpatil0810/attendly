@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:attendly/core/services/notification_service.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
+import 'package:attendly/core/shared/widgets/attendly_brand_mark.dart';
 import 'package:attendly/core/theme/app_colors.dart';
+import 'package:attendly/core/theme/app_theme_colors.dart';
 import 'package:attendly/core/theme/app_motion.dart';
 import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_radius.dart';
@@ -29,32 +31,45 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     });
   }
 
-  final List<_OnboardingPageData> _pages = [
-    _OnboardingPageData(
-      title: 'Track Lectures & Labs',
-      subtitle: 'Record attendance for theory classes and practical labs independently with one quick tap.',
-      accentColor: AppColors.brandViolet,
-      secondaryColor: AppColors.softLavender,
-      icon: AppIcons.lecture,
-      tagText: 'Independent Components',
-    ),
-    _OnboardingPageData(
-      title: 'Know Your Safe Absences',
-      subtitle: 'Stay above your college threshold. Always know how many sessions you can safely miss.',
-      accentColor: AppColors.brandMint,
-      secondaryColor: AppColors.softMint,
-      icon: AppIcons.insights,
-      tagText: 'Smart Calculations',
-    ),
-    _OnboardingPageData(
-      title: 'Review & Correct History',
-      subtitle: 'Keep a transparent timeline. Correct past records anytime with 100% offline local privacy.',
-      accentColor: AppColors.brandPeach,
-      secondaryColor: AppColors.softPeach,
-      icon: AppIcons.history,
-      tagText: '100% Offline & Private',
-    ),
-  ];
+  List<_OnboardingPageData> _getPages(AppThemeColors colors) {
+    return [
+      _OnboardingPageData(
+        title: 'Track Lectures & Labs',
+        subtitle:
+            'Record attendance for theory classes and practical labs independently with one quick tap.',
+        accentColor: colors.brandPrimary,
+        secondaryColor: colors.isDark
+            ? colors.brandPrimary.withValues(alpha: 0.16)
+            : AppColors.softLavender,
+        icon: AppIcons.lecture,
+        tagText: 'Independent Components',
+      ),
+      _OnboardingPageData(
+        title: 'Know Your Safe Absences',
+        subtitle:
+            'Stay above your college threshold. Always know how many sessions you can safely miss.',
+        accentColor: colors.accentMint,
+        secondaryColor: colors.isDark
+            ? colors.accentMint.withValues(alpha: 0.16)
+            : AppColors.softMint,
+        icon: AppIcons.insights,
+        tagText: 'Smart Calculations',
+      ),
+      _OnboardingPageData(
+        title: 'Review & Correct History',
+        subtitle:
+            'Keep a transparent timeline. Correct past records anytime with 100% offline local privacy.',
+        accentColor: colors.isDark
+            ? const Color(0xFFFF9F0A)
+            : AppColors.brandPeach,
+        secondaryColor: colors.isDark
+            ? const Color(0xFFFF9F0A).withValues(alpha: 0.16)
+            : AppColors.softPeach,
+        icon: AppIcons.history,
+        tagText: '100% Offline & Private',
+      ),
+    ];
+  }
 
   @override
   void dispose() {
@@ -69,8 +84,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
   }
 
-  void _nextPage() {
-    if (_currentPage < _pages.length - 1) {
+  void _nextPage(int pageCount) {
+    if (_currentPage < pageCount - 1) {
       _pageController.nextPage(
         duration: AppMotion.duration(
           context,
@@ -86,26 +101,37 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final isLastPage = _currentPage == _pages.length - 1;
+    final pages = _getPages(colors);
+    final isLastPage = _currentPage == pages.length - 1;
 
     return Scaffold(
       backgroundColor: colors.background,
       body: SafeArea(
         child: Column(
           children: [
-            // Top App Bar with Skip button
+            // Top App Bar with Brand and Skip button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // App brand logo
+                  // App brand logo and title
                   Semantics(
                     label: 'Attendly',
-                    child: Image.asset(
-                      'assets/images/app_logo.png',
-                      height: 34,
-                      fit: BoxFit.contain,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const AttendlyBrandMark(size: 32),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Attendly',
+                          style: AppTypography.title2.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: colors.textPrimary,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   if (!isLastPage)
@@ -114,7 +140,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       child: Text(
                         'Skip',
                         style: AppTypography.labelLarge.copyWith(
-                          color: AppColors.mutedInk,
+                          color: colors.textSecondary,
                         ),
                       ),
                     )
@@ -128,12 +154,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
-                itemCount: _pages.length,
+                itemCount: pages.length,
                 onPageChanged: (index) {
                   setState(() => _currentPage = index);
                 },
                 itemBuilder: (context, index) {
-                  final page = _pages[index];
+                  final page = pages[index];
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 28),
                     child: Column(
@@ -155,7 +181,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           child: Text(
                             page.tagText,
                             style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.ink,
+                              color: page.accentColor,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -166,6 +192,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           page.title,
                           style: AppTypography.screenTitle.copyWith(
                             fontSize: 24,
+                            color: colors.textPrimary,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -176,6 +203,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           style: AppTypography.bodyMuted.copyWith(
                             fontSize: 15,
                             height: 1.45,
+                            color: colors.textSecondary,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -193,7 +221,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 children: [
                   // Dot indicators
                   Row(
-                    children: List.generate(_pages.length, (index) {
+                    children: List.generate(pages.length, (index) {
                       final isActive = index == _currentPage;
                       return AnimatedContainer(
                         duration: AppMotion.duration(
@@ -205,8 +233,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         width: isActive ? 24 : 8,
                         decoration: BoxDecoration(
                           color: isActive
-                              ? AppColors.brandViolet
-                              : AppColors.divider,
+                              ? colors.brandPrimary
+                              : colors.track,
                           borderRadius: AppRadius.pillBorder,
                         ),
                       );
@@ -216,7 +244,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   // Action button
                   AppButton(
                     label: isLastPage ? 'Get Started' : 'Next',
-                    onPressed: _nextPage,
+                    onPressed: () => _nextPage(pages.length),
                     size: AppButtonSize.medium,
                   ),
                 ],
@@ -254,6 +282,8 @@ class _OnboardingVisual extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Container(
       width: 180,
       height: 180,
@@ -266,11 +296,16 @@ class _OnboardingVisual extends StatelessWidget {
         width: 120,
         height: 120,
         decoration: BoxDecoration(
-          color: AppColors.pureWhite,
+          color: colors.surface,
           shape: BoxShape.circle,
+          border: Border.all(
+            color: colors.border.withValues(alpha: 0.5),
+          ),
           boxShadow: [
             BoxShadow(
-              color: page.accentColor.withOpacity(0.18),
+              color: colors.isDark
+                  ? Colors.black.withValues(alpha: 0.3)
+                  : page.accentColor.withValues(alpha: 0.18),
               blurRadius: 20,
               offset: const Offset(0, 6),
             ),
@@ -280,11 +315,7 @@ class _OnboardingVisual extends StatelessWidget {
         child: AppIcon(
           page.icon,
           size: 52,
-          color: page.accentColor == AppColors.brandMint
-              ? AppColors.inkMint
-              : page.accentColor == AppColors.brandPeach
-              ? AppColors.inkPeach
-              : AppColors.inkViolet,
+          color: page.accentColor,
         ),
       ),
     );

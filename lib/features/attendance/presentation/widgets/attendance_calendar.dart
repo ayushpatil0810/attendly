@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
-import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_session.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_status.dart';
@@ -14,6 +14,7 @@ class AttendanceCalendar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.colors;
     final currentMonth = ref.watch(currentMonthProvider);
     final selectedDate = ref.watch(selectedDateProvider);
     final sessionsAsync = ref.watch(sessionsForMonthProvider);
@@ -48,13 +49,21 @@ class AttendanceCalendar extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.pureWhite,
-        borderRadius: AppRadius.xlBorder,
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: colors.border.withValues(
+            alpha: colors.isDark ? 0.4 : 0.6,
+          ),
+          width: 0.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.ink.withAlpha(8),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(
+              alpha: colors.isDark ? 0.25 : 0.03,
+            ),
+            blurRadius: 14,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -68,14 +77,17 @@ class AttendanceCalendar extends ConsumerWidget {
               Expanded(
                 child: Text(
                   monthTitle,
-                  style: AppTypography.itemTitle.copyWith(
+                  style: AppTypography.headline.copyWith(
                     fontWeight: FontWeight.w700,
+                    fontSize: 17,
+                    color: colors.textPrimary,
                   ),
                 ),
               ),
               if (!isCurrentMonth) ...[
                 TextButton(
                   onPressed: () {
+                    HapticFeedback.selectionClick();
                     ref.read(currentMonthProvider.notifier).currentMonth();
                     ref.read(selectedDateProvider.notifier).selectToday();
                   },
@@ -89,8 +101,10 @@ class AttendanceCalendar extends ConsumerWidget {
                   ),
                   child: Text(
                     'Today',
-                    style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.inkViolet,
+                    style: AppTypography.subhead.copyWith(
+                      color: colors.isDark
+                          ? const Color(0xFF5E81F4)
+                          : const Color(0xFF3F5BF6),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -101,13 +115,14 @@ class AttendanceCalendar extends ConsumerWidget {
                 tooltip: 'Previous month',
                 icon: AppIcon(
                   AppIcons.back,
-                  size: 20,
-                  color: AppColors.ink,
+                  size: 19,
+                  color: colors.textPrimary,
                   semanticLabel: 'Previous month',
                 ),
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                 onPressed: () {
+                  HapticFeedback.selectionClick();
                   ref.read(currentMonthProvider.notifier).previousMonth();
                 },
               ),
@@ -115,13 +130,14 @@ class AttendanceCalendar extends ConsumerWidget {
                 tooltip: 'Next month',
                 icon: AppIcon(
                   AppIcons.forward,
-                  size: 20,
-                  color: AppColors.ink,
+                  size: 19,
+                  color: colors.textPrimary,
                   semanticLabel: 'Next month',
                 ),
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                 onPressed: () {
+                  HapticFeedback.selectionClick();
                   ref.read(currentMonthProvider.notifier).nextMonth();
                 },
               ),
@@ -223,6 +239,7 @@ class AttendanceCalendar extends ConsumerWidget {
                   onTap: isFuture
                       ? null
                       : () {
+                          HapticFeedback.selectionClick();
                           ref
                               .read(selectedDateProvider.notifier)
                               .selectDate(cellDate);
@@ -244,13 +261,16 @@ class _WeekdayHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Expanded(
       child: Center(
         child: Text(
           text,
-          style: AppTypography.labelSmall.copyWith(
-            color: AppColors.mutedInk,
+          style: AppTypography.caption1.copyWith(
+            color: colors.textSecondary,
             fontWeight: FontWeight.w600,
+            fontSize: 12,
           ),
         ),
       ),
@@ -281,15 +301,20 @@ class _CalendarDayCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+    final accentBlue = colors.isDark
+        ? const Color(0xFF4A6BF7)
+        : const Color(0xFF3F5BF6);
+
     Color textColor;
     if (isFuture) {
-      textColor = AppColors.mutedInk;
+      textColor = colors.textTertiary;
     } else if (isSelected) {
-      textColor = AppColors.pureWhite;
+      textColor = Colors.white;
     } else if (isToday) {
-      textColor = AppColors.inkViolet;
+      textColor = accentBlue;
     } else {
-      textColor = AppColors.ink;
+      textColor = colors.textPrimary;
     }
 
     final noteText = hasNote ? ', Has note' : '';
@@ -315,35 +340,34 @@ class _CalendarDayCell extends StatelessWidget {
             children: [
               // Number container
               Container(
-                width: 28,
-                height: 28,
+                width: 30,
+                height: 30,
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? AppColors.inkViolet
+                      ? accentBlue
                       : isToday
-                      ? AppColors.softLavender
+                      ? accentBlue.withValues(alpha: 0.12)
                       : Colors.transparent,
                   shape: BoxShape.circle,
                   border: isToday && !isSelected
-                      ? Border.all(color: AppColors.brandViolet, width: 1.5)
+                      ? Border.all(color: accentBlue, width: 1.5)
                       : null,
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   '$dayNumber',
-                  style: AppTypography.bodySmall.copyWith(
+                  style: AppTypography.footnote.copyWith(
                     color: textColor,
                     fontWeight: isSelected || isToday
                         ? FontWeight.w700
                         : FontWeight.w500,
-                    fontSize: 13,
+                    fontSize: 13.5,
                   ),
                 ),
               ),
               const SizedBox(height: 2),
 
-              // Indicator dots: Mint for present, Coral for absent, Violet for note.
-              // When no records exist: completely clean! Never show red for unrecorded.
+              // Indicator dots: Mint for present, Coral for absent, Blue for note.
               SizedBox(
                 height: 5,
                 child: Row(
@@ -355,7 +379,7 @@ class _CalendarDayCell extends StatelessWidget {
                         height: 4,
                         margin: const EdgeInsets.symmetric(horizontal: 1),
                         decoration: BoxDecoration(
-                          color: AppColors.inkMint,
+                          color: colors.accentMint,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -365,7 +389,7 @@ class _CalendarDayCell extends StatelessWidget {
                         height: 4,
                         margin: const EdgeInsets.symmetric(horizontal: 1),
                         decoration: BoxDecoration(
-                          color: AppColors.inkCoral,
+                          color: colors.accentCoral,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -375,7 +399,7 @@ class _CalendarDayCell extends StatelessWidget {
                         height: 4,
                         margin: const EdgeInsets.symmetric(horizontal: 1),
                         decoration: BoxDecoration(
-                          color: AppColors.brandViolet,
+                          color: accentBlue,
                           shape: BoxShape.circle,
                         ),
                       ),

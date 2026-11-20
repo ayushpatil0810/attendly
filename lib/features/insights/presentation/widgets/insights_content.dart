@@ -126,16 +126,16 @@ class InsightsContent extends ConsumerWidget {
           children: [
             // Filter Bar
             const InsightsFilterBar(),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: 20),
 
             // Overview Card with Donut Chart
             InsightsOverviewCard(summary: summary),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: 24),
 
             // Factual Observations Section
             if (observations.isNotEmpty) ...[
               InsightObservationsSection(observations: observations),
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: 24),
             ],
 
             // Subject Comparison
@@ -143,14 +143,16 @@ class InsightsContent extends ConsumerWidget {
               subjectSummaries: summary.subjectSummaries,
               threshold: summary.threshold,
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: 24),
 
-            // Lecture vs Lab Comparison
-            LectureLabComparisonCard(
-              subjectSummaries: summary.subjectSummaries,
-              threshold: summary.threshold,
-            ),
-            const SizedBox(height: AppSpacing.lg),
+            // Lecture vs Lab Comparison (only when both components are included in the view)
+            if (ref.watch(insightsFilterProvider).component == null) ...[
+              LectureLabComparisonCard(
+                subjectSummaries: summary.subjectSummaries,
+                threshold: summary.threshold,
+              ),
+              const SizedBox(height: 24),
+            ],
 
             // Advanced Chronological Trend
             AdvancedTrendCard(

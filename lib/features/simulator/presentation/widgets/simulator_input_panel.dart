@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
-import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_status.dart';
@@ -24,6 +23,7 @@ class _SimulatorInputPanelState extends ConsumerState<SimulatorInputPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final subjectsAsync = ref.watch(activeSemesterSubjectsProvider);
     final subjects = subjectsAsync.asData?.value ?? [];
 
@@ -32,19 +32,18 @@ class _SimulatorInputPanelState extends ConsumerState<SimulatorInputPanel> {
         width: double.infinity,
         padding: const EdgeInsets.all(AppSpacing.cardPadding),
         decoration: BoxDecoration(
-          color: AppColors.pureWhite,
-          borderRadius: AppRadius.xlBorder,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.ink.withAlpha(6),
-              blurRadius: 14,
-              offset: const Offset(0, 2),
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: colors.border.withValues(
+              alpha: colors.isDark ? 0.4 : 0.6,
             ),
-          ],
+            width: 0.5,
+          ),
         ),
         child: Text(
           'Please create at least one subject to start simulating future attendance.',
-          style: AppTypography.bodySmall.copyWith(color: AppColors.mutedInk),
+          style: AppTypography.bodySmall.copyWith(color: colors.textSecondary),
         ),
       );
     }
@@ -71,12 +70,20 @@ class _SimulatorInputPanelState extends ConsumerState<SimulatorInputPanel> {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
       decoration: BoxDecoration(
-        color: AppColors.pureWhite,
-        borderRadius: AppRadius.xlBorder,
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: colors.border.withValues(
+            alpha: colors.isDark ? 0.4 : 0.6,
+          ),
+          width: 0.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.ink.withAlpha(6),
-            blurRadius: 14,
+            color: Colors.black.withValues(
+              alpha: colors.isDark ? 0.25 : 0.03,
+            ),
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
@@ -84,11 +91,17 @@ class _SimulatorInputPanelState extends ConsumerState<SimulatorInputPanel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Add Hypothetical Classes', style: AppTypography.itemTitle),
+          Text(
+            'Add Hypothetical Classes',
+            style: AppTypography.headline.copyWith(
+              fontWeight: FontWeight.w700,
+              color: colors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 4),
           Text(
             'Select a subject and component, then add future class outcomes.',
-            style: AppTypography.labelSmall.copyWith(color: AppColors.mutedInk),
+            style: AppTypography.footnote.copyWith(color: colors.textSecondary),
           ),
           const SizedBox(height: AppSpacing.md),
 
@@ -114,21 +127,31 @@ class _SimulatorInputPanelState extends ConsumerState<SimulatorInputPanel> {
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                        horizontal: 14,
+                        vertical: 7,
                       ),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.brandViolet
-                            : AppColors.track,
-                        borderRadius: AppRadius.pillBorder,
+                            ? (colors.isDark ? Colors.white : colors.brandPrimary)
+                            : colors.surfaceSubtle.withValues(
+                                alpha: colors.isDark ? 0.6 : 0.8,
+                              ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected
+                              ? Colors.transparent
+                              : colors.border.withValues(
+                                  alpha: colors.isDark ? 0.4 : 0.6,
+                                ),
+                          width: 0.5,
+                        ),
                       ),
                       child: Text(
                         s.name,
-                        style: AppTypography.labelSmall.copyWith(
+                        style: AppTypography.caption1.copyWith(
                           color: isSelected
-                              ? AppColors.pureWhite
-                              : AppColors.ink,
+                              ? (colors.isDark ? Colors.black : Colors.white)
+                              : colors.textPrimary,
                           fontWeight: isSelected
                               ? FontWeight.w700
                               : FontWeight.w500,
@@ -171,8 +194,9 @@ class _SimulatorInputPanelState extends ConsumerState<SimulatorInputPanel> {
               Expanded(
                 child: _SimulateActionButton(
                   label: '+1 Present',
-                  color: AppColors.brandMint,
-                  bgColor: AppColors.softMint,
+                  color: colors.accentMint,
+                  bgColor: colors.accentMintSoft,
+                  textColor: colors.accentMintInk,
                   icon: AppIcons.check,
                   onTap: () {
                     ref
@@ -189,8 +213,9 @@ class _SimulatorInputPanelState extends ConsumerState<SimulatorInputPanel> {
               Expanded(
                 child: _SimulateActionButton(
                   label: '+1 Absent',
-                  color: AppColors.brandCoral,
-                  bgColor: AppColors.softCoral,
+                  color: colors.accentCoral,
+                  bgColor: colors.accentCoralSoft,
+                  textColor: colors.accentCoralInk,
                   icon: AppIcons.close,
                   onTap: () {
                     ref
@@ -205,16 +230,16 @@ class _SimulatorInputPanelState extends ConsumerState<SimulatorInputPanel> {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: AppSpacing.sm),
 
           // Batch Add Chips (+3 Present, +5 Present)
           Row(
             children: [
               Text(
                 'Batch add:',
-                style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.mutedInk,
-                  fontSize: 11,
+                style: AppTypography.caption1.copyWith(
+                  color: colors.textSecondary,
+                  fontSize: 11.5,
                 ),
               ),
               const SizedBox(width: 8),
@@ -266,23 +291,26 @@ class _ComponentChoicePill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.softLavender : Colors.transparent,
-          borderRadius: AppRadius.smBorder,
+          color: isSelected ? colors.surfaceElevated : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? AppColors.brandViolet : AppColors.border,
+            color: isSelected ? colors.textPrimary : colors.border,
+            width: 0.5,
           ),
         ),
         child: Text(
           label,
-          style: AppTypography.labelSmall.copyWith(
-            color: isSelected ? AppColors.inkViolet : AppColors.mutedInk,
+          style: AppTypography.caption1.copyWith(
+            color: isSelected ? colors.textPrimary : colors.textSecondary,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            fontSize: 11,
+            fontSize: 11.5,
           ),
         ),
       ),
@@ -295,6 +323,7 @@ class _SimulateActionButton extends StatelessWidget {
     required this.label,
     required this.color,
     required this.bgColor,
+    required this.textColor,
     required this.icon,
     required this.onTap,
   });
@@ -302,40 +331,46 @@ class _SimulateActionButton extends StatelessWidget {
   final String label;
   final Color color;
   final Color bgColor;
-  final dynamic icon;
+  final Color textColor;
+  final IconData icon;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final effectiveFg = color == AppColors.brandMint
-        ? AppColors.inkMint
-        : AppColors.inkCoral;
+    final colors = context.colors;
+    final fg = colors.isDark ? color : textColor;
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 44),
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: AppRadius.mdBorder,
-          border: Border.all(color: effectiveFg, width: 1.5),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AppIcon(icon, size: 16, color: effectiveFg),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: AppTypography.labelMedium.copyWith(
-                color: effectiveFg,
-                fontWeight: FontWeight.w700,
-              ),
+    return Material(
+      color: bgColor,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 44),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: color.withValues(alpha: colors.isDark ? 0.4 : 0.6),
+              width: 1.0,
             ),
-          ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AppIcon(icon, size: 16, color: fg),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: AppTypography.subhead.copyWith(
+                  color: fg,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -350,23 +385,36 @@ class _BatchChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 48),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: AppColors.track,
-          borderRadius: AppRadius.smBorder,
-        ),
-        child: Text(
-          label,
-          style: AppTypography.labelSmall.copyWith(
-            color: AppColors.ink,
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
+    final colors = context.colors;
+
+    return Material(
+      color: colors.surfaceSubtle.withValues(
+        alpha: colors.isDark ? 0.6 : 0.8,
+      ),
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 36),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: colors.border.withValues(
+                alpha: colors.isDark ? 0.4 : 0.6,
+              ),
+              width: 0.5,
+            ),
+          ),
+          child: Text(
+            label,
+            style: AppTypography.caption1.copyWith(
+              color: colors.textPrimary,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ),

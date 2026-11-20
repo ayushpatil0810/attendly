@@ -73,50 +73,68 @@ class _AppButtonState extends State<AppButton> {
 
   Color _backgroundColor(AppThemeColors colors) {
     if (!_isEnabled) {
-      return colors.track;
+      return colors.isDark ? const Color(0xFF27272A) : const Color(0xFFE4E4E7);
     }
     switch (widget.variant) {
       case AppButtonVariant.primary:
-        return _isPressed
-            ? colors.primaryAction.withOpacity(0.85)
-            : colors.primaryAction;
+        final base = colors.isDark
+            ? const Color(0xFFFAFAFA)
+            : const Color(0xFF18181B);
+        return _isPressed ? base.withValues(alpha: 0.85) : base;
       case AppButtonVariant.secondary:
-        return _isPressed
-            ? colors.brandPrimarySoft.withOpacity(0.8)
-            : colors.brandPrimarySoft;
+        final base = colors.isDark
+            ? const Color(0xFF27272A)
+            : const Color(0xFFF4F4F5);
+        return _isPressed ? base.withValues(alpha: 0.8) : base;
       case AppButtonVariant.outline:
       case AppButtonVariant.text:
         return Colors.transparent;
       case AppButtonVariant.destructive:
-        return _isPressed
-            ? colors.accentCoralSoft.withOpacity(0.85)
-            : colors.accentCoralSoft;
+        final base = colors.isDark
+            ? const Color(0xFF450A0A)
+            : const Color(0xFFFEE2E2);
+        return _isPressed ? base.withValues(alpha: 0.85) : base;
     }
   }
 
   Color _textColor(AppThemeColors colors) {
     if (!_isEnabled) {
-      return colors.textSecondary;
+      return colors.isDark ? const Color(0xFF71717A) : const Color(0xFFA1A1AA);
     }
     switch (widget.variant) {
       case AppButtonVariant.primary:
-        return Colors.white;
-      case AppButtonVariant.destructive:
-        return colors.accentCoralInk;
+        // High-contrast inverted text: Black text on White button in Dark Mode, White text on Black button in Light Mode
+        return colors.isDark ? const Color(0xFF09090B) : Colors.white;
       case AppButtonVariant.secondary:
-        return colors.brandPrimaryInk;
+        return colors.isDark ? const Color(0xFFFAFAFA) : const Color(0xFF09090B);
       case AppButtonVariant.outline:
       case AppButtonVariant.text:
         return colors.textPrimary;
+      case AppButtonVariant.destructive:
+        return colors.isDark ? const Color(0xFFFEE2E2) : const Color(0xFF991B1B);
     }
   }
 
   BorderSide? _border(AppThemeColors colors) {
     if (widget.variant == AppButtonVariant.outline) {
-      return BorderSide(color: _isEnabled ? colors.border : colors.divider);
+      return BorderSide(
+        color: _isEnabled
+            ? (colors.isDark ? const Color(0xFF3F3F46) : const Color(0xFFD4D4D8))
+            : colors.divider,
+        width: 1.2,
+      );
     }
     if (widget.variant == AppButtonVariant.destructive && _isEnabled) {
-      return BorderSide(color: colors.accentCoralInk, width: 1.5);
+      return BorderSide(
+        color: colors.isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFCA5A5),
+        width: 1.0,
+      );
+    }
+    if (widget.variant == AppButtonVariant.secondary && _isEnabled) {
+      return BorderSide(
+        color: colors.isDark ? const Color(0xFF3F3F46) : const Color(0xFFE4E4E7),
+        width: 1.0,
+      );
     }
     return null;
   }
@@ -128,36 +146,43 @@ class _AppButtonState extends State<AppButton> {
     final fg = _textColor(colors);
     final border = _border(colors);
 
-    Widget content = Row(
-      mainAxisSize: widget.isFullWidth ? MainAxisSize.max : MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (widget.isLoading) ...[
-          SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(fg),
+    Widget content = IconTheme(
+      data: IconThemeData(
+        color: fg,
+        size: _fontSize + 2,
+      ),
+      child: Row(
+        mainAxisSize: widget.isFullWidth ? MainAxisSize.max : MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (widget.isLoading) ...[
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(fg),
+              ),
+            ),
+            const SizedBox(width: 8),
+          ] else if (widget.icon != null) ...[
+            widget.icon!,
+            const SizedBox(width: 8),
+          ],
+          Flexible(
+            child: Text(
+              widget.label,
+              style: AppTypography.labelLarge.copyWith(
+                color: fg,
+                fontSize: _fontSize,
+                fontWeight: FontWeight.w700,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 8),
-        ] else if (widget.icon != null) ...[
-          widget.icon!,
-          const SizedBox(width: 8),
         ],
-        Flexible(
-          child: Text(
-            widget.label,
-            style: AppTypography.labelLarge.copyWith(
-              color: fg,
-              fontSize: _fontSize,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
+      ),
     );
 
     final disableAnimations =

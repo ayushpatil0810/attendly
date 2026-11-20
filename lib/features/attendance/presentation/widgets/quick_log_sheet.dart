@@ -24,11 +24,13 @@ class QuickLogSheet extends ConsumerStatefulWidget {
     super.key,
     this.initialDate,
     this.initialSubjectId,
+    this.onlySubjectId,
     this.title,
   });
 
   final DateTime? initialDate;
   final int? initialSubjectId;
+  final int? onlySubjectId;
   final String? title;
 
   @override
@@ -48,20 +50,27 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
   }
 
   Future<void> _selectDate() async {
+    final colors = context.colors;
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
       firstDate: DateTime(2020),
       lastDate: DateTime(now.year, now.month, now.day),
-      builder: (context, child) {
+      builder: (ctx, child) {
         return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppColors.inkViolet,
-              onPrimary: AppColors.pureWhite,
-              onSurface: AppColors.ink,
-            ),
+          data: Theme.of(ctx).copyWith(
+            colorScheme: colors.isDark
+                ? ColorScheme.dark(
+                    primary: colors.brandPrimary,
+                    surface: colors.surface,
+                    onSurface: colors.textPrimary,
+                  )
+                : ColorScheme.light(
+                    primary: colors.brandPrimary,
+                    surface: colors.surface,
+                    onSurface: colors.textPrimary,
+                  ),
           ),
           child: child!,
         );
@@ -170,6 +179,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final subjectsAsync = ref.watch(activeSemesterSubjectsProvider);
     final dateStr = formatDateOnly(_selectedDate);
     final isToday = dateStr == formatDateOnly(DateTime.now());
@@ -178,7 +188,327 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
       sessionsForDateFamilyProvider(dateStr),
     );
 
+    final isSingleSubject = widget.onlySubjectId != null;
+
+    final body = subjectsAsync.when(
+      loading: () => Center(
+        child: CircularProgressIndicator(color: colors.brandPrimary),
+      ),
+      error: (err, _) => Center(
+        child: AppErrorState(
+          message: 'Subjects could not load.',
+          onRetry: () => ref.invalidate(activeSemesterSubjectsProvider),
+        ),
+      ),
+      data: (subjects) {
+        if (subjects.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 32,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: colors.isDark
+                        ? colors.accentPeach.withValues(alpha: 0.16)
+                        : colors.accentPeachSoft,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: AppIcon(
+                    AppIcons.subjects,
+                    size: 28,
+                    color: colors.isDark
+                        ? colors.accentPeach
+                        : colors.accentPeachInk,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'No subjects found',
+                  style: AppTypography.sectionTitle,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Please add subjects to your semester before logging attendance.',
+                  style: AppTypography.bodyMuted,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                AppButton(
+                  label: 'Close',
+                  variant: AppButtonVariant.outline,
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // Filter or sort subjects
+        final List<Subject> displayedSubjects;
+        if (widget.onlySubjectId != null) {
+          displayedSubjects = subjects
+              .where((s) => s.id == widget.onlySubjectId)
+              .toList();
+        } else {
+          displayedSubjects = [...subjects];
+          if (widget.initialSubjectId != null) {
+            final idx = displayedSubjects.indexWhere(
+              (s) => s.id == widget.initialSubjectId,
+            );
+            if (idx > 0) {
+              final target = displayedSubjects.removeAt(idx);
+              displayedSubjects.insert(0, target);
+            }
+          }
+        }
+
+        if (displayedSubjects.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 32,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: colors.isDark
+                        ? colors.accentPeach.withValues(alpha: 0.16)
+                        : colors.accentPeachSoft,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: AppIcon(
+                    AppIcons.subjects,
+                    size: 28,
+                    color: colors.isDark
+                        ? colors.accentPeach
+                        : colors.accentPeachInk,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Subject not found',
+                  style: AppTypography.sectionTitle,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'The selected subject is not available in the current semester.',
+                  style: AppTypography.bodyMuted,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                AppButton(
+                  label: 'Close',
+                  variant: AppButtonVariant.outline,
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final sessions = sessionsForDateAsync.value ?? [];
+        final int totalLoggedOnDate;
+        if (widget.onlySubjectId != null) {
+          final targetSessions = sessions.where(
+            (s) => s.subjectId == widget.onlySubjectId,
+          );
+          totalLoggedOnDate = targetSessions.length;
+        } else {
+          totalLoggedOnDate = sessions.length;
+        }
+
+        // Group sessions by subjectId and component
+        final sessionsBySubjectAndComponent =
+            <int, Map<SessionComponent, List<AttendanceSession>>>{};
+        for (final s in sessions) {
+          sessionsBySubjectAndComponent
+              .putIfAbsent(s.subjectId, () => {})
+              .putIfAbsent(s.component, () => [])
+              .add(s);
+        }
+
+        return Column(
+          mainAxisSize: isSingleSubject
+              ? MainAxisSize.min
+              : MainAxisSize.max,
+          children: [
+            // Distilled Date Strip
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Semantics(
+                    button: true,
+                    label:
+                        'Change attendance date, currently $formattedDate',
+                    child: InkWell(
+                      onTap: _selectDate,
+                      borderRadius: AppRadius.smBorder,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            AppIcon(
+                              AppIcons.calendar,
+                              size: 15,
+                              color: colors.brandPrimary,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              isToday
+                                  ? 'Today ($formattedDate)'
+                                  : formattedDate,
+                              style: AppTypography.itemTitle.copyWith(
+                                color: colors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            AppIcon(
+                              AppIcons.arrowDown,
+                              size: 13,
+                              color: colors.brandPrimary,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  if (totalLoggedOnDate > 0)
+                    Text(
+                      totalLoggedOnDate == 1
+                          ? '1 class logged'
+                          : '$totalLoggedOnDate classes logged',
+                      style: AppTypography.labelSmall.copyWith(
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Day Note Banner / Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: DayNoteBanner(dateStr: dateStr, isCompact: true),
+            ),
+            const SizedBox(height: 8),
+            Divider(height: 1, color: colors.divider),
+
+            // Vertical Subject List or Single Subject Card
+            if (isSingleSubject)
+              Flexible(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (final subject in displayedSubjects) ...[
+                        Builder(
+                          builder: (context) {
+                            final subjectSessions =
+                                sessionsBySubjectAndComponent[subject.id] ?? {};
+                            final lectureSessions =
+                                subjectSessions[SessionComponent.lecture] ?? [];
+                            final labSessions =
+                                subjectSessions[SessionComponent.lab] ?? [];
+                            final totalSubjectCount =
+                                lectureSessions.length + labSessions.length;
+
+                            return _SubjectLogCard(
+                              subject: subject,
+                              isInitial: false,
+                              lectureSessions: lectureSessions,
+                              labSessions: labSessions,
+                              totalCount: totalSubjectCount,
+                              inFlightKeys: _inFlightKeys,
+                              onRecord: _recordAttendance,
+                              onDeleteSession: _deleteSession,
+                            );
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              )
+            else
+              Expanded(
+                child: ListView.separated(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+                  itemCount: displayedSubjects.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 10),
+                  itemBuilder: (context, index) {
+                    final subject = displayedSubjects[index];
+                    final isInitial = subject.id == widget.initialSubjectId;
+                    final subjectSessions =
+                        sessionsBySubjectAndComponent[subject.id] ?? {};
+
+                    final lectureSessions =
+                        subjectSessions[SessionComponent.lecture] ?? [];
+                    final labSessions =
+                        subjectSessions[SessionComponent.lab] ?? [];
+                    final totalSubjectCount =
+                        lectureSessions.length + labSessions.length;
+
+                    return _SubjectLogCard(
+                      subject: subject,
+                      isInitial: isInitial,
+                      lectureSessions: lectureSessions,
+                      labSessions: labSessions,
+                      totalCount: totalSubjectCount,
+                      inFlightKeys: _inFlightKeys,
+                      onRecord: _recordAttendance,
+                      onDeleteSession: _deleteSession,
+                    );
+                  },
+                ),
+              ),
+
+            // Bottom Sticky Done Button
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                border: Border(top: BorderSide(color: colors.divider)),
+              ),
+              child: AppButton(
+                label: 'Done Logging',
+                size: AppButtonSize.large,
+                isFullWidth: true,
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
     return Column(
+      mainAxisSize: isSingleSubject
+          ? MainAxisSize.min
+          : MainAxisSize.max,
       children: [
         // Drag Handle
         const SizedBox(height: 12),
@@ -186,7 +516,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
           width: 36,
           height: 4,
           decoration: BoxDecoration(
-            color: AppColors.divider,
+            color: colors.divider,
             borderRadius: AppRadius.pillBorder,
           ),
         ),
@@ -199,8 +529,13 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
             children: [
               Expanded(
                 child: Text(
-                  widget.title ?? 'Quick Attendance Log',
-                  style: AppTypography.sectionTitle,
+                  widget.title ??
+                      (isSingleSubject
+                          ? 'Log Attendance'
+                          : 'Quick Attendance Log'),
+                  style: AppTypography.sectionTitle.copyWith(
+                    color: colors.textPrimary,
+                  ),
                 ),
               ),
               AppCloseButton(onPressed: () => Navigator.of(context).pop()),
@@ -209,212 +544,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
         ),
         const SizedBox(height: 8),
 
-        Expanded(
-          child: subjectsAsync.when(
-            loading: () => Center(
-              child: CircularProgressIndicator(color: AppColors.brandViolet),
-            ),
-            error: (err, _) => Center(
-              child: AppErrorState(
-                message: 'Subjects could not load.',
-                onRetry: () => ref.invalidate(activeSemesterSubjectsProvider),
-              ),
-            ),
-            data: (subjects) {
-              if (subjects.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 32,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: AppColors.softPeach,
-                          shape: BoxShape.circle,
-                        ),
-                        alignment: Alignment.center,
-                        child: AppIcon(
-                          AppIcons.subjects,
-                          size: 28,
-                          color: AppColors.inkPeach,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'No subjects found',
-                        style: AppTypography.sectionTitle,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Please add subjects to your semester before logging attendance.',
-                        style: AppTypography.bodyMuted,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 24),
-                      AppButton(
-                        label: 'Close',
-                        variant: AppButtonVariant.outline,
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              // Sort subjects so initialSubjectId (if any) is at the top
-              final sortedSubjects = [...subjects];
-              if (widget.initialSubjectId != null) {
-                final idx = sortedSubjects.indexWhere(
-                  (s) => s.id == widget.initialSubjectId,
-                );
-                if (idx > 0) {
-                  final target = sortedSubjects.removeAt(idx);
-                  sortedSubjects.insert(0, target);
-                }
-              }
-
-              final sessions = sessionsForDateAsync.value ?? [];
-              final totalLoggedOnDate = sessions.length;
-
-              // Group sessions by subjectId and component
-              final sessionsBySubjectAndComponent =
-                  <int, Map<SessionComponent, List<AttendanceSession>>>{};
-              for (final s in sessions) {
-                sessionsBySubjectAndComponent
-                    .putIfAbsent(s.subjectId, () => {})
-                    .putIfAbsent(s.component, () => [])
-                    .add(s);
-              }
-
-              return Column(
-                children: [
-                  // Distilled Date Strip
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      children: [
-                        Semantics(
-                          button: true,
-                          label:
-                              'Change attendance date, currently $formattedDate',
-                          child: InkWell(
-                            onTap: _selectDate,
-                            borderRadius: AppRadius.smBorder,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  AppIcon(
-                                    AppIcons.calendar,
-                                    size: 15,
-                                    color: AppColors.brandViolet,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    isToday
-                                        ? 'Today ($formattedDate)'
-                                        : formattedDate,
-                                    style: AppTypography.itemTitle.copyWith(
-                                      color: AppColors.inkViolet,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  AppIcon(
-                                    AppIcons.arrowDown,
-                                    size: 13,
-                                    color: AppColors.brandViolet,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const Spacer(),
-                        if (totalLoggedOnDate > 0)
-                          Text(
-                            totalLoggedOnDate == 1
-                                ? '1 class logged'
-                                : '$totalLoggedOnDate classes logged',
-                            style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.mutedInk,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Day Note Banner / Button
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: DayNoteBanner(dateStr: dateStr, isCompact: true),
-                  ),
-                  const SizedBox(height: 8),
-                  Divider(height: 1, color: AppColors.divider),
-
-                  // Vertical Subject List
-                  Expanded(
-                    child: ListView.separated(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
-                      itemCount: sortedSubjects.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 10),
-                      itemBuilder: (context, index) {
-                        final subject = sortedSubjects[index];
-                        final isInitial = subject.id == widget.initialSubjectId;
-                        final subjectSessions =
-                            sessionsBySubjectAndComponent[subject.id] ?? {};
-
-                        final lectureSessions =
-                            subjectSessions[SessionComponent.lecture] ?? [];
-                        final labSessions =
-                            subjectSessions[SessionComponent.lab] ?? [];
-                        final totalSubjectCount =
-                            lectureSessions.length + labSessions.length;
-
-                        return _SubjectLogCard(
-                          subject: subject,
-                          isInitial: isInitial,
-                          lectureSessions: lectureSessions,
-                          labSessions: labSessions,
-                          totalCount: totalSubjectCount,
-                          inFlightKeys: _inFlightKeys,
-                          onRecord: _recordAttendance,
-                          onDeleteSession: _deleteSession,
-                        );
-                      },
-                    ),
-                  ),
-
-                  // Bottom Sticky Done Button
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
-                    decoration: BoxDecoration(
-                      color: AppColors.pureWhite,
-                      border: Border(top: BorderSide(color: AppColors.divider)),
-                    ),
-                    child: AppButton(
-                      label: 'Done Logging',
-                      size: AppButtonSize.large,
-                      isFullWidth: true,
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
+        isSingleSubject ? Flexible(child: body) : Expanded(child: body),
       ],
     );
   }
@@ -443,12 +573,13 @@ class _SubjectLogCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.pureWhite,
+        color: colors.surface,
         borderRadius: AppRadius.lgBorder,
         border: Border.all(
-          color: isInitial ? AppColors.brandViolet : AppColors.border,
+          color: isInitial ? colors.brandPrimary : colors.border,
           width: isInitial ? 1.5 : 1,
         ),
       ),
@@ -466,6 +597,7 @@ class _SubjectLogCard extends StatelessWidget {
                     style: AppTypography.itemTitle.copyWith(
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
+                      color: colors.textPrimary,
                     ),
                   ),
                 ),
@@ -476,13 +608,17 @@ class _SubjectLogCard extends StatelessWidget {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.softLavender,
+                      color: colors.isDark
+                          ? colors.brandPrimary.withValues(alpha: 0.16)
+                          : colors.brandPrimarySoft,
                       borderRadius: AppRadius.pillBorder,
                     ),
                     child: Text(
                       totalCount == 1 ? '1 class' : '$totalCount classes',
                       style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.inkViolet,
+                        color: colors.isDark
+                            ? colors.brandPrimary
+                            : colors.brandPrimaryInk,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -490,7 +626,7 @@ class _SubjectLogCard extends StatelessWidget {
               ],
             ),
           ),
-          Divider(height: 1, color: AppColors.divider),
+          Divider(height: 1, color: colors.divider),
 
           // Component rows
           if (subject.lectureEnabled)
@@ -508,7 +644,7 @@ class _SubjectLogCard extends StatelessWidget {
               height: 1,
               indent: 16,
               endIndent: 16,
-              color: AppColors.divider,
+              color: colors.divider,
             ),
 
           if (subject.labEnabled)
@@ -545,12 +681,13 @@ class _ComponentSubRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final isLecture = component == SessionComponent.lecture;
     final componentIcon = isLecture ? AppIcons.lecture : AppIcons.lab;
     final componentLabel = isLecture ? 'Theory Lecture' : 'Practical Lab';
     final componentColor = isLecture
-        ? AppColors.brandViolet
-        : AppColors.inkMint;
+        ? colors.textPrimary
+        : colors.accentMint;
 
     final presentKey = '${subject.id}_${component.name}_present';
     final absentKey = '${subject.id}_${component.name}_absent';
@@ -569,7 +706,7 @@ class _ComponentSubRow extends StatelessWidget {
                 componentLabel,
                 style: AppTypography.labelSmall.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: AppColors.ink,
+                  color: colors.textPrimary,
                 ),
               ),
               if (sessions.isNotEmpty) ...[
@@ -577,7 +714,7 @@ class _ComponentSubRow extends StatelessWidget {
                 Text(
                   '(${sessions.length} logged)',
                   style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.mutedInk,
+                    color: colors.textSecondary,
                     fontSize: 12,
                   ),
                 ),
@@ -614,9 +751,9 @@ class _ComponentSubRow extends StatelessWidget {
                 child: _QuickActionButton(
                   label: '+ Present',
                   icon: AppIcons.check,
-                  backgroundColor: AppColors.brandMint,
-                  borderColor: AppColors.inkMint,
-                  textColor: AppColors.ink,
+                  backgroundColor: colors.accentMintSoft,
+                  borderColor: colors.accentMint.withValues(alpha: 0.4),
+                  textColor: colors.accentMintInk,
                   semanticLabel:
                       'Mark Present for ${subject.name} $componentLabel',
                   isLoading: inFlightKeys.contains(presentKey),
@@ -629,9 +766,9 @@ class _ComponentSubRow extends StatelessWidget {
                 child: _QuickActionButton(
                   label: '+ Absent',
                   icon: AppIcons.close,
-                  backgroundColor: AppColors.brandCoral,
-                  borderColor: AppColors.inkCoral,
-                  textColor: AppColors.ink,
+                  backgroundColor: colors.accentCoralSoft,
+                  borderColor: colors.accentCoral.withValues(alpha: 0.4),
+                  textColor: colors.accentCoralInk,
                   semanticLabel:
                       'Mark Absent for ${subject.name} $componentLabel',
                   isLoading: inFlightKeys.contains(absentKey),
@@ -664,16 +801,17 @@ class _SessionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final isPresent = session.isPresent;
     final prefix = session.component == SessionComponent.lecture
         ? 'Lec'
         : 'Lab';
     final statusText = isPresent ? 'Present' : 'Absent';
-    final bgColor = isPresent ? AppColors.softMint : AppColors.softCoral;
-    final textColor = isPresent ? AppColors.inkMint : AppColors.inkCoral;
+    final bgColor = isPresent ? colors.accentMintSoft : colors.accentCoralSoft;
+    final textColor = isPresent ? colors.accentMintInk : colors.accentCoralInk;
     final borderColor = isPresent
-        ? AppColors.inkMint.withValues(alpha: 0.3)
-        : AppColors.inkCoral.withValues(alpha: 0.3);
+        ? colors.accentMint.withValues(alpha: 0.3)
+        : colors.accentCoral.withValues(alpha: 0.3);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 4, 4, 4),
@@ -805,12 +943,13 @@ void showQuickLogSheet({
   required BuildContext context,
   DateTime? initialDate,
   int? initialSubjectId,
+  int? onlySubjectId,
   String? title,
 }) {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.pureWhite,
+    backgroundColor: context.colors.surface,
     shape: const RoundedRectangleBorder(borderRadius: AppRadius.sheetTop),
     builder: (context) {
       final mediaQuery = MediaQuery.of(context);
@@ -823,11 +962,27 @@ void showQuickLogSheet({
             child: QuickLogSheet(
               initialDate: initialDate,
               initialSubjectId: initialSubjectId,
+              onlySubjectId: onlySubjectId,
               title: title,
             ),
           ),
         ),
       );
     },
+  );
+}
+
+/// Convenience launcher for logging attendance specifically for a single subject.
+void showSubjectAttendanceSheet({
+  required BuildContext context,
+  required int subjectId,
+  DateTime? initialDate,
+  String? title,
+}) {
+  showQuickLogSheet(
+    context: context,
+    initialDate: initialDate,
+    onlySubjectId: subjectId,
+    title: title ?? 'Log Attendance',
   );
 }

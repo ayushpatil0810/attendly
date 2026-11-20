@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:attendly/core/theme/app_colors.dart';
-import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 
 import '../providers/dashboard_scope_provider.dart';
 
+/// Apple HIG segmented scope control (Overall vs This Month).
 class DashboardScopeToggle extends StatelessWidget {
   const DashboardScopeToggle({
     super.key,
@@ -17,6 +18,8 @@ class DashboardScopeToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Semantics(
       container: true,
       label:
@@ -24,8 +27,14 @@ class DashboardScopeToggle extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
-          color: AppColors.softLavender.withValues(alpha: 0.5),
-          borderRadius: AppRadius.pillBorder,
+          color: colors.surfaceSubtle.withValues(
+            alpha: colors.isDark ? 0.7 : 0.85,
+          ),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: colors.border.withValues(alpha: colors.isDark ? 0.3 : 0.5),
+            width: 0.5,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -33,12 +42,18 @@ class DashboardScopeToggle extends StatelessWidget {
             _ScopePillButton(
               label: 'Overall',
               isSelected: selectedScope == DashboardAttendanceScope.overall,
-              onTap: () => onScopeChanged(DashboardAttendanceScope.overall),
+              onTap: () {
+                HapticFeedback.selectionClick();
+                onScopeChanged(DashboardAttendanceScope.overall);
+              },
             ),
             _ScopePillButton(
               label: 'This Month',
               isSelected: selectedScope == DashboardAttendanceScope.thisMonth,
-              onTap: () => onScopeChanged(DashboardAttendanceScope.thisMonth),
+              onTap: () {
+                HapticFeedback.selectionClick();
+                onScopeChanged(DashboardAttendanceScope.thisMonth);
+              },
             ),
           ],
         ),
@@ -60,39 +75,45 @@ class _ScopePillButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Semantics(
       button: true,
       selected: isSelected,
       label: label,
       child: Material(
         color: Colors.transparent,
-        borderRadius: AppRadius.pillBorder,
+        borderRadius: BorderRadius.circular(15),
         child: InkWell(
           onTap: onTap,
-          borderRadius: AppRadius.pillBorder,
+          borderRadius: BorderRadius.circular(15),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.pureWhite : Colors.transparent,
-              borderRadius: AppRadius.pillBorder,
+              color: isSelected
+                  ? (colors.isDark ? const Color(0xFF3A3A3C) : Colors.white)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(15),
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: AppColors.ink.withValues(alpha: 0.08),
+                        color: Colors.black.withValues(
+                          alpha: colors.isDark ? 0.3 : 0.08,
+                        ),
                         blurRadius: 4,
-                        offset: const Offset(0, 1),
+                        offset: const Offset(0, 1.5),
                       ),
                     ]
                   : null,
             ),
             child: Text(
               label,
-              style: AppTypography.labelSmall.copyWith(
-                color: isSelected ? AppColors.inkViolet : AppColors.mutedInk,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                fontSize: 12,
+              style: AppTypography.footnote.copyWith(
+                color: isSelected ? colors.textPrimary : colors.textSecondary,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                fontSize: 12.5,
               ),
             ),
           ),

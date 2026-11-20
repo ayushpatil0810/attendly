@@ -79,7 +79,7 @@ void main() {
           ),
           findsOneWidget,
         );
-        expect(find.text('Add Session'), findsOneWidget);
+        expect(find.text('Log Class'), findsOneWidget);
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);
@@ -217,7 +217,7 @@ void main() {
     });
 
     testWidgets(
-      'opens redesigned historical session drawer (matching quick log style) and logs attendance on the spot when Add Session tapped',
+      'opens redesigned historical session drawer (matching quick log style) and logs attendance on the spot when Log Class tapped',
       (tester) async {
         tester.view.physicalSize = const Size(800, 1200);
         tester.view.devicePixelRatio = 1.0;
@@ -231,8 +231,8 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Tap Add Session on History screen
-        final addBtn = find.widgetWithText(AppButton, 'Add Session');
+        // Tap Log Class on History screen
+        final addBtn = find.text('Log Class');
         expect(addBtn, findsOneWidget);
         await tester.tap(addBtn);
         await tester.pumpAndSettle();

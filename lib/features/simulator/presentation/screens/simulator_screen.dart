@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:attendly/app/router/route_names.dart';
 import 'package:attendly/core/shared/widgets/app_error_state.dart';
 import 'package:attendly/core/shared/widgets/app_frame.dart';
 import 'package:attendly/core/shared/widgets/app_loading_state.dart';
@@ -17,17 +19,36 @@ class SimulatorScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.colors;
+
     return Scaffold(
-      backgroundColor: AppColors.warmWhite,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        title: const Text('Attendance Simulator'),
-        backgroundColor: AppColors.warmWhite,
+        title: Text(
+          'Attendance Simulator',
+          style: AppTypography.headline.copyWith(
+            fontWeight: FontWeight.w700,
+            color: colors.textPrimary,
+          ),
+        ),
+        backgroundColor: colors.background,
         elevation: 0,
         scrolledUnderElevation: 0,
+        leading: IconButton(
+          icon: AppIcon(AppIcons.back, size: 20, color: colors.textPrimary),
+          tooltip: 'Back',
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(RouteNames.homePath);
+            }
+          },
+        ),
         actions: [
           IconButton(
             tooltip: 'Reset Simulation',
-            icon: AppIcon(AppIcons.delete, size: 20, color: AppColors.mutedInk),
+            icon: AppIcon(AppIcons.delete, size: 20, color: colors.textSecondary),
             constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             onPressed: () {
               ref.read(simulatorControllerProvider.notifier).reset();
@@ -38,6 +59,7 @@ class SimulatorScreen extends ConsumerWidget {
       body: const SafeArea(
         child: AppFrame(
           child: SingleChildScrollView(
+            physics: BouncingScrollPhysics(),
             padding: EdgeInsets.symmetric(
               horizontal: AppSpacing.screenHorizontal,
               vertical: AppSpacing.sm,
@@ -55,6 +77,7 @@ class SimulatorContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.colors;
     final projectionAsync = ref.watch(simulatorProjectionProvider);
 
     return projectionAsync.when(
@@ -75,7 +98,9 @@ class SimulatorContent extends ConsumerWidget {
               padding: const EdgeInsets.all(24),
               child: Text(
                 'No active semester selected.',
-                style: AppTypography.bodyMuted,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: colors.textSecondary,
+                ),
               ),
             ),
           );

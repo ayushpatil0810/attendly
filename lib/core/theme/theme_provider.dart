@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/home_widget_service.dart';
 import '../../features/onboarding/presentation/providers/onboarding_provider.dart';
+import 'app_palettes.dart';
 import 'app_theme.dart';
 import 'app_theme_id.dart';
 
@@ -41,15 +42,18 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
 
   void _syncWidget() {
     try {
-      final themeId = ref.read(activeThemeIdProvider);
-      final isDark = state == ThemeMode.dark;
-      final colors = themeId.colorsFor(
-        isDark ? Brightness.dark : Brightness.light,
-      );
+      final isDark = switch (state) {
+        ThemeMode.dark => true,
+        ThemeMode.light => false,
+        ThemeMode.system =>
+          WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+              Brightness.dark,
+      };
+      final colors = isDark ? AppPalettes.dark : AppPalettes.light;
       ref
           .read(homeWidgetServiceProvider)
           .updateThemeColors(
-            themeId: themeId.id,
+            themeId: 'attendly',
             isDark: isDark,
             primaryColor: colors.brandPrimary.toARGB32(),
             backgroundColor: colors.background.toARGB32(),
@@ -58,50 +62,30 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
   }
 }
 
-/// Manages the active pastel [AppThemeId] (Lavender Dream, Ocean Breeze, etc.).
+/// Compatibility notifier providing the single unified professional theme ID.
 class ActiveThemeIdNotifier extends Notifier<AppThemeId> {
   @override
   AppThemeId build() {
-    final prefs = ref.watch(sharedPreferencesProvider);
-    final stored = prefs.getString(prefThemeIdKey);
-    return AppThemeId.fromId(stored);
+    return AppThemeId.attendly;
   }
 
   Future<void> setThemeId(AppThemeId themeId) async {
-    final prefs = ref.read(sharedPreferencesProvider);
-    await prefs.setString(prefThemeIdKey, themeId.id);
-    state = themeId;
-    _syncWidget();
-  }
-
-  void _syncWidget() {
-    try {
-      final mode = ref.read(themeModeProvider);
-      final isDark = mode == ThemeMode.dark;
-      final colors = state.colorsFor(
-        isDark ? Brightness.dark : Brightness.light,
-      );
-      ref
-          .read(homeWidgetServiceProvider)
-          .updateThemeColors(
-            themeId: state.id,
-            isDark: isDark,
-            primaryColor: colors.brandPrimary.toARGB32(),
-            backgroundColor: colors.background.toARGB32(),
-          );
-    } catch (_) {}
+    state = AppThemeId.attendly;
   }
 }
 
 /// State object combining appearance mode and active color theme.
 class AppThemeState {
-  const AppThemeState({required this.themeMode, required this.themeId});
+  const AppThemeState({
+    required this.themeMode,
+    this.themeId = AppThemeId.attendly,
+  });
 
   final ThemeMode themeMode;
   final AppThemeId themeId;
 
-  ThemeData get lightTheme => AppTheme.buildTheme(themeId, Brightness.light);
-  ThemeData get darkTheme => AppTheme.buildTheme(themeId, Brightness.dark);
+  ThemeData get lightTheme => AppTheme.lightTheme;
+  ThemeData get darkTheme => AppTheme.darkTheme;
 }
 
 final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(
@@ -113,9 +97,8 @@ final activeThemeIdProvider =
       ActiveThemeIdNotifier.new,
     );
 
-/// Combined provider exposing both mode and active color theme.
+/// Combined provider exposing appearance mode and theme state.
 final themePreferencesProvider = Provider<AppThemeState>((ref) {
   final mode = ref.watch(themeModeProvider);
-  final themeId = ref.watch(activeThemeIdProvider);
-  return AppThemeState(themeMode: mode, themeId: themeId);
+  return AppThemeState(themeMode: mode, themeId: AppThemeId.attendly);
 });

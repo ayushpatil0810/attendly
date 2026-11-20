@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:attendly/core/shared/widgets/apple/apple_inset_group.dart';
 import 'package:attendly/core/theme/app_colors.dart';
-import 'package:attendly/core/theme/app_radius.dart';
-import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/attendance/domain/entities/component_attendance_summary.dart';
 import 'package:attendly/features/attendance/domain/entities/subject_attendance_summary.dart';
@@ -27,50 +26,18 @@ class LectureLabComparisonCard extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final colors = context.colors;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return AppleInsetGroup(
+      header: 'Lecture vs. Lab Breakdown',
+      margin: EdgeInsets.zero,
       children: [
-        Text(
-          'Lecture vs. Lab Breakdown',
-          style: AppTypography.sectionTitle.copyWith(color: colors.textPrimary),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(AppSpacing.cardPadding),
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: AppRadius.xlBorder,
-            border: Border.all(color: colors.divider),
-            boxShadow: [
-              BoxShadow(
-                color: colors.textPrimary.withValues(
-                  alpha: colors.isDark ? 0.12 : 0.03,
-                ),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: multiComponentSubjects.length,
-            separatorBuilder: (_, _) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-              child: Divider(color: colors.divider, height: 1),
+        for (final subject in multiComponentSubjects)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: _SubjectComponentComparison(
+              subject: subject,
+              threshold: threshold,
             ),
-            itemBuilder: (context, index) {
-              final subject = multiComponentSubjects[index];
-              return _SubjectComponentComparison(
-                subject: subject,
-                threshold: threshold,
-              );
-            },
           ),
-        ),
       ],
     );
   }
@@ -91,77 +58,33 @@ class _SubjectComponentComparison extends StatelessWidget {
     final lec = subject.lectureSummary;
     final lab = subject.labSummary;
 
-    final lecPct = lec?.percentage;
-    final labPct = lab?.percentage;
-
-    String? diffText;
-    Color diffBg = colors.brandPrimarySoft;
-    Color diffFg = colors.brandPrimaryInk;
-
-    if (lecPct != null && labPct != null) {
-      final diff = labPct - lecPct;
-      if (diff.abs() < 0.05) {
-        diffText = 'Equal (${lecPct.toStringAsFixed(0)}%)';
-        diffBg = colors.accentMintSoft;
-        diffFg = colors.accentMintInk;
-      } else if (diff > 0) {
-        diffText = 'Lab +${diff.toStringAsFixed(0)}% vs Lecture';
-        diffBg = colors.accentMintSoft;
-        diffFg = colors.accentMintInk;
-      } else {
-        diffText = 'Lecture +${(-diff).toStringAsFixed(0)}% vs Lab';
-        diffBg = colors.accentCoralSoft;
-        diffFg = colors.accentCoralInk;
-      }
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Subject header with variance badge
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                subject.subjectName,
-                style: AppTypography.itemTitle.copyWith(
-                  fontSize: 14,
-                  color: colors.textPrimary,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            if (diffText != null)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: diffBg,
-                  borderRadius: AppRadius.pillBorder,
-                ),
-                child: Text(
-                  diffText,
-                  style: AppTypography.labelSmall.copyWith(
-                    color: diffFg,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-          ],
+        Text(
+          subject.subjectName,
+          style: AppTypography.itemTitle.copyWith(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: colors.textPrimary,
+          ),
+          overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: 12),
 
-        // Paired component comparison rows
         if (lec != null)
           _ComponentBarRow(
             label: 'Lecture',
             summary: lec,
             threshold: threshold,
           ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         if (lab != null)
-          _ComponentBarRow(label: 'Lab', summary: lab, threshold: threshold),
+          _ComponentBarRow(
+            label: 'Lab',
+            summary: lab,
+            threshold: threshold,
+          ),
       ],
     );
   }
@@ -188,86 +111,96 @@ class _ComponentBarRow extends StatelessWidget {
     final barColor = hasData
         ? (meetsTarget ? colors.accentMint : colors.accentCoral)
         : colors.track;
+    final statColor = hasData
+        ? (meetsTarget ? colors.accentMint : colors.accentCoral)
+        : colors.textSecondary;
 
     final fillRatio = hasData ? (pct! / 100.0).clamp(0.0, 1.0) : 0.0;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Row(
-                children: [
-                  Text(
-                    label,
-                    style: AppTypography.bodySmall.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                      color: colors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      hasData
-                          ? '(${summary.presentCount}P / ${summary.absentCount}A • ${summary.conductedCount} total)'
-                          : '(No sessions)',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: colors.textSecondary,
-                        fontSize: 12,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              hasData ? '${pct!.toStringAsFixed(1)}%' : 'Not available',
-              style: AppTypography.labelSmall.copyWith(
-                fontWeight: FontWeight.w700,
-                fontSize: 11,
-                fontFeatures: const [FontFeature.tabularFigures()],
-                color: hasData
-                    ? (meetsTarget
-                          ? colors.accentMintInk
-                          : colors.accentCoralInk)
-                    : colors.textSecondary,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
+    final semanticLabel = '$label: ${hasData ? "${pct!.toStringAsFixed(1)}%" : "Not available"}. '
+        '${summary.presentCount} of ${summary.conductedCount} classes attended.';
 
-        // Bar
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            return Container(
-              height: 6,
-              width: width,
-              decoration: BoxDecoration(
-                color: colors.track,
-                borderRadius: AppRadius.pillBorder,
-              ),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  height: 6,
-                  width: width * fillRatio,
-                  decoration: BoxDecoration(
-                    color: barColor,
-                    borderRadius: AppRadius.pillBorder,
-                  ),
+    return Semantics(
+      container: true,
+      label: semanticLabel,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Text(
+                      label,
+                      style: AppTypography.bodySmall.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12.5,
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        hasData
+                            ? '(${summary.presentCount}/${summary.conductedCount})'
+                            : '(No sessions)',
+                        style: AppTypography.labelSmall.copyWith(
+                          color: colors.textSecondary,
+                          fontSize: 11,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            );
-          },
-        ),
-      ],
+              const SizedBox(width: 8),
+              Text(
+                hasData ? '${pct!.toStringAsFixed(1)}%' : 'Not available',
+                style: AppTypography.subhead.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12.5,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                  color: statColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+
+          // Sleek 5px progress bar
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final width = constraints.maxWidth;
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(2.5),
+                child: Stack(
+                  children: [
+                    Container(
+                      height: 5,
+                      width: width,
+                      color: colors.track.withValues(
+                        alpha: colors.isDark ? 0.35 : 0.22,
+                      ),
+                    ),
+                    if (hasData && fillRatio > 0)
+                      Container(
+                        height: 5,
+                        width: width * fillRatio,
+                        color: barColor,
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }

@@ -20,6 +20,7 @@ abstract final class AppToast {
       backgroundColor: colors.surfaceElevated,
       textColor: colors.textPrimary,
       actionLabel: actionLabel,
+      actionTextColor: colors.accentMint,
       onAction: onAction,
       duration: duration,
       persist: persist,
@@ -38,6 +39,7 @@ abstract final class AppToast {
       message: message,
       backgroundColor: colors.accentCoralInk,
       textColor: Colors.white,
+      actionTextColor: colors.accentMintSoft,
       duration: duration,
       persist: persist,
     );
@@ -58,6 +60,7 @@ abstract final class AppToast {
       backgroundColor: colors.surfaceElevated,
       textColor: colors.textPrimary,
       actionLabel: actionLabel,
+      actionTextColor: colors.accentMint,
       onAction: onAction,
       duration: duration,
       persist: persist,
@@ -69,6 +72,7 @@ abstract final class AppToast {
     required String message,
     required Color backgroundColor,
     required Color textColor,
+    Color? actionTextColor,
     String? actionLabel,
     VoidCallback? onAction,
     required Duration duration,
@@ -76,6 +80,8 @@ abstract final class AppToast {
   }) {
     final messenger = ScaffoldMessenger.maybeOf(context);
     if (messenger == null) return;
+
+    final colors = context.colors;
 
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
@@ -97,7 +103,7 @@ abstract final class AppToast {
         action: actionLabel != null
             ? SnackBarAction(
                 label: actionLabel,
-                textColor: AppColors.brandMint,
+                textColor: actionTextColor ?? colors.accentMint,
                 onPressed: () {
                   onAction?.call();
                 },

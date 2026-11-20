@@ -4,109 +4,126 @@ import 'app_palettes.dart';
 import 'app_theme_colors.dart';
 
 /// Supported themes in Attendly.
+///
+/// Attendly now features a single unified, professional design system with
+/// dedicated Light and Dark modes. The legacy identifiers are retained as
+/// backward-compatible aliases.
 enum AppThemeId {
+  attendly(
+    id: 'attendly',
+    name: 'Attendly',
+    subtitle: 'Professional Cobalt & Midnight Slate',
+    lightColors: AppPalettes.light,
+    darkColors: AppPalettes.dark,
+    previewColors: [
+      Color(0xFF4361EE),
+      Color(0xFF10B981),
+      Color(0xFFF59E0B),
+      Color(0xFFEF4444),
+    ],
+  ),
   lavenderDream(
     id: 'lavender_dream',
     name: 'Lavender Dream',
-    subtitle: 'Soft violet & mint',
-    lightColors: AppPalettes.lavenderDreamLight,
-    darkColors: AppPalettes.lavenderDreamDark,
+    subtitle: 'Classic',
+    lightColors: AppPalettes.light,
+    darkColors: AppPalettes.dark,
     previewColors: [
-      Color(0xFF9278F2),
-      Color(0xFF8BE4D0),
-      Color(0xFFFF929B),
-      Color(0xFFFFB49F),
+      Color(0xFF4361EE),
+      Color(0xFF10B981),
+      Color(0xFFF59E0B),
+      Color(0xFFEF4444),
     ],
   ),
   oceanBreeze(
     id: 'ocean_breeze',
     name: 'Ocean Breeze',
-    subtitle: 'Coastal sky blue & seafoam',
-    lightColors: AppPalettes.oceanBreezeLight,
-    darkColors: AppPalettes.oceanBreezeDark,
+    subtitle: 'Classic',
+    lightColors: AppPalettes.light,
+    darkColors: AppPalettes.dark,
     previewColors: [
-      Color(0xFF4EA8DE),
-      Color(0xFF64DFDF),
-      Color(0xFFFF8E9A),
-      Color(0xFFF8AD9D),
+      Color(0xFF4361EE),
+      Color(0xFF10B981),
+      Color(0xFFF59E0B),
+      Color(0xFFEF4444),
     ],
   ),
   peachBlossom(
     id: 'peach_blossom',
     name: 'Peach Blossom',
-    subtitle: 'Warm apricot & sunny cream',
-    lightColors: AppPalettes.peachBlossomLight,
-    darkColors: AppPalettes.peachBlossomDark,
+    subtitle: 'Classic',
+    lightColors: AppPalettes.light,
+    darkColors: AppPalettes.dark,
     previewColors: [
-      Color(0xFFFF8E72),
-      Color(0xFF76D7C4),
-      Color(0xFFFF758F),
-      Color(0xFFFFB5A7),
+      Color(0xFF4361EE),
+      Color(0xFF10B981),
+      Color(0xFFF59E0B),
+      Color(0xFFEF4444),
     ],
   ),
   sageGarden(
     id: 'sage_garden',
     name: 'Sage Garden',
-    subtitle: 'Calm eucalyptus & earthy terracotta',
-    lightColors: AppPalettes.sageGardenLight,
-    darkColors: AppPalettes.sageGardenDark,
+    subtitle: 'Classic',
+    lightColors: AppPalettes.light,
+    darkColors: AppPalettes.dark,
     previewColors: [
-      Color(0xFF6B9E78),
-      Color(0xFF52B788),
-      Color(0xFFE07A5F),
-      Color(0xFFF4A261),
+      Color(0xFF4361EE),
+      Color(0xFF10B981),
+      Color(0xFFF59E0B),
+      Color(0xFFEF4444),
     ],
   ),
   midnightBlue(
     id: 'midnight_blue',
     name: 'Midnight Blue',
-    subtitle: 'Twilight navy & cornflower pastel',
-    lightColors: AppPalettes.midnightBlueLight,
-    darkColors: AppPalettes.midnightBlueDark,
+    subtitle: 'Classic',
+    lightColors: AppPalettes.light,
+    darkColors: AppPalettes.dark,
     previewColors: [
-      Color(0xFF4F6DCD),
-      Color(0xFF5CC8BD),
-      Color(0xFFF26A7A),
-      Color(0xFFF8B195),
+      Color(0xFF4361EE),
+      Color(0xFF10B981),
+      Color(0xFFF59E0B),
+      Color(0xFFEF4444),
     ],
   ),
   buttercream(
     id: 'buttercream',
     name: 'Buttercream',
-    subtitle: 'Warm golden vanilla & honey amber',
-    lightColors: AppPalettes.buttercreamLight,
-    darkColors: AppPalettes.buttercreamDark,
+    subtitle: 'Classic',
+    lightColors: AppPalettes.light,
+    darkColors: AppPalettes.dark,
     previewColors: [
-      Color(0xFFE49B38),
-      Color(0xFF72C598),
-      Color(0xFFE86A61),
-      Color(0xFFF3A66B),
+      Color(0xFF4361EE),
+      Color(0xFF10B981),
+      Color(0xFFF59E0B),
+      Color(0xFFEF4444),
     ],
   ),
   roseQuartz(
     id: 'rose_quartz',
     name: 'Rose Quartz',
-    subtitle: 'Powdery dusty rose & cranberry',
-    lightColors: AppPalettes.roseQuartzLight,
-    darkColors: AppPalettes.roseQuartzDark,
+    subtitle: 'Classic',
+    lightColors: AppPalettes.light,
+    darkColors: AppPalettes.dark,
     previewColors: [
-      Color(0xFFD96B8A),
-      Color(0xFF6BC4B0),
-      Color(0xFFE86576),
-      Color(0xFFF2A7A4),
+      Color(0xFF4361EE),
+      Color(0xFF10B981),
+      Color(0xFFF59E0B),
+      Color(0xFFEF4444),
     ],
   ),
   graphiteMint(
     id: 'graphite_mint',
     name: 'Graphite Mint',
-    subtitle: 'Cool slate & vibrant spearmint',
-    lightColors: AppPalettes.graphiteMintLight,
-    darkColors: AppPalettes.graphiteMintDark,
+    subtitle: 'Classic',
+    lightColors: AppPalettes.light,
+    darkColors: AppPalettes.dark,
     previewColors: [
-      Color(0xFF2A9D8F),
-      Color(0xFF48CAE4),
-      Color(0xFFE76F51),
-      Color(0xFFF4A261),
+      Color(0xFF4361EE),
+      Color(0xFF10B981),
+      Color(0xFFF59E0B),
+      Color(0xFFEF4444),
     ],
   );
 
@@ -131,10 +148,10 @@ enum AppThemeId {
   }
 
   static AppThemeId fromId(String? id) {
-    if (id == null) return AppThemeId.lavenderDream;
+    if (id == null) return AppThemeId.attendly;
     return AppThemeId.values.firstWhere(
       (theme) => theme.id == id,
-      orElse: () => AppThemeId.lavenderDream,
+      orElse: () => AppThemeId.attendly,
     );
   }
 }

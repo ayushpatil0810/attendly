@@ -50,7 +50,11 @@ void main() {
     await db.close();
   });
 
-  Widget createWidgetUnderTest({DateTime? initialDate, int? initialSubjectId}) {
+  Widget createWidgetUnderTest({
+    DateTime? initialDate,
+    int? initialSubjectId,
+    int? onlySubjectId,
+  }) {
     return ProviderScope(
       overrides: [
         databaseProvider.overrideWithValue(db),
@@ -61,6 +65,7 @@ void main() {
           body: QuickLogSheet(
             initialDate: initialDate,
             initialSubjectId: initialSubjectId,
+            onlySubjectId: onlySubjectId,
           ),
         ),
       ),
@@ -311,5 +316,40 @@ void main() {
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);
     });
+
+    testWidgets(
+      'renders only specific subject when onlySubjectId is provided',
+      (tester) async {
+        setTestViewport(tester);
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        // bothComponentsSubId is Computer Networks, other subject in DB is History of Computing
+        await tester.pumpWidget(
+          createWidgetUnderTest(onlySubjectId: bothComponentsSubId),
+        );
+        await tester.pumpAndSettle();
+
+        // Title and Done button visible
+        expect(find.text('Log Attendance'), findsOneWidget);
+        expect(find.text('Done Logging'), findsOneWidget);
+
+        // Only Computer Networks is rendered; History of Computing is excluded
+        expect(find.text('Computer Networks'), findsOneWidget);
+        expect(find.text('History of Computing'), findsNothing);
+
+        // Allows recording attendance specifically for Computer Networks
+        expect(find.text('+ Present'), findsWidgets);
+        await tester.tap(find.text('+ Present').first);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Lec 1: Present'), findsOneWidget);
+
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(Duration.zero);
+      },
+    );
   });
 }

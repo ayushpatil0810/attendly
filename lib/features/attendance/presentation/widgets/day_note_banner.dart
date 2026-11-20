@@ -22,6 +22,7 @@ class DayNoteBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.colors;
     final noteAsync = ref.watch(dayNoteForDateFamilyProvider(dateStr));
     final note = noteAsync.value;
     final hasNote = note != null && note.content.trim().isNotEmpty;
@@ -36,20 +37,25 @@ class DayNoteBanner extends ConsumerWidget {
               AppHaptics.selectionClick(ref);
               showDayNoteDialog(context: context, ref: ref, dateStr: dateStr);
             },
-            borderRadius: AppRadius.pillBorder,
+            borderRadius: BorderRadius.circular(16),
             child: Semantics(
               button: true,
               label: '+ Add note for this day',
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 7,
+                  horizontal: 10,
+                  vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: AppRadius.pillBorder,
+                  color: colors.surfaceSubtle.withValues(
+                    alpha: colors.isDark ? 0.6 : 0.8,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: AppColors.inkViolet.withValues(alpha: 0.4),
+                    color: colors.border.withValues(
+                      alpha: colors.isDark ? 0.4 : 0.6,
+                    ),
+                    width: 0.5,
                   ),
                 ),
                 child: Row(
@@ -58,15 +64,14 @@ class DayNoteBanner extends ConsumerWidget {
                     AppIcon(
                       AppIcons.note,
                       size: 14,
-                      color: AppColors.inkViolet,
+                      color: colors.brandPrimary,
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     Text(
                       '+ Add note for this day',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.inkViolet,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12.5,
+                      style: AppTypography.caption1.copyWith(
+                        color: colors.brandPrimary,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -101,20 +106,29 @@ class DayNoteBanner extends ConsumerWidget {
               isCompact ? 8 : 10,
             ),
             decoration: BoxDecoration(
-              color: Colors.transparent,
+              color: colors.surfaceSubtle,
               borderRadius: AppRadius.mdBorder,
-              border: Border.all(color: AppColors.divider),
+              border: Border.all(
+                color: colors.border.withValues(
+                  alpha: colors.isDark ? 0.6 : 0.8,
+                ),
+                width: 0.5,
+              ),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                AppIcon(AppIcons.note, size: 15, color: AppColors.inkViolet),
+                AppIcon(
+                  AppIcons.note,
+                  size: 15,
+                  color: colors.brandPrimary,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     note.content,
                     style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.ink,
+                      color: colors.textPrimary,
                       fontWeight: FontWeight.w500,
                       height: 1.3,
                     ),
@@ -125,8 +139,8 @@ class DayNoteBanner extends ConsumerWidget {
                   tooltip: 'Edit day note',
                   icon: AppIcon(
                     AppIcons.edit,
-                    size: 14,
-                    color: AppColors.inkViolet,
+                    size: 15,
+                    color: colors.brandPrimary,
                   ),
                   constraints: const BoxConstraints(
                     minWidth: 32,
@@ -147,8 +161,8 @@ class DayNoteBanner extends ConsumerWidget {
                   tooltip: 'Delete day note',
                   icon: AppIcon(
                     AppIcons.close,
-                    size: 14,
-                    color: AppColors.mutedInk,
+                    size: 15,
+                    color: colors.textTertiary,
                   ),
                   constraints: const BoxConstraints(
                     minWidth: 32,

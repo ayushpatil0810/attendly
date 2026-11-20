@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:attendly/core/theme/app_colors.dart';
-import 'package:attendly/core/theme/app_radius.dart';
-import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/attendance/domain/entities/semester_attendance_summary.dart';
 
+/// Compact session summary row styled after Apple HIG structured stat cards.
 class CompactAttendanceStats extends StatelessWidget {
   const CompactAttendanceStats({super.key, required this.summary});
 
@@ -12,33 +11,60 @@ class CompactAttendanceStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final hasBothComponents =
         summary.lectureConducted > 0 && summary.labConducted > 0;
 
     return Semantics(
       container: true,
       label:
-          'Attendance session summary: ${summary.totalConducted} conducted, ${summary.totalPresent} present',
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+          'Attendance session summary: ${summary.totalConducted} conducted, ${summary.totalPresent} present, ${summary.totalAbsent} absent',
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: colors.border.withValues(
+              alpha: colors.isDark ? 0.4 : 0.6,
+            ),
+            width: 0.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(
+                alpha: colors.isDark ? 0.25 : 0.03,
+              ),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
         child: Column(
           children: [
-            // Primary Session Counts Row — Open, clean, uncluttered (Conducted & Present)
+            // Primary Session Counts Row (Conducted, Present)
             Row(
               children: [
                 Expanded(
                   child: _StatColumn(
                     label: 'Conducted',
                     value: summary.totalConducted.toString(),
-                    valueColor: AppColors.ink,
+                    valueColor: colors.textPrimary,
                   ),
                 ),
-                Container(width: 1, height: 28, color: AppColors.divider),
+                Container(
+                  width: 0.5,
+                  height: 28,
+                  color: colors.divider.withValues(
+                    alpha: colors.isDark ? 0.5 : 0.7,
+                  ),
+                ),
                 Expanded(
                   child: _StatColumn(
                     label: 'Present',
                     value: summary.totalPresent.toString(),
-                    valueColor: AppColors.inkMint,
+                    valueColor: colors.accentMint,
                   ),
                 ),
               ],
@@ -47,9 +73,17 @@ class CompactAttendanceStats extends StatelessWidget {
             // Component Breakdown (when both Lecture and Lab exist)
             if (hasBothComponents) ...[
               const SizedBox(height: 12),
+              Divider(
+                height: 1,
+                thickness: 0.5,
+                color: colors.divider.withValues(
+                  alpha: colors.isDark ? 0.5 : 0.7,
+                ),
+              ),
+              const SizedBox(height: 10),
               Wrap(
                 alignment: WrapAlignment.center,
-                spacing: 10,
+                spacing: 12,
                 runSpacing: 6,
                 children: [
                   _ComponentTag(
@@ -87,6 +121,8 @@ class _StatColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Semantics(
       label: '$label: $value',
       child: Column(
@@ -98,22 +134,20 @@ class _StatColumn extends StatelessWidget {
               value,
               style: AppTypography.metricLarge.copyWith(
                 color: valueColor,
-                fontSize: 28,
                 fontWeight: FontWeight.w800,
+                fontSize: 26,
+                height: 1.1,
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
           ),
           const SizedBox(height: 2),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              label,
-              style: AppTypography.labelSmall.copyWith(
-                color: AppColors.mutedInk,
-                fontWeight: FontWeight.w500,
-                fontSize: 12,
-              ),
+          Text(
+            label,
+            style: AppTypography.caption1.copyWith(
+              color: colors.textSecondary,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
             ),
           ),
         ],
@@ -127,7 +161,7 @@ class _ComponentTag extends StatelessWidget {
     required this.label,
     required this.present,
     required this.conducted,
-    required this.pct,
+    this.pct,
   });
 
   final String label;
@@ -137,39 +171,25 @@ class _ComponentTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pctStr = pct != null
-        ? (pct == pct!.roundToDouble()
-              ? '${pct!.toInt()}%'
-              : '${pct!.toStringAsFixed(1)}%')
-        : '—';
+    final colors = context.colors;
+    final pctText = pct != null
+        ? ' • ${pct == pct!.roundToDouble() ? pct!.toInt() : pct!.toStringAsFixed(1)}%'
+        : '';
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.softLavender.withValues(alpha: 0.65),
-        borderRadius: AppRadius.pillBorder,
+        color: colors.surfaceSubtle.withValues(
+          alpha: colors.isDark ? 0.6 : 0.8,
+        ),
+        borderRadius: BorderRadius.circular(10),
       ),
-      child: Text.rich(
-        TextSpan(
-          children: [
-            TextSpan(
-              text: '$label: ',
-              style: AppTypography.labelMedium.copyWith(
-                color: AppColors.inkViolet,
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
-              ),
-            ),
-            TextSpan(
-              text: '$present/$conducted ($pctStr)',
-              style: AppTypography.labelMedium.copyWith(
-                color: AppColors.ink,
-                fontFeatures: const [FontFeature.tabularFigures()],
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
-            ),
-          ],
+      child: Text(
+        '$label: $present/$conducted$pctText',
+        style: AppTypography.caption2.copyWith(
+          color: colors.textSecondary,
+          fontWeight: FontWeight.w600,
+          fontFeatures: const [FontFeature.tabularFigures()],
         ),
       ),
     );

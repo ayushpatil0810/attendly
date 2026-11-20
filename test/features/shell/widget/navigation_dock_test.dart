@@ -53,30 +53,39 @@ void main() {
       expect(find.text('Start Semester Setup'), findsOneWidget);
       expect(find.text('Your Courses'), findsNothing);
 
-      // Verify dock has tab labels and quick log button
+      // Verify dock has active Home tab label, dock tab keys, and quick log button
       expect(find.text('Home'), findsOneWidget);
-      expect(find.text('Subjects'), findsOneWidget);
+      expect(find.byKey(const Key('dock_tab_subjects')), findsOneWidget);
       expect(find.byKey(const Key('quick_log_dock_button')), findsOneWidget);
-      expect(find.text('History'), findsOneWidget);
-      expect(find.text('Insights'), findsOneWidget);
+      expect(find.byKey(const Key('dock_tab_history')), findsOneWidget);
+      expect(find.byKey(const Key('dock_tab_insights')), findsNothing);
 
       // Tap Subjects tab
-      await tester.tap(find.text('Subjects'));
+      await tester.tap(find.byKey(const Key('dock_tab_subjects')));
       await tester.pumpAndSettle();
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('dock_tab_subjects')),
+          matching: find.text('Subjects'),
+        ),
+        findsOneWidget,
+      );
       expect(find.text('Enrolled Courses and Attendance'), findsOneWidget);
       expect(find.text('Add Subject'), findsOneWidget);
       expect(find.text('No Subjects Added'), findsOneWidget);
 
       // Tap History tab
-      await tester.tap(find.text('History'));
+      await tester.tap(find.byKey(const Key('dock_tab_history')));
       await tester.pumpAndSettle();
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('dock_tab_history')),
+          matching: find.text('History'),
+        ),
+        findsOneWidget,
+      );
       expect(find.text('Calendar & Attendance Timeline'), findsOneWidget);
       expect(find.text('No sessions recorded for this date'), findsOneWidget);
-
-      // Tap Insights tab
-      await tester.tap(find.text('Insights'));
-      await tester.pumpAndSettle();
-      expect(find.text('What-if'), findsOneWidget);
 
       // Tap Quick Log (+) button
       await tester.tap(find.byKey(const Key('quick_log_dock_button')));

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:attendly/core/shared/widgets/attendly_brand_mark.dart';
 import 'package:attendly/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:attendly/features/onboarding/presentation/screens/onboarding_screen.dart';
 
@@ -29,7 +30,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Page 1
-    expect(find.byType(Image), findsOneWidget);
+    expect(find.byType(AttendlyBrandMark), findsOneWidget);
     expect(find.text('Track Lectures & Labs'), findsOneWidget);
     expect(find.text('Next'), findsOneWidget);
     expect(find.text('Skip'), findsOneWidget);

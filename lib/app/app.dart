@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:attendly/core/theme/app_palettes.dart';
 import 'package:attendly/core/theme/app_theme.dart';
 import 'package:attendly/core/theme/theme_provider.dart';
 
@@ -22,14 +23,16 @@ class AttendlyApp extends ConsumerWidget {
       ThemeMode.light => Brightness.light,
       ThemeMode.dark => Brightness.dark,
     };
-    final activeColors = themeState.themeId.colorsFor(effectiveBrightness);
+    final activeColors = effectiveBrightness == Brightness.dark
+        ? AppPalettes.dark
+        : AppPalettes.light;
     AppTheme.setCurrentColors(activeColors);
 
     final isDark = effectiveBrightness == Brightness.dark;
 
     return MaterialApp.router(
       key: ValueKey(
-        'attendly_app_${themeState.themeId.id}_${themeState.themeMode.name}_$effectiveBrightness',
+        'attendly_app_${themeState.themeMode.name}_$effectiveBrightness',
       ),
       title: 'attendly',
       debugShowCheckedModeBanner: false,
