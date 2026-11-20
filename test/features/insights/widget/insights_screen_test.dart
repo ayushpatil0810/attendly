@@ -310,5 +310,57 @@ void main() {
         await tester.pump(Duration.zero);
       },
     );
+
+    testWidgets(
+      'hides Lecture vs. Lab Breakdown when filtered to a single component',
+      (tester) async {
+        final semRepo = SemesterRepositoryImpl(db);
+        final semId = await semRepo.createSemester(
+          name: 'Fall 2026',
+          attendanceThreshold: 0.75,
+        );
+        prefs.setInt('selected_active_semester_id_v1', semId);
+
+        final subRepo = SubjectRepositoryImpl(db);
+        final s1 = await subRepo.createSubject(
+          semesterId: semId,
+          name: 'Networks',
+          lectureEnabled: true,
+          labEnabled: true,
+        );
+
+        final attRepo = AttendanceRepositoryImpl(db);
+        await attRepo.createSession(
+          subjectId: s1,
+          sessionDate: '2026-11-10',
+          component: SessionComponent.lecture,
+          status: AttendanceStatus.present,
+        );
+        await attRepo.createSession(
+          subjectId: s1,
+          sessionDate: '2026-11-11',
+          component: SessionComponent.lab,
+          status: AttendanceStatus.present,
+        );
+
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pumpAndSettle();
+
+        expect(find.text('Lecture vs. Lab Breakdown'), findsOneWidget);
+
+        // Tap scope chip to filter to Lectures only
+        await tester.tap(find.text('All classes'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Lectures'));
+        await tester.pumpAndSettle();
+
+        // Lecture vs. Lab breakdown should now be hidden
+        expect(find.text('Lecture vs. Lab Breakdown'), findsNothing);
+
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(Duration.zero);
+      },
+    );
   });
 }

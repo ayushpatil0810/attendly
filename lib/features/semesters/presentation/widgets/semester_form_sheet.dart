@@ -53,6 +53,7 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
   }
 
   Future<void> _pickDate({required bool isStart}) async {
+    final colors = context.colors;
     final now = DateTime.now();
     final initial = isStart
         ? (_startDate ?? now)
@@ -63,14 +64,20 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
       initialDate: initial,
       firstDate: DateTime(now.year - 5),
       lastDate: DateTime(now.year + 5),
-      builder: (context, child) {
+      builder: (ctx, child) {
         return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppColors.inkViolet,
-              onPrimary: AppColors.pureWhite,
-              onSurface: AppColors.ink,
-            ),
+          data: Theme.of(ctx).copyWith(
+            colorScheme: colors.isDark
+                ? ColorScheme.dark(
+                    primary: colors.brandPrimary,
+                    surface: colors.surface,
+                    onSurface: colors.textPrimary,
+                  )
+                : ColorScheme.light(
+                    primary: colors.brandPrimary,
+                    surface: colors.surface,
+                    onSurface: colors.textPrimary,
+                  ),
           ),
           child: child!,
         );
@@ -161,6 +168,7 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final dateFormat = DateFormat('MMM dd, yyyy');
 
     return SingleChildScrollView(
@@ -190,9 +198,11 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Attendance Threshold',
-                  style: AppTypography.labelMedium,
+                  style: AppTypography.labelMedium.copyWith(
+                    color: colors.textPrimary,
+                  ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -200,13 +210,17 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.softLavender,
+                    color: colors.isDark
+                        ? colors.brandPrimary.withValues(alpha: 0.16)
+                        : colors.brandPrimarySoft,
                     borderRadius: AppRadius.pillBorder,
                   ),
                   child: Text(
                     '${_thresholdPercent.round()}%',
                     style: AppTypography.labelLarge.copyWith(
-                      color: AppColors.inkViolet,
+                      color: colors.isDark
+                          ? colors.brandPrimary
+                          : colors.brandPrimaryInk,
                     ),
                   ),
                 ),
@@ -215,10 +229,10 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
             const SizedBox(height: 6),
             SliderTheme(
               data: SliderTheme.of(context).copyWith(
-                activeTrackColor: AppColors.inkViolet,
-                inactiveTrackColor: AppColors.track,
-                thumbColor: AppColors.inkViolet,
-                overlayColor: AppColors.inkViolet.withOpacity(0.12),
+                activeTrackColor: colors.brandPrimary,
+                inactiveTrackColor: colors.track,
+                thumbColor: colors.brandPrimary,
+                overlayColor: colors.brandPrimary.withValues(alpha: 0.12),
                 trackHeight: 6,
                 thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
               ),
@@ -235,7 +249,12 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
             const SizedBox(height: 16),
 
             // Calculation Method
-            const Text('Calculation Method', style: AppTypography.labelMedium),
+            Text(
+              'Calculation Method',
+              style: AppTypography.labelMedium.copyWith(
+                color: colors.textPrimary,
+              ),
+            ),
             const SizedBox(height: 8),
             AppSegmentedControl<AttendanceCalculationMethod>(
               items: [
@@ -258,13 +277,18 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
             Text(
               _calculationMethod.description,
               style: AppTypography.labelSmall.copyWith(
-                color: AppColors.mutedInk,
+                color: colors.textSecondary,
               ),
             ),
             const SizedBox(height: 20),
 
             // Optional Dates
-            const Text('Duration (Optional)', style: AppTypography.labelMedium),
+            Text(
+              'Duration (Optional)',
+              style: AppTypography.labelMedium.copyWith(
+                color: colors.textPrimary,
+              ),
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -278,13 +302,17 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.pureWhite,
+                        color: colors.surface,
                         borderRadius: AppRadius.mdBorder,
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: colors.border),
                       ),
                       child: Row(
                         children: [
-                          const AppIcon(AppIcons.calendar, size: 18),
+                          AppIcon(
+                            AppIcons.calendar,
+                            size: 18,
+                            color: colors.brandPrimary,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -292,9 +320,11 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
                                   ? dateFormat.format(_startDate!)
                                   : 'Start Date',
                               style: _startDate != null
-                                  ? AppTypography.bodyMedium
+                                  ? AppTypography.bodyMedium.copyWith(
+                                      color: colors.textPrimary,
+                                    )
                                   : AppTypography.bodySmall.copyWith(
-                                      color: AppColors.subtleInk,
+                                      color: colors.textTertiary,
                                     ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -313,7 +343,7 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
                                     child: AppIcon(
                                       AppIcons.close,
                                       size: 18,
-                                      color: AppColors.mutedInk,
+                                      color: colors.textSecondary,
                                     ),
                                   ),
                                 ),
@@ -335,13 +365,17 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.pureWhite,
+                        color: colors.surface,
                         borderRadius: AppRadius.mdBorder,
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: colors.border),
                       ),
                       child: Row(
                         children: [
-                          const AppIcon(AppIcons.calendar, size: 18),
+                          AppIcon(
+                            AppIcons.calendar,
+                            size: 18,
+                            color: colors.brandPrimary,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -349,9 +383,11 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
                                   ? dateFormat.format(_endDate!)
                                   : 'End Date',
                               style: _endDate != null
-                                  ? AppTypography.bodyMedium
+                                  ? AppTypography.bodyMedium.copyWith(
+                                      color: colors.textPrimary,
+                                    )
                                   : AppTypography.bodySmall.copyWith(
-                                      color: AppColors.subtleInk,
+                                      color: colors.textTertiary,
                                     ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -370,7 +406,7 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
                                     child: AppIcon(
                                       AppIcons.close,
                                       size: 18,
-                                      color: AppColors.mutedInk,
+                                      color: colors.textSecondary,
                                     ),
                                   ),
                                 ),

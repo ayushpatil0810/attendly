@@ -58,12 +58,18 @@ class AppSegmentedControl<T> extends StatelessWidget {
                   horizontal: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? colors.surface : Colors.transparent,
+                  color: isSelected
+                      ? (colors.isDark
+                          ? const Color(0xFF3F3F46)
+                          : colors.surface)
+                      : Colors.transparent,
                   borderRadius: AppRadius.mdBorder,
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: colors.textPrimary.withOpacity(0.06),
+                            color: Colors.black.withValues(
+                              alpha: colors.isDark ? 0.35 : 0.06,
+                            ),
                             blurRadius: 4,
                             offset: const Offset(0, 1),
                           ),
@@ -85,7 +91,7 @@ class AppSegmentedControl<T> extends StatelessWidget {
                               ? colors.textPrimary
                               : colors.textSecondary,
                           fontWeight: isSelected
-                              ? FontWeight.w600
+                              ? FontWeight.w700
                               : FontWeight.w500,
                         ),
                         overflow: TextOverflow.ellipsis,

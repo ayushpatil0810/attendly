@@ -70,20 +70,27 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
   }
 
   Future<void> _pickDate() async {
+    final colors = context.colors;
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
       initialDate: _sessionDate,
       firstDate: DateTime(2020),
       lastDate: DateTime(now.year, now.month, now.day),
-      builder: (context, child) {
+      builder: (ctx, child) {
         return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppColors.inkViolet,
-              onPrimary: AppColors.pureWhite,
-              onSurface: AppColors.ink,
-            ),
+          data: Theme.of(ctx).copyWith(
+            colorScheme: colors.isDark
+                ? ColorScheme.dark(
+                    primary: colors.brandPrimary,
+                    surface: colors.surface,
+                    onSurface: colors.textPrimary,
+                  )
+                : ColorScheme.light(
+                    primary: colors.brandPrimary,
+                    surface: colors.surface,
+                    onSurface: colors.textPrimary,
+                  ),
           ),
           child: child!,
         );
@@ -233,13 +240,14 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
       );
     }
 
+    final colors = context.colors;
     final subjectsAsync = ref.watch(activeSemesterSubjectsProvider);
 
     return subjectsAsync.when(
       loading: () => Padding(
-        padding: EdgeInsets.all(32),
+        padding: const EdgeInsets.all(32),
         child: Center(
-          child: CircularProgressIndicator(color: AppColors.brandViolet),
+          child: CircularProgressIndicator(color: colors.brandPrimary),
         ),
       ),
       error: (err, _) => AppErrorState(
@@ -268,7 +276,12 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Subject display
-              const Text('Subject', style: AppTypography.labelSmall),
+              Text(
+                'Subject',
+                style: AppTypography.labelSmall.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
               const SizedBox(height: 6),
               Container(
                 width: double.infinity,
@@ -277,10 +290,12 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.softLavender.withValues(alpha: 0.5),
+                  color: colors.isDark
+                      ? colors.brandPrimary.withValues(alpha: 0.16)
+                      : colors.brandPrimarySoft,
                   borderRadius: AppRadius.mdBorder,
                   border: Border.all(
-                    color: AppColors.brandViolet.withValues(alpha: 0.2),
+                    color: colors.brandPrimary.withValues(alpha: 0.25),
                   ),
                 ),
                 child: Row(
@@ -288,7 +303,9 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                     AppIcon(
                       AppIcons.subjects,
                       size: 18,
-                      color: AppColors.inkViolet,
+                      color: colors.isDark
+                          ? colors.brandPrimary
+                          : colors.brandPrimaryInk,
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -296,7 +313,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                         selectedSubject.name,
                         style: AppTypography.itemTitle.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: AppColors.ink,
+                          color: colors.textPrimary,
                         ),
                       ),
                     ),
@@ -307,7 +324,12 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
               const SizedBox(height: 16),
 
               // Date row
-              const Text('Date', style: AppTypography.labelSmall),
+              Text(
+                'Date',
+                style: AppTypography.labelSmall.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
               const SizedBox(height: 6),
               InkWell(
                 onTap: _pickDate,
@@ -318,28 +340,30 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.pureWhite,
+                    color: colors.surface,
                     borderRadius: AppRadius.mdBorder,
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: colors.border),
                   ),
                   child: Row(
                     children: [
                       AppIcon(
                         AppIcons.calendar,
                         size: 18,
-                        color: AppColors.brandViolet,
+                        color: colors.brandPrimary,
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           dateDisplay,
-                          style: AppTypography.itemTitle,
+                          style: AppTypography.itemTitle.copyWith(
+                            color: colors.textPrimary,
+                          ),
                         ),
                       ),
                       AppIcon(
                         AppIcons.edit,
                         size: 16,
-                        color: AppColors.mutedInk,
+                        color: colors.textSecondary,
                       ),
                     ],
                   ),
@@ -350,7 +374,12 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
 
               // Component selection
               if (selectedSubject.hasBothComponents) ...[
-                const Text('Component', style: AppTypography.labelSmall),
+                Text(
+                  'Component',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
                 const SizedBox(height: 6),
                 AppSegmentedControl<SessionComponent>(
                   items: const [
@@ -375,20 +404,29 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
               ] else ...[
                 Row(
                   children: [
-                    const Text('Component: ', style: AppTypography.labelSmall),
+                    Text(
+                      'Component: ',
+                      style: AppTypography.labelSmall.copyWith(
+                        color: colors.textSecondary,
+                      ),
+                    ),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.softLavender,
+                        color: colors.isDark
+                            ? colors.brandPrimary.withValues(alpha: 0.16)
+                            : colors.brandPrimarySoft,
                         borderRadius: AppRadius.smBorder,
                       ),
                       child: Text(
                         _component.displayName,
                         style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.inkViolet,
+                          color: colors.isDark
+                              ? colors.brandPrimary
+                              : colors.brandPrimaryInk,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -399,7 +437,12 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
               ],
 
               // Attendance Status
-              const Text('Status', style: AppTypography.labelSmall),
+              Text(
+                'Status',
+                style: AppTypography.labelSmall.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
               const SizedBox(height: 6),
               AppSegmentedControl<AttendanceStatus>(
                 items: [
@@ -409,7 +452,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                     icon: AppIcon(
                       AppIcons.check,
                       size: 16,
-                      color: AppColors.inkMint,
+                      color: colors.accentMintInk,
                     ),
                   ),
                   SegmentItem(
@@ -418,7 +461,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                     icon: AppIcon(
                       AppIcons.close,
                       size: 16,
-                      color: AppColors.inkCoral,
+                      color: colors.accentCoralInk,
                     ),
                   ),
                 ],
@@ -447,10 +490,9 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                 children: [
                   AppButton(
                     label: 'Delete',
-                    icon: AppIcon(
+                    icon: const AppIcon(
                       AppIcons.delete,
                       size: 16,
-                      color: AppColors.pureWhite,
                     ),
                     variant: AppButtonVariant.destructive,
                     onPressed: () => _handleDelete(selectedSubject),
@@ -462,7 +504,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                       icon: AppIcon(
                         AppIcons.check,
                         size: 16,
-                        color: AppColors.pureWhite,
+                        color: colors.isDark ? Colors.black : Colors.white,
                       ),
                       isLoading: _isSubmitting,
                       onPressed: _save,
@@ -492,10 +534,11 @@ void showSessionFormSheet({
     return;
   }
 
+  final colors = context.colors;
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.pureWhite,
+    backgroundColor: colors.surface,
     shape: const RoundedRectangleBorder(borderRadius: AppRadius.sheetTop),
     builder: (context) {
       final mediaQuery = MediaQuery.of(context);
@@ -513,7 +556,7 @@ void showSessionFormSheet({
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.divider,
+                    color: colors.divider,
                     borderRadius: AppRadius.pillBorder,
                   ),
                 ),
@@ -522,10 +565,12 @@ void showSessionFormSheet({
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Text(
                           'Edit Session',
-                          style: AppTypography.sectionTitle,
+                          style: AppTypography.sectionTitle.copyWith(
+                            color: colors.textPrimary,
+                          ),
                         ),
                       ),
                       AppCloseButton(
@@ -534,7 +579,7 @@ void showSessionFormSheet({
                     ],
                   ),
                 ),
-                Divider(color: AppColors.divider, height: 20),
+                Divider(color: colors.divider, height: 20),
                 Expanded(
                   child: SessionFormSheet(
                     sessionToEdit: sessionToEdit,

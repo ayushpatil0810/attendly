@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:attendly/core/shared/widgets/apple/apple_inset_group.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
-import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_theme_colors.dart';
 import 'package:attendly/core/theme/app_typography.dart';
@@ -21,31 +21,12 @@ class AdvancedTrendCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return AppleInsetGroup(
+      header: 'Attendance History & Trend',
+      margin: EdgeInsets.zero,
       children: [
-        Text(
-          'Attendance History & Trend',
-          style: AppTypography.sectionTitle.copyWith(color: colors.textPrimary),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Container(
-          width: double.infinity,
+        Padding(
           padding: const EdgeInsets.all(AppSpacing.cardPadding),
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: AppRadius.xlBorder,
-            border: Border.all(color: colors.divider),
-            boxShadow: [
-              BoxShadow(
-                color: colors.textPrimary.withValues(
-                  alpha: colors.isDark ? 0.12 : 0.03,
-                ),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
           child: trendPoints.length < 2
               ? _buildEmptyState(colors)
               : _buildTrendChart(colors),
@@ -57,17 +38,10 @@ class AdvancedTrendCard extends StatelessWidget {
   Widget _buildEmptyState(AppThemeColors colors) {
     return Row(
       children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: colors.brandPrimarySoft,
-            shape: BoxShape.circle,
-          ),
-          child: AppIcon(
-            AppIcons.insights,
-            size: 20,
-            color: colors.brandPrimary,
-          ),
+        AppIcon(
+          AppIcons.insights,
+          size: 24,
+          color: colors.textSecondary.withValues(alpha: 0.6),
         ),
         const SizedBox(width: AppSpacing.md),
         Expanded(
@@ -103,122 +77,121 @@ class AdvancedTrendCard extends StatelessWidget {
     final latestPct = trendPoints.last.cumulativePercentage;
     final meetsTarget = latestPct >= (threshold * 100.0 - 1e-9);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Time range and current cumulative attendance
-        Wrap(
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: AppSpacing.xs,
-          runSpacing: AppSpacing.xxs,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  rangeText,
-                  style: AppTypography.labelSmall.copyWith(
-                    color: colors.textPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  '${trendPoints.length} active recording dates',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: colors.textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: meetsTarget
-                    ? colors.accentMintSoft
-                    : colors.accentCoralSoft,
-                borderRadius: AppRadius.pillBorder,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+    final semanticLabel =
+        'Attendance History & Trend: $rangeText across ${trendPoints.length} recording dates. '
+        'Latest cumulative attendance: ${latestPct.toStringAsFixed(1)} percent against ${(threshold * 100).round()} percent target.';
+
+    return Semantics(
+      container: true,
+      label: semanticLabel,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Time range and current cumulative attendance
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Latest: ',
+                    rangeText,
                     style: AppTypography.labelSmall.copyWith(
-                      color: colors.textSecondary,
-                      fontSize: 12,
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   Text(
-                    '${latestPct.toStringAsFixed(1)}%',
+                    '${trendPoints.length} active recording dates',
                     style: AppTypography.labelSmall.copyWith(
-                      color: meetsTarget
-                          ? colors.accentMintInk
-                          : colors.accentCoralInk,
-                      fontWeight: FontWeight.w700,
-                      fontFeatures: const [FontFeature.tabularFigures()],
+                      color: colors.textSecondary,
+                      fontSize: 11,
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-
-        // Custom Trend Sparkline Painter
-        SizedBox(
-          height: 110,
-          width: double.infinity,
-          child: CustomPaint(
-            painter: _AdvancedTrendLinePainter(
-              points: trendPoints,
-              threshold: threshold,
-              lineColor: colors.brandPrimary,
-              dividerColor: colors.divider,
-              dotBorderColor: colors.surface,
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-
-        // Target guide legend
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                'Chronological cumulative attendance',
-                style: AppTypography.labelSmall.copyWith(
-                  color: colors.textSecondary,
-                  fontSize: 12,
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'Latest  ',
+                      style: AppTypography.caption1.copyWith(
+                        color: colors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    TextSpan(
+                      text: '${latestPct.toStringAsFixed(1)}%',
+                      style: AppTypography.subhead.copyWith(
+                        color: meetsTarget
+                            ? colors.accentMint
+                            : colors.accentCoral,
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ],
                 ),
-                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Custom Trend Sparkline Painter
+          SizedBox(
+            height: 110,
+            width: double.infinity,
+            child: CustomPaint(
+              painter: _AdvancedTrendLinePainter(
+                points: trendPoints,
+                threshold: threshold,
+                lineColor: colors.brandPrimary,
+                dividerColor: colors.divider,
+                dotBorderColor: colors.surface,
               ),
             ),
-            const SizedBox(width: AppSpacing.xs),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 12,
-                  height: 2,
-                  color: colors.textPrimary.withValues(alpha: 0.5),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '${(threshold * 100).round()}% Target',
+          ),
+          const SizedBox(height: 8),
+
+          // Target guide legend
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  'Chronological cumulative attendance',
                   style: AppTypography.labelSmall.copyWith(
                     color: colors.textSecondary,
-                    fontSize: 12,
+                    fontSize: 11,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
-          ],
-        ),
-      ],
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 12,
+                    height: 2,
+                    color: colors.textPrimary.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${(threshold * 100).round()}% Target',
+                    style: AppTypography.labelSmall.copyWith(
+                      color: colors.textSecondary,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -270,6 +243,23 @@ class _AdvancedTrendLinePainter extends CustomPainter {
       startX += dashWidth + dashSpace;
     }
 
+    // Defensive check: if points.length <= 1, no line can be interpolated
+    if (points.length <= 1) {
+      final y = getY(points.first.cumulativePercentage);
+      final singleDot = Offset(size.width / 2, y);
+      canvas.drawCircle(
+        singleDot,
+        4.0,
+        Paint()..color = dotBorderColor,
+      );
+      canvas.drawCircle(
+        singleDot,
+        2.5,
+        Paint()..color = lineColor,
+      );
+      return;
+    }
+
     // Coordinates of trend points
     final coordinates = <Offset>[];
     final stepX = size.width / (points.length - 1);
@@ -296,7 +286,7 @@ class _AdvancedTrendLinePainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          lineColor.withValues(alpha: 0.22),
+          lineColor.withValues(alpha: 0.20),
           lineColor.withValues(alpha: 0.0),
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
@@ -324,12 +314,12 @@ class _AdvancedTrendLinePainter extends CustomPainter {
       ..color = dotBorderColor
       ..style = PaintingStyle.fill;
 
+    final dotPaint = Paint()
+      ..color = lineColor
+      ..style = PaintingStyle.fill;
+
     for (final coord in coordinates) {
       canvas.drawCircle(coord, 4.0, dotBorderPaint);
-
-      final dotPaint = Paint()
-        ..color = lineColor
-        ..style = PaintingStyle.fill;
       canvas.drawCircle(coord, 2.5, dotPaint);
     }
   }

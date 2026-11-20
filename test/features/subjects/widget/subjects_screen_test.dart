@@ -8,6 +8,7 @@ import 'package:attendly/core/providers/database_provider.dart';
 import 'package:attendly/features/attendance/data/repositories/attendance_repository_impl.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_status.dart';
 import 'package:attendly/features/attendance/domain/entities/session_component.dart';
+import 'package:attendly/features/attendance/presentation/widgets/quick_log_sheet.dart';
 import 'package:attendly/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:attendly/features/semesters/data/repositories/semester_repository_impl.dart';
 import 'package:attendly/features/subjects/data/repositories/subject_repository_impl.dart';
@@ -87,13 +88,19 @@ void main() {
       );
       prefs.setInt('selected_active_semester_id_v1', semId);
 
-      // Create a subject
+      // Create subjects
       final subjRepo = SubjectRepositoryImpl(db);
       final subjectId = await subjRepo.createSubject(
         semesterId: semId,
         name: 'Operating Systems',
         lectureEnabled: true,
         labEnabled: true,
+      );
+      await subjRepo.createSubject(
+        semesterId: semId,
+        name: 'Compiler Design',
+        lectureEnabled: true,
+        labEnabled: false,
       );
 
       // Record sessions: 3 Present, 1 Absent (75% meeting target)
@@ -141,6 +148,32 @@ void main() {
       expect(find.text('Log Attendance'), findsOneWidget);
       expect(find.byTooltip('Edit Subject'), findsOneWidget);
       expect(find.byTooltip('Delete Subject'), findsOneWidget);
+
+      // Tap Log Attendance: opens drawer for ONLY Operating Systems
+      await tester.tap(find.text('Log Attendance'));
+      await tester.pumpAndSettle();
+
+      // Drawer is open for Operating Systems
+      expect(find.text('Done Logging'), findsOneWidget);
+      // Inside the open drawer, Operating Systems is shown; Compiler Design is excluded
+      expect(
+        find.descendant(
+          of: find.byType(QuickLogSheet),
+          matching: find.text('Operating Systems'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(QuickLogSheet),
+          matching: find.text('Compiler Design'),
+        ),
+        findsNothing,
+      );
+
+      // Tap Done Logging to close
+      await tester.tap(find.text('Done Logging'));
+      await tester.pumpAndSettle();
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);

@@ -88,8 +88,10 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Scaffold(
-      backgroundColor: AppColors.warmWhite,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: AppFrame(
           child: SingleChildScrollView(
@@ -103,12 +105,18 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                   // Heading
                   Text(
                     'Set Up First Semester',
-                    style: AppTypography.screenTitle.copyWith(fontSize: 28),
+                    style: AppTypography.screenTitle.copyWith(
+                      fontSize: 28,
+                      color: colors.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Enter your current academic semester details to start tracking classes.',
-                    style: AppTypography.bodyMuted.copyWith(fontSize: 15),
+                    style: AppTypography.bodyMuted.copyWith(
+                      fontSize: 15,
+                      color: colors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: 32),
 
@@ -131,9 +139,11 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Attendance Threshold',
-                        style: AppTypography.labelMedium,
+                        style: AppTypography.labelMedium.copyWith(
+                          color: colors.textPrimary,
+                        ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -141,13 +151,17 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.softLavender,
+                          color: colors.isDark
+                              ? colors.brandPrimary.withValues(alpha: 0.16)
+                              : colors.brandPrimarySoft,
                           borderRadius: AppRadius.pillBorder,
                         ),
                         child: Text(
                           '${_thresholdPercent.round()}%',
                           style: AppTypography.labelLarge.copyWith(
-                            color: AppColors.inkViolet,
+                            color: colors.isDark
+                                ? colors.brandPrimary
+                                : colors.brandPrimaryInk,
                           ),
                         ),
                       ),
@@ -156,10 +170,10 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                   const SizedBox(height: 8),
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
-                      activeTrackColor: AppColors.inkViolet,
-                      inactiveTrackColor: AppColors.track,
-                      thumbColor: AppColors.inkViolet,
-                      overlayColor: AppColors.inkViolet.withOpacity(0.12),
+                      activeTrackColor: colors.brandPrimary,
+                      inactiveTrackColor: colors.track,
+                      thumbColor: colors.brandPrimary,
+                      overlayColor: colors.brandPrimary.withValues(alpha: 0.12),
                       trackHeight: 6,
                       thumbShape: const RoundSliderThumbShape(
                         enabledThumbRadius: 10,
@@ -178,15 +192,17 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                   Text(
                     'Default is 75% for most universities. You can adjust this anytime.',
                     style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.mutedInk,
+                      color: colors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 28),
 
                   // Calculation Method
-                  const Text(
+                  Text(
                     'Calculation Method',
-                    style: AppTypography.labelMedium,
+                    style: AppTypography.labelMedium.copyWith(
+                      color: colors.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   AppSegmentedControl<AttendanceCalculationMethod>(
@@ -212,7 +228,7 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                   Text(
                     _calculationMethod.description,
                     style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.mutedInk,
+                      color: colors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 28),
@@ -221,34 +237,58 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.pureWhite,
-                      borderRadius: AppRadius.mdBorder,
-                      border: Border.all(color: AppColors.divider),
+                      color: colors.surface,
+                      borderRadius: AppRadius.lgBorder,
+                      border: Border.all(color: colors.border),
+                      boxShadow: [
+                        BoxShadow(
+                          color: colors.isDark
+                              ? Colors.transparent
+                              : colors.textPrimary.withValues(alpha: 0.03),
+                          blurRadius: 12,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            AppIcon(
-                              AppIcons.notification,
-                              size: 20,
-                              color: AppColors.brandViolet,
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: colors.isDark
+                                    ? colors.brandPrimary.withValues(alpha: 0.16)
+                                    : colors.brandPrimarySoft,
+                                borderRadius: AppRadius.smBorder,
+                              ),
+                              alignment: Alignment.center,
+                              child: AppIcon(
+                                AppIcons.notification,
+                                size: 18,
+                                color: colors.isDark
+                                    ? colors.brandPrimary
+                                    : colors.brandPrimaryInk,
+                              ),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Daily Reminder',
-                                    style: AppTypography.itemTitle,
+                                    style: AppTypography.itemTitle.copyWith(
+                                      color: colors.textPrimary,
+                                    ),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
                                     'Get reminded to log your classes',
                                     style: AppTypography.bodySmall.copyWith(
-                                      color: AppColors.mutedInk,
+                                      color: colors.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -256,7 +296,9 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                             ),
                             Switch.adaptive(
                               value: _dailyReminderEnabled,
-                              activeColor: AppColors.brandViolet,
+                              activeColor: colors.isDark
+                                  ? Colors.white
+                                  : colors.brandPrimary,
                               onChanged: (val) {
                                 setState(() => _dailyReminderEnabled = val);
                               },
@@ -265,12 +307,12 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                         ),
                         if (_dailyReminderEnabled) ...[
                           const SizedBox(height: 14),
-                          Divider(height: 1, color: AppColors.divider),
+                          Divider(height: 1, color: colors.divider),
                           const SizedBox(height: 14),
                           Text(
                             'Preferred Reminder Time',
                             style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.ink,
+                              color: colors.textPrimary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -280,14 +322,17 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                             runSpacing: 8,
                             children: [
                               _buildTimePresetChip(
+                                context: context,
                                 label: '7:00 PM',
                                 time: const TimeOfDay(hour: 19, minute: 0),
                               ),
                               _buildTimePresetChip(
+                                context: context,
                                 label: '8:00 PM',
                                 time: const TimeOfDay(hour: 20, minute: 0),
                               ),
                               _buildTimePresetChip(
+                                context: context,
                                 label: '9:00 PM',
                                 time: const TimeOfDay(hour: 21, minute: 0),
                               ),
@@ -311,18 +356,18 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Expanded(child: Divider(color: AppColors.divider)),
+                      Expanded(child: Divider(color: colors.divider)),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Text(
                           'OR',
                           style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.mutedInk,
+                            color: colors.textTertiary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
-                      Expanded(child: Divider(color: AppColors.divider)),
+                      Expanded(child: Divider(color: colors.divider)),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -331,7 +376,7 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                     icon: AppIcon(
                       AppIcons.scan,
                       size: 18,
-                      color: AppColors.inkViolet,
+                      color: colors.brandPrimary,
                     ),
                     variant: AppButtonVariant.outline,
                     onPressed: () async {
@@ -354,9 +399,11 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
   }
 
   Widget _buildTimePresetChip({
+    required BuildContext context,
     required String label,
     required TimeOfDay time,
   }) {
+    final colors = context.colors;
     final isSelected =
         _reminderTime.hour == time.hour && _reminderTime.minute == time.minute;
     return GestureDetector(
@@ -364,17 +411,25 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.softLavender : AppColors.pureWhite,
+          color: isSelected
+              ? (colors.isDark
+                  ? colors.brandPrimary.withValues(alpha: 0.16)
+                  : colors.brandPrimarySoft)
+              : colors.surface,
           borderRadius: AppRadius.pillBorder,
           border: Border.all(
-            color: isSelected ? AppColors.brandViolet : AppColors.divider,
+            color: isSelected ? colors.brandPrimary : colors.border,
             width: isSelected ? 1.5 : 1,
           ),
         ),
         child: Text(
           label,
           style: AppTypography.labelSmall.copyWith(
-            color: isSelected ? AppColors.inkViolet : AppColors.ink,
+            color: isSelected
+                ? (colors.isDark
+                    ? colors.brandPrimary
+                    : colors.brandPrimaryInk)
+                : colors.textPrimary,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
@@ -383,6 +438,7 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
   }
 
   Widget _buildCustomTimeChip(BuildContext context) {
+    final colors = context.colors;
     final isPreset =
         (_reminderTime.hour == 19 && _reminderTime.minute == 0) ||
         (_reminderTime.hour == 20 && _reminderTime.minute == 0) ||
@@ -399,15 +455,20 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
         final picked = await showTimePicker(
           context: context,
           initialTime: _reminderTime,
-          builder: (context, child) {
+          builder: (ctx, child) {
             return Theme(
-              data: Theme.of(context).copyWith(
-                colorScheme: ColorScheme.light(
-                  primary: AppColors.inkViolet,
-                  onPrimary: AppColors.pureWhite,
-                  onSurface: AppColors.ink,
-                  surface: AppColors.pureWhite,
-                ),
+              data: Theme.of(ctx).copyWith(
+                colorScheme: colors.isDark
+                    ? ColorScheme.dark(
+                        primary: colors.brandPrimary,
+                        surface: colors.surface,
+                        onSurface: colors.textPrimary,
+                      )
+                    : ColorScheme.light(
+                        primary: colors.brandPrimary,
+                        surface: colors.surface,
+                        onSurface: colors.textPrimary,
+                      ),
               ),
               child: child!,
             );
@@ -420,10 +481,14 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.softLavender : AppColors.pureWhite,
+          color: isSelected
+              ? (colors.isDark
+                  ? colors.brandPrimary.withValues(alpha: 0.16)
+                  : colors.brandPrimarySoft)
+              : colors.surface,
           borderRadius: AppRadius.pillBorder,
           border: Border.all(
-            color: isSelected ? AppColors.brandViolet : AppColors.divider,
+            color: isSelected ? colors.brandPrimary : colors.border,
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -433,7 +498,11 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
             Text(
               customLabel,
               style: AppTypography.labelSmall.copyWith(
-                color: isSelected ? AppColors.inkViolet : AppColors.ink,
+                color: isSelected
+                    ? (colors.isDark
+                        ? colors.brandPrimary
+                        : colors.brandPrimaryInk)
+                    : colors.textPrimary,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
@@ -441,7 +510,11 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
             AppIcon(
               AppIcons.arrowDown,
               size: 12,
-              color: isSelected ? AppColors.inkViolet : AppColors.mutedInk,
+              color: isSelected
+                  ? (colors.isDark
+                      ? colors.brandPrimary
+                      : colors.brandPrimaryInk)
+                  : colors.textSecondary,
             ),
           ],
         ),

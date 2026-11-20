@@ -22,17 +22,18 @@ class OverallAttendanceHero extends StatelessWidget {
   final SemesterAttendanceSummary summary;
   final DashboardAttendanceScope scope;
 
-  Color _getStatusColor() {
+  Color _getStatusColor(BuildContext context) {
+    final colors = context.colors;
     switch (summary.thresholdStatus) {
       case ThresholdStatus.meeting:
-        return AppColors.brandMint;
+        return colors.accentMint;
       case ThresholdStatus.below:
-        return AppColors.brandCoral;
+        return colors.accentCoral;
       case ThresholdStatus.notAvailable:
         if (summary.availability.isProvisional) {
-          return AppColors.brandPeach;
+          return colors.accentPeach;
         }
-        return AppColors.mutedInk;
+        return colors.textSecondary;
     }
   }
 
@@ -50,7 +51,8 @@ class OverallAttendanceHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = _getStatusColor();
+    final colors = context.colors;
+    final statusColor = _getStatusColor(context);
     final isAvailable = summary.isAvailable;
     final isProvisional = summary.isProvisional;
     final formattedPct = _formatPercentage();
@@ -95,11 +97,12 @@ class OverallAttendanceHero extends StatelessWidget {
                               progress: animatedProgress,
                               progressColor: isAvailable || isProvisional
                                   ? statusColor
-                                  : AppColors.track,
-                              trackColor: AppColors.track,
+                                  : colors.track,
+                              trackColor: colors.track,
                               threshold: summary.threshold,
                               hasData: isAvailable || isProvisional,
                               strokeWidth: _strokeWidth,
+                              markerColor: colors.textPrimary,
                             ),
                           );
                         },
@@ -122,8 +125,8 @@ class OverallAttendanceHero extends StatelessWidget {
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: -1.0,
                                 color: isAvailable
-                                    ? AppColors.ink
-                                    : AppColors.mutedInk,
+                                    ? colors.textPrimary
+                                    : colors.textSecondary,
                                 fontFeatures: const [
                                   FontFeature.tabularFigures(),
                                 ],
@@ -135,7 +138,7 @@ class OverallAttendanceHero extends StatelessWidget {
                             labelText,
                             textAlign: TextAlign.center,
                             style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.mutedInk,
+                              color: colors.textSecondary,
                               fontWeight: FontWeight.w600,
                               fontSize: 11,
                             ),
@@ -160,7 +163,7 @@ class OverallAttendanceHero extends StatelessWidget {
                   Text(
                     'Target: ${summary.thresholdPercent}%',
                     style: AppTypography.bodyMedium.copyWith(
-                      color: AppColors.mutedInk,
+                      color: colors.textSecondary,
                       fontWeight: FontWeight.w600,
                       fontSize: 14.5,
                     ),
@@ -172,8 +175,8 @@ class OverallAttendanceHero extends StatelessWidget {
                           : '${summary.differenceFromThreshold!.toStringAsFixed(1)}%',
                       style: AppTypography.labelLarge.copyWith(
                         color: summary.differenceFromThreshold! >= 0
-                            ? AppColors.inkMint
-                            : AppColors.inkCoral,
+                          ? colors.accentMint
+                          : colors.accentCoral,
                         fontWeight: FontWeight.w800,
                         fontSize: 14.5,
                         fontFeatures: const [FontFeature.tabularFigures()],
@@ -191,7 +194,7 @@ class OverallAttendanceHero extends StatelessWidget {
                   'Combined available when both components have sessions.',
                   textAlign: TextAlign.center,
                   style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.inkPeach,
+                    color: colors.accentPeach,
                     fontSize: 11.5,
                   ),
                 ),
@@ -211,6 +214,7 @@ class _CircularGaugePainter extends CustomPainter {
     required this.threshold,
     required this.hasData,
     required this.strokeWidth,
+    required this.markerColor,
   });
 
   final double progress;
@@ -219,6 +223,7 @@ class _CircularGaugePainter extends CustomPainter {
   final double threshold;
   final bool hasData;
   final double strokeWidth;
+  final Color markerColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -260,7 +265,7 @@ class _CircularGaugePainter extends CustomPainter {
     final thresholdAngle =
         -math.pi / 2 + (2 * math.pi * threshold.clamp(0.0, 1.0));
     final tickPaint = Paint()
-      ..color = AppColors.ink
+      ..color = markerColor
       ..strokeWidth = 2.5
       ..strokeCap = StrokeCap.round
       ..isAntiAlias = true;
@@ -288,6 +293,7 @@ class _CircularGaugePainter extends CustomPainter {
         oldDelegate.trackColor != trackColor ||
         oldDelegate.threshold != threshold ||
         oldDelegate.hasData != hasData ||
-        oldDelegate.strokeWidth != strokeWidth;
+        oldDelegate.strokeWidth != strokeWidth ||
+        oldDelegate.markerColor != markerColor;
   }
 }

@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:attendly/core/services/notification_service.dart';
-import 'package:attendly/core/shared/widgets/app_button.dart';
-import 'package:attendly/core/shared/widgets/app_switch.dart';
 import 'package:attendly/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:attendly/features/settings/presentation/widgets/daily_reminder_section.dart';
 
@@ -99,28 +97,24 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Daily Attendance Reminder'), findsOneWidget);
-      expect(
-        find.text('Prompt to log your classes for the day'),
-        findsOneWidget,
-      );
 
-      final switchFinder = find.byType(AppSwitchTile);
+      final switchFinder = find.byType(Switch);
       expect(switchFinder, findsOneWidget);
-      final switchTile = tester.widget<AppSwitchTile>(switchFinder);
-      expect(switchTile.value, isFalse);
+      final switchWidget = tester.widget<Switch>(switchFinder);
+      expect(switchWidget.value, isFalse);
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);
     });
 
     testWidgets(
-      'toggling switch to enabled expands time selector and test button',
+      'toggling switch to enabled expands time selector',
       (tester) async {
         setLargeViewport(tester);
         await tester.pumpWidget(createWidgetUnderTest());
         await tester.pumpAndSettle();
 
-        final switchFinder = find.byType(AppSwitchTile);
+        final switchFinder = find.byType(Switch);
         await tester.tap(switchFinder);
         await tester.pumpAndSettle();
 
@@ -130,43 +124,11 @@ void main() {
         // Controls now visible
         expect(find.text('Reminder Time'), findsOneWidget);
         expect(find.text('8:00 PM'), findsOneWidget);
-        expect(find.text('Send Test Notification'), findsOneWidget);
-        expect(
-          find.text(
-            '100% offline: reminders are scheduled directly by your device without background tracking or server sync.',
-          ),
-          findsOneWidget,
-        );
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);
       },
     );
-
-    testWidgets('tapping Send Test Notification invokes service', (
-      tester,
-    ) async {
-      setLargeViewport(tester);
-      // Pre-enable in SharedPreferences
-      SharedPreferences.setMockInitialValues({
-        'pref_daily_reminder_enabled_v1': true,
-      });
-      prefs = await SharedPreferences.getInstance();
-
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
-
-      final testBtn = find.widgetWithText(AppButton, 'Send Test Notification');
-      expect(testBtn, findsOneWidget);
-
-      await tester.tap(testBtn);
-      await tester.pumpAndSettle();
-
-      expect(fakeNotificationService.testNotificationShown, isTrue);
-
-      await tester.pumpWidget(const SizedBox());
-      await tester.pump(Duration.zero);
-    });
 
     testWidgets('toggling off cancels reminder and hides controls', (
       tester,
@@ -180,14 +142,14 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      final switchFinder = find.byType(AppSwitchTile);
+      final switchFinder = find.byType(Switch);
       await tester.tap(switchFinder);
       await tester.pumpAndSettle();
 
       expect(fakeNotificationService.wasCancelled, isTrue);
 
-      final switchTile = tester.widget<AppSwitchTile>(switchFinder);
-      expect(switchTile.value, isFalse);
+      final switchWidget = tester.widget<Switch>(switchFinder);
+      expect(switchWidget.value, isFalse);
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);

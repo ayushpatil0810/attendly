@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:attendly/core/shared/widgets/apple/apple_inset_group.dart';
 import 'package:attendly/core/theme/app_colors.dart';
-import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_theme_colors.dart';
 import 'package:attendly/core/theme/app_typography.dart';
@@ -12,51 +12,35 @@ class DashboardTrendCard extends StatelessWidget {
     super.key,
     required this.trendPoints,
     required this.threshold,
+    this.header = 'Attendance Trend',
   });
 
   final List<AttendanceTrendPoint> trendPoints;
   final double threshold;
+  final String? header;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return AppleInsetGroup(
+      header: header,
+      margin: EdgeInsets.zero,
       children: [
-        Text(
-          'Attendance Trend',
-          style: AppTypography.sectionTitle.copyWith(color: colors.textPrimary),
-        ),
-        const SizedBox(height: AppSpacing.xs + 2),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(AppSpacing.cardPadding),
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: AppRadius.mdBorder,
-            border: Border.all(color: colors.divider),
-            boxShadow: [
-              BoxShadow(
-                color: colors.textPrimary.withValues(
-                  alpha: colors.isDark ? 0.12 : 0.03,
-                ),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
           child: trendPoints.length < 2
-              ? _buildEmptyState()
+              ? _buildEmptyState(colors)
               : _buildTrendChart(colors),
         ),
       ],
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(AppThemeColors colors) {
     return Semantics(
       container: true,
-      label: 'Attendance Trend: More Data Needed. Trend visualization appears after sessions across at least two dates are logged.',
+      label:
+          'Attendance Trend: More Data Needed. Trend visualization appears after sessions across at least two dates are logged.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -66,20 +50,27 @@ class DashboardTrendCard extends StatelessWidget {
                 width: 6,
                 height: 6,
                 decoration: BoxDecoration(
-                  color: AppColors.brandViolet,
+                  color: colors.brandPrimary,
                   shape: BoxShape.circle,
                 ),
               ),
               const SizedBox(width: 8),
-              const Expanded(
-                child: Text('More Data Needed', style: AppTypography.itemTitle),
+              Expanded(
+                child: Text(
+                  'More Data Needed',
+                  style: AppTypography.itemTitle.copyWith(
+                    color: colors.textPrimary,
+                  ),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 4),
           Text(
             'Trend visualization appears after sessions across at least two dates are logged.',
-            style: AppTypography.bodySmall.copyWith(color: AppColors.mutedInk),
+            style: AppTypography.bodySmall.copyWith(
+              color: colors.textSecondary,
+            ),
           ),
         ],
       ),
@@ -152,30 +143,6 @@ class DashboardTrendCard extends StatelessWidget {
                 dotBorderColor: colors.surface,
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-
-          // Target guide legend matching the dashed line
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Container(
-                width: 12,
-                height: 2,
-                decoration: BoxDecoration(
-                  color: colors.textSecondary.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(1),
-                ),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                '${(threshold * 100).round()}% Target',
-                style: AppTypography.labelSmall.copyWith(
-                  color: colors.textSecondary,
-                  fontSize: 12,
-                ),
-              ),
-            ],
           ),
         ],
       ),

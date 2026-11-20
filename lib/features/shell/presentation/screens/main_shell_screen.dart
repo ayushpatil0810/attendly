@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/services/home_widget_service.dart';
+import 'package:attendly/core/shared/widgets/animated_indexed_stack.dart';
 import 'package:attendly/core/shared/widgets/app_floating_dock.dart';
 import 'package:attendly/core/shared/widgets/app_frame.dart';
 import 'package:attendly/core/theme/app_colors.dart';
@@ -12,9 +13,7 @@ import 'package:attendly/features/attendance/presentation/widgets/quick_log_shee
 import 'package:attendly/features/subjects/presentation/screens/subjects_screen.dart';
 
 import 'package:attendly/features/attendance/presentation/screens/history_screen.dart';
-
 import 'home_screen.dart';
-import 'insights_screen.dart';
 
 class MainShellScreen extends ConsumerStatefulWidget {
   const MainShellScreen({super.key, this.initialIndex = 0});
@@ -86,13 +85,12 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
         });
       },
     );
-    final pages = IndexedStack(
+    final pages = AnimatedIndexedStack(
       index: _currentIndex,
       children: [
         HomeScreen(onNavigateToSubjects: () => _onDestinationSelected(1)),
-        SubjectsScreen(),
-        HistoryScreen(),
-        InsightsScreen(),
+        const SubjectsScreen(),
+        const HistoryScreen(),
       ],
     );
 
@@ -100,33 +98,41 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
 
     final colors = context.colors;
 
-    return Scaffold(
-      backgroundColor: colors.background,
-      resizeToAvoidBottomInset: false,
-      body: useRail
-          ? Row(
-              children: [
-                AppSideRail(
-                  currentIndex: _currentIndex,
-                  onDestinationSelected: _onDestinationSelected,
-                  onQuickLogPressed: _onQuickLogPressed,
-                ),
-                Expanded(child: AppFrame(maxWidth: 720, child: pages)),
-              ],
-            )
-          : Stack(
-              children: [
-                pages,
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: AppFloatingDock(
+    return PopScope(
+      canPop: _currentIndex == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && mounted) {
+          setState(() => _currentIndex = 0);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: colors.background,
+        resizeToAvoidBottomInset: false,
+        body: useRail
+            ? Row(
+                children: [
+                  AppSideRail(
                     currentIndex: _currentIndex,
                     onDestinationSelected: _onDestinationSelected,
                     onQuickLogPressed: _onQuickLogPressed,
                   ),
-                ),
-              ],
-            ),
+                  Expanded(child: AppFrame(maxWidth: 720, child: pages)),
+                ],
+              )
+            : Stack(
+                children: [
+                  pages,
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: AppFloatingDock(
+                      currentIndex: _currentIndex,
+                      onDestinationSelected: _onDestinationSelected,
+                      onQuickLogPressed: _onQuickLogPressed,
+                    ),
+                  ),
+                ],
+              ),
+      ),
     );
   }
 }

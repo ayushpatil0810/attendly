@@ -5,7 +5,7 @@ import 'package:attendly/core/shared/widgets/app_bottom_sheet.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
-import 'package:attendly/core/theme/app_radius.dart';
+import 'package:attendly/core/theme/app_motion.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/attendance/domain/entities/subject_attendance_summary.dart';
@@ -31,7 +31,55 @@ class DashboardSubjectPreview extends StatefulWidget {
       _DashboardSubjectPreviewState();
 }
 
-class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
+class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _expandController;
+  late final Animation<double> _expandAnimation;
+  bool _isExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _expandController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _expandAnimation = CurvedAnimation(
+      parent: _expandController,
+      curve: Curves.easeInOutCubic,
+    );
+  }
+
+  @override
+  void dispose() {
+    _expandController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant DashboardSubjectPreview oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.semesterId != widget.semesterId) {
+      _isExpanded = false;
+      _expandController.value = 0.0;
+    }
+  }
+
+  void _toggleExpanded() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+      _expandController.duration = AppMotion.duration(
+        context,
+        const Duration(milliseconds: 300),
+      );
+      if (_isExpanded) {
+        _expandController.forward();
+      } else {
+        _expandController.reverse();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // Option 1: Action-oriented At-Risk / Attention filter
@@ -49,6 +97,11 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
       return false;
     }).toList();
 
+    final primarySubjects = attentionSubjects.take(4).toList();
+    final remainingSubjects = attentionSubjects.length > 4
+        ? attentionSubjects.skip(4).toList()
+        : const <SubjectAttendanceSummary>[];
+
     final String sectionTitle;
     if (widget.subjects.isEmpty) {
       sectionTitle = 'Your Courses';
@@ -58,10 +111,12 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
       sectionTitle = 'Your Courses';
     }
 
+    final colors = context.colors;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header Row (Matches Attendance Trend section title)
+        // Header Row (Matches Apple Section Header)
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -69,7 +124,11 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
             Expanded(
               child: Text(
                 sectionTitle,
-                style: AppTypography.sectionTitle,
+                style: AppTypography.headline.copyWith(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 17,
+                  color: colors.textPrimary,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -90,8 +149,10 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
                   ),
                   child: Text(
                     'View All',
-                    style: AppTypography.labelLarge.copyWith(
-                      color: AppColors.inkViolet,
+                    style: AppTypography.subhead.copyWith(
+                      color: colors.isDark
+                          ? const Color(0xFF5E81F4)
+                          : const Color(0xFF3F5BF6),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -99,7 +160,7 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
               ),
           ],
         ),
-        const SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: 10),
 
         // Subject list or empty / all-on-track state
         if (widget.subjects.isEmpty)
@@ -107,13 +168,20 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
             width: double.infinity,
             padding: const EdgeInsets.all(AppSpacing.cardPadding),
             decoration: BoxDecoration(
-              color: AppColors.pureWhite,
-              borderRadius: AppRadius.mdBorder,
-              border: Border.all(color: AppColors.divider),
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: colors.border.withValues(
+                  alpha: colors.isDark ? 0.4 : 0.6,
+                ),
+                width: 0.5,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.ink.withValues(alpha: 0.03),
-                  blurRadius: 8,
+                  color: Colors.black.withValues(
+                    alpha: colors.isDark ? 0.25 : 0.03,
+                  ),
+                  blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),
               ],
@@ -123,12 +191,15 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
                 AppIcon(
                   AppIcons.subjects,
                   size: 32,
-                  color: AppColors.brandViolet,
+                  color: colors.textSecondary,
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'No subjects added yet',
-                  style: AppTypography.itemTitle,
+                  style: AppTypography.headline.copyWith(
+                    color: colors.textPrimary,
+                    fontSize: 16,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 AppButton(
@@ -136,7 +207,7 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
                   icon: AppIcon(
                     AppIcons.add,
                     size: 16,
-                    color: AppColors.pureWhite,
+                    color: colors.surface,
                   ),
                   size: AppButtonSize.small,
                   onPressed: () {
@@ -155,23 +226,30 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
-              color: AppColors.pureWhite,
-              borderRadius: AppRadius.mdBorder,
-              border: Border.all(color: AppColors.divider),
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: colors.border.withValues(
+                  alpha: colors.isDark ? 0.4 : 0.6,
+                ),
+                width: 0.5,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.ink.withValues(alpha: 0.03),
-                  blurRadius: 8,
+                  color: Colors.black.withValues(
+                    alpha: colors.isDark ? 0.25 : 0.03,
+                  ),
+                  blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: Material(
               color: Colors.transparent,
-              borderRadius: AppRadius.mdBorder,
+              borderRadius: BorderRadius.circular(18),
               child: InkWell(
                 onTap: widget.onNavigateToSubjects,
-                borderRadius: AppRadius.mdBorder,
+                borderRadius: BorderRadius.circular(18),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -180,17 +258,17 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
                   child: Row(
                     children: [
                       Container(
-                        width: 42,
-                        height: 42,
+                        width: 40,
+                        height: 40,
                         decoration: BoxDecoration(
-                          color: AppColors.softMint,
+                          color: colors.accentMintSoft,
                           shape: BoxShape.circle,
                         ),
                         child: Center(
                           child: AppIcon(
                             AppIcons.check,
                             size: 20,
-                            color: AppColors.brandMint,
+                            color: colors.accentMint,
                           ),
                         ),
                       ),
@@ -201,17 +279,18 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
                           children: [
                             Text(
                               'All Subjects On Track',
-                              style: AppTypography.itemTitle.copyWith(
+                              style: AppTypography.headline.copyWith(
                                 fontWeight: FontWeight.w700,
-                                fontSize: 15,
+                                fontSize: 15.5,
+                                color: colors.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 3),
                             Text(
                               'All ${widget.subjects.length} courses are meeting or exceeding your ${(widget.threshold * 100).toInt()}% target.',
-                              style: AppTypography.labelSmall.copyWith(
-                                color: AppColors.mutedInk,
-                                fontSize: 12,
+                              style: AppTypography.footnote.copyWith(
+                                color: colors.textSecondary,
+                                fontSize: 12.5,
                               ),
                             ),
                           ],
@@ -221,7 +300,7 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
                       AppIcon(
                         AppIcons.forward,
                         size: 16,
-                        color: AppColors.mutedInk,
+                        color: colors.textTertiary,
                       ),
                     ],
                   ),
@@ -233,71 +312,158 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview> {
           // Render prioritized focus subjects (up to 4)
           Container(
             decoration: BoxDecoration(
-              color: AppColors.pureWhite,
-              borderRadius: AppRadius.mdBorder,
-              border: Border.all(color: AppColors.divider),
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: colors.border.withValues(
+                  alpha: colors.isDark ? 0.4 : 0.6,
+                ),
+                width: 0.5,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.ink.withValues(alpha: 0.03),
-                  blurRadius: 8,
+                  color: Colors.black.withValues(
+                    alpha: colors.isDark ? 0.25 : 0.03,
+                  ),
+                  blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: Column(
               children: [
-                ...attentionSubjects.take(4).map((subject) {
-                  final isLast =
-                      subject == attentionSubjects.take(4).last &&
+                // 1. Primary subjects (up to 4)
+                ...primarySubjects.map((subject) {
+                  final isFirst = subject == primarySubjects.first;
+                  final isLast = subject == primarySubjects.last &&
                       attentionSubjects.length <= 4;
                   return Column(
                     children: [
                       InkWell(
                         onTap: widget.onNavigateToSubjects,
-                        borderRadius: isLast
-                            ? const BorderRadius.vertical(
-                                bottom: Radius.circular(12),
-                              )
-                            : (subject == attentionSubjects.first
-                                  ? const BorderRadius.vertical(
-                                      top: Radius.circular(12),
-                                    )
-                                  : BorderRadius.zero),
+                        borderRadius: isFirst
+                            ? (isLast
+                                ? BorderRadius.circular(18)
+                                : const BorderRadius.vertical(
+                                    top: Radius.circular(18),
+                                  ))
+                            : (isLast
+                                ? const BorderRadius.vertical(
+                                    bottom: Radius.circular(18),
+                                  )
+                                : BorderRadius.zero),
                         child: _SubjectPreviewRow(
                           subject: subject,
                           threshold: widget.threshold,
                         ),
                       ),
-                      if (!isLast)
+                      if (subject != primarySubjects.last)
                         Divider(
                           height: 1,
+                          thickness: 0.5,
                           indent: 16,
                           endIndent: 16,
-                          color: AppColors.divider,
+                          color: colors.divider.withValues(
+                            alpha: colors.isDark ? 0.5 : 0.7,
+                          ),
                         ),
                     ],
                   );
                 }),
-                if (attentionSubjects.length > 4) ...[
-                  Divider(height: 1, color: AppColors.divider),
+
+                // 2. Smoothly animated expansion for remaining subjects
+                if (remainingSubjects.isNotEmpty) ...[
+                  AnimatedBuilder(
+                    animation: _expandAnimation,
+                    builder: (context, child) {
+                      if (_expandAnimation.value == 0.0) {
+                        return const SizedBox.shrink();
+                      }
+                      return ClipRect(
+                        child: SizeTransition(
+                          sizeFactor: _expandAnimation,
+                          axisAlignment: -1.0,
+                          child: FadeTransition(
+                            opacity: _expandAnimation,
+                            child: child,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Column(
+                      children: [
+                        for (final subject in remainingSubjects) ...[
+                          Divider(
+                            height: 1,
+                            thickness: 0.5,
+                            indent: 16,
+                            endIndent: 16,
+                            color: colors.divider.withValues(
+                              alpha: colors.isDark ? 0.5 : 0.7,
+                            ),
+                          ),
+                          InkWell(
+                            onTap: widget.onNavigateToSubjects,
+                            child: _SubjectPreviewRow(
+                              subject: subject,
+                              threshold: widget.threshold,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  Divider(
+                    height: 1,
+                    thickness: 0.5,
+                    color: colors.divider.withValues(
+                      alpha: colors.isDark ? 0.5 : 0.7,
+                    ),
+                  ),
                   Semantics(
                     button: true,
-                    label:
-                        'View ${attentionSubjects.length - 4} more subjects to watch',
+                    label: _isExpanded
+                        ? 'Show fewer subjects'
+                        : 'Reveal ${remainingSubjects.length} more subjects in this list',
                     child: InkWell(
-                      onTap: widget.onNavigateToSubjects,
+                      onTap: _toggleExpanded,
                       borderRadius: const BorderRadius.vertical(
-                        bottom: Radius.circular(12),
+                        bottom: Radius.circular(18),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         child: Center(
-                          child: Text(
-                            '+ ${attentionSubjects.length - 4} more subjects to review',
-                            style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.inkViolet,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _isExpanded
+                                    ? 'Show less'
+                                    : '+ ${remainingSubjects.length} more ${remainingSubjects.length == 1 ? "subject" : "subjects"} to review',
+                                style: AppTypography.footnote.copyWith(
+                                  color: colors.isDark
+                                      ? const Color(0xFF5E81F4)
+                                      : const Color(0xFF3F5BF6),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              AnimatedRotation(
+                                turns: _isExpanded ? 0.5 : 0.0,
+                                duration: AppMotion.duration(
+                                  context,
+                                  const Duration(milliseconds: 300),
+                                ),
+                                curve: Curves.easeInOutCubic,
+                                child: AppIcon(
+                                  AppIcons.arrowDown,
+                                  size: 14,
+                                  color: colors.isDark
+                                      ? const Color(0xFF5E81F4)
+                                      : const Color(0xFF3F5BF6),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -322,17 +488,18 @@ class _SubjectPreviewRow extends StatelessWidget {
   final SubjectAttendanceSummary subject;
   final double threshold;
 
-  Color _getRingColor() {
+  Color _getRingColor(BuildContext context) {
+    final colors = context.colors;
     if (subject.isProvisional) {
-      return AppColors.brandPeach;
+      return colors.accentPeach;
     }
     switch (subject.thresholdStatus) {
       case ThresholdStatus.meeting:
-        return AppColors.brandMint;
+        return colors.accentMint;
       case ThresholdStatus.below:
-        return AppColors.brandCoral;
+        return colors.accentCoral;
       case ThresholdStatus.notAvailable:
-        return AppColors.track;
+        return colors.track;
     }
   }
 
@@ -353,7 +520,8 @@ class _SubjectPreviewRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ringColor = _getRingColor();
+    final colors = context.colors;
+    final ringColor = _getRingColor(context);
     final progress = subject.percentage != null
         ? (subject.percentage! / 100.0).clamp(0.0, 1.0)
         : 0.0;
@@ -364,44 +532,40 @@ class _SubjectPreviewRow extends StatelessWidget {
       if (subject.labEnabled) 'Lab',
     ].join(' • ');
 
-    final countText = subject.totalConducted > 0
-        ? '${subject.totalPresent}/${subject.totalConducted} attended'
-        : 'No sessions yet';
-
     final safe = subject.safeAbsenceResult.safeAbsences;
     final String statusNote;
-    Color statusColor = AppColors.mutedInk;
+    Color statusColor = colors.textSecondary;
     FontWeight statusWeight = FontWeight.w400;
 
     if (subject.totalConducted == 0) {
-      statusNote = componentsText.isNotEmpty ? componentsText : 'Not available';
+      statusNote = 'No sessions yet';
     } else if (subject.thresholdStatus == ThresholdStatus.below) {
       final needed = subject.recoveryResult.requiredConsecutivePresents;
       if (needed != null && needed > 0) {
         final unit = needed == 1 ? 'class' : 'classes';
         statusNote = 'Needs $needed $unit to recover';
-        statusColor = AppColors.inkCoral;
+        statusColor = colors.accentCoral;
         statusWeight = FontWeight.w600;
       } else {
         statusNote = componentsText.isNotEmpty
             ? componentsText
             : 'Action needed';
         if (componentsText.isEmpty) {
-          statusColor = AppColors.inkCoral;
+          statusColor = colors.accentCoral;
           statusWeight = FontWeight.w600;
         }
       }
     } else if (safe != null && safe == 0) {
       statusNote = '0 safe absences left';
-      statusColor = AppColors.inkPeach;
+      statusColor = colors.accentPeach;
       statusWeight = FontWeight.w600;
     } else if (safe != null && safe == 1) {
       statusNote = '1 safe absence left';
-      statusColor = AppColors.inkPeach;
+      statusColor = colors.accentPeach;
       statusWeight = FontWeight.w600;
     } else if (subject.isProvisional) {
       statusNote = 'Provisional calculation';
-      statusColor = AppColors.inkPeach;
+      statusColor = colors.accentPeach;
       statusWeight = FontWeight.w500;
     } else {
       statusNote = componentsText.isNotEmpty
@@ -432,7 +596,7 @@ class _SubjectPreviewRow extends StatelessWidget {
                     painter: _MiniRingPainter(
                       progress: progress,
                       progressColor: ringColor,
-                      trackColor: AppColors.track,
+                      trackColor: colors.track,
                       hasData:
                           !subject.isNotAvailable && subject.percentage != null,
                       strokeWidth: _strokeWidth,
@@ -444,11 +608,11 @@ class _SubjectPreviewRow extends StatelessWidget {
                       padding: const EdgeInsets.all(5),
                       child: Text(
                         formattedPct,
-                        style: AppTypography.labelSmall.copyWith(
+                        style: AppTypography.caption1.copyWith(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.3,
-                          color: AppColors.ink,
+                          color: colors.textPrimary,
                           fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                       ),
@@ -467,16 +631,20 @@ class _SubjectPreviewRow extends StatelessWidget {
                 children: [
                   Text(
                     subject.subjectName,
-                    style: AppTypography.itemTitle,
+                    style: AppTypography.headline.copyWith(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w600,
+                      color: colors.textPrimary,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
                   Text(
                     statusNote,
-                    style: AppTypography.labelSmall.copyWith(
+                    style: AppTypography.footnote.copyWith(
                       color: statusColor,
-                      fontSize: 12,
+                      fontSize: 12.5,
                       fontWeight: statusWeight,
                     ),
                     maxLines: 1,
@@ -487,21 +655,11 @@ class _SubjectPreviewRow extends StatelessWidget {
             ),
             const SizedBox(width: AppSpacing.xs),
 
-            // Right Side: Attended count + forward icon
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  countText,
-                  style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.mutedInk,
-                    fontSize: 12,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
-                ),
-                const SizedBox(width: 4),
-                AppIcon(AppIcons.forward, size: 14, color: AppColors.mutedInk),
-              ],
+            // Right Side: Navigation caret icon
+            AppIcon(
+              AppIcons.caretRight,
+              size: 15,
+              color: colors.textTertiary,
             ),
           ],
         ),

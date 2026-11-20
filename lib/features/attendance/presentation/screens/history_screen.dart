@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/errors/app_failure.dart';
-import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/shared/widgets/app_error_state.dart';
 import 'package:attendly/core/shared/widgets/app_toast.dart';
+import 'package:attendly/core/shared/widgets/apple/apple_inset_group.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
-import 'package:attendly/core/theme/app_radius.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_session.dart';
@@ -15,6 +14,7 @@ import 'package:attendly/features/attendance/presentation/providers/attendance_p
 import 'package:attendly/features/attendance/presentation/widgets/attendance_calendar.dart';
 import 'package:attendly/features/attendance/presentation/widgets/day_note_banner.dart';
 import 'package:attendly/features/attendance/presentation/widgets/delete_session_dialog.dart';
+import 'package:attendly/features/attendance/presentation/widgets/log_class_button.dart';
 import 'package:attendly/features/attendance/presentation/widgets/session_form_sheet.dart';
 import 'package:attendly/features/subjects/domain/entities/subject.dart';
 import 'package:attendly/features/subjects/presentation/providers/subjects_provider.dart';
@@ -25,6 +25,7 @@ class HistoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.colors;
     final selectedDate = ref.watch(selectedDateProvider);
     final sessionsAsync = ref.watch(sessionsForSelectedDateProvider);
     final subjectsAsync = ref.watch(activeSemesterSubjectsProvider);
@@ -43,7 +44,7 @@ class HistoryScreen extends ConsumerWidget {
         .format(selectedDate);
 
     return Scaffold(
-      backgroundColor: AppColors.warmWhite,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(
@@ -59,15 +60,22 @@ class HistoryScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Screen header
-              const Text('History', style: AppTypography.screenTitle),
-              const SizedBox(height: 4),
               Text(
-                'Calendar & Attendance Timeline',
-                style: AppTypography.bodySmall.copyWith(
-                  color: AppColors.mutedInk,
+                'History',
+                style: AppTypography.title1.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.8,
+                  color: colors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 2),
+              Text(
+                'Calendar & Attendance Timeline',
+                style: AppTypography.footnote.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 18),
 
               // Calendar widget
               const AttendanceCalendar(),
@@ -83,42 +91,31 @@ class HistoryScreen extends ConsumerWidget {
                       isToday
                           ? 'Today, ${DateFormat('d MMMM yyyy').format(selectedDate)}'
                           : formattedSelectedDate,
-                      style: AppTypography.sectionTitle.copyWith(
-                        fontSize: 16,
+                      style: AppTypography.headline.copyWith(
+                        fontSize: 16.5,
                         fontWeight: FontWeight.w700,
+                        color: colors.textPrimary,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  AppButton(
-                    label: 'Add Session',
-                    icon: AppIcon(
-                      AppIcons.add,
-                      size: 14,
-                      color: AppColors.pureWhite,
-                    ),
-                    size: AppButtonSize.small,
-                    variant: AppButtonVariant.primary,
-                    onPressed: () {
-                      showSessionFormSheet(
-                        context: context,
-                        prefilledDate: selectedDate,
-                      );
-                    },
+                  const SizedBox(width: 8),
+                  LogClassButton(
+                    selectedDate: selectedDate,
+                    semanticLabel: 'Log class for ${isToday ? 'Today' : formattedSelectedDate}',
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               DayNoteBanner(dateStr: formatDateOnly(selectedDate)),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
               // Session list for selected date
               sessionsAsync.when(
                 loading: () => Padding(
-                  padding: EdgeInsets.symmetric(vertical: 32),
+                  padding: const EdgeInsets.symmetric(vertical: 32),
                   child: Center(
                     child: CircularProgressIndicator(
-                      color: AppColors.brandViolet,
+                      color: colors.brandPrimary,
                     ),
                   ),
                 ),
@@ -132,66 +129,65 @@ class HistoryScreen extends ConsumerWidget {
                     return const _NoSessionsPlaceholder();
                   }
 
-                  return Column(
+                  return AppleInsetGroup(
+                    margin: EdgeInsets.zero,
+                    dividerIndent: 60.0,
                     children: sessions.map((session) {
                       final subject = subjectsMap[session.subjectId];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _SessionCard(
-                          session: session,
-                          subjectName: subject?.name ?? 'Subject',
-                          onEdit: () {
-                            showSessionFormSheet(
-                              context: context,
-                              sessionToEdit: session,
-                            );
-                          },
-                          onDelete: () async {
-                            final confirmed = await showDeleteSessionDialog(
-                              context: context,
-                              subjectName: subject?.name ?? 'Subject',
-                              componentName: session.component.displayName,
-                              date: session.sessionDate,
-                            );
+                      return _SessionTile(
+                        session: session,
+                        subjectName: subject?.name ?? 'Subject',
+                        onEdit: () {
+                          showSessionFormSheet(
+                            context: context,
+                            sessionToEdit: session,
+                          );
+                        },
+                        onDelete: () async {
+                          final confirmed = await showDeleteSessionDialog(
+                            context: context,
+                            subjectName: subject?.name ?? 'Subject',
+                            componentName: session.component.displayName,
+                            date: session.sessionDate,
+                          );
 
-                            if (confirmed == true && context.mounted) {
-                              try {
-                                await ref
-                                    .read(attendanceControllerProvider.notifier)
-                                    .deleteSession(session);
+                          if (confirmed == true && context.mounted) {
+                            try {
+                              await ref
+                                  .read(attendanceControllerProvider.notifier)
+                                  .deleteSession(session);
 
-                                if (context.mounted) {
-                                  AppToast.showSuccess(
-                                    context,
-                                    message: 'Session deleted',
-                                    actionLabel: 'Undo',
-                                    onAction: () async {
-                                      await ref
-                                          .read(
-                                            attendanceControllerProvider
-                                                .notifier,
-                                          )
-                                          .undo();
-                                      if (context.mounted) {
-                                        AppToast.showInfo(
-                                          context,
-                                          message: 'Session restored',
-                                        );
-                                      }
-                                    },
-                                  );
-                                }
-                              } catch (e) {
-                                if (context.mounted) {
-                                  AppToast.showError(
-                                    context,
-                                    message: e is AppFailure ? e.message : 'The session could not be deleted. Try again.',
-                                  );
-                                }
+                              if (context.mounted) {
+                                AppToast.showSuccess(
+                                  context,
+                                  message: 'Session deleted',
+                                  actionLabel: 'Undo',
+                                  onAction: () async {
+                                    await ref
+                                        .read(
+                                          attendanceControllerProvider
+                                              .notifier,
+                                        )
+                                        .undo();
+                                    if (context.mounted) {
+                                      AppToast.showInfo(
+                                        context,
+                                        message: 'Session restored',
+                                      );
+                                    }
+                                  },
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                AppToast.showError(
+                                  context,
+                                  message: e is AppFailure ? e.message : 'The session could not be deleted. Try again.',
+                                );
                               }
                             }
-                          },
-                        ),
+                          }
+                        },
                       );
                     }).toList(),
                   );
@@ -210,59 +206,51 @@ class _NoSessionsPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      decoration: BoxDecoration(
-        color: AppColors.pureWhite,
-        borderRadius: AppRadius.lgBorder,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.ink.withAlpha(6),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.divider, width: 1.5),
+    final colors = context.colors;
+
+    return AppleInsetGroup(
+      margin: EdgeInsets.zero,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 26),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AppIcon(
+                  AppIcons.calendar,
+                  size: 26,
+                  color: colors.textTertiary,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'No sessions recorded for this date',
+                  style: AppTypography.subhead.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colors.textPrimary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Classes not entered are unrecorded and never treated as absences.',
+                  style: AppTypography.footnote.copyWith(
+                    color: colors.textSecondary,
+                    height: 1.35,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-            alignment: Alignment.center,
-            child: AppIcon(
-              AppIcons.calendar,
-              size: 22,
-              color: AppColors.inkViolet,
-            ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            'No sessions recorded for this date',
-            style: AppTypography.itemTitle.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Classes not entered are unrecorded and never treated as absences.',
-            style: AppTypography.bodySmall,
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
-class _SessionCard extends StatelessWidget {
-  const _SessionCard({
+class _SessionTile extends StatelessWidget {
+  const _SessionTile({
     required this.session,
     required this.subjectName,
     required this.onEdit,
@@ -276,8 +264,10 @@ class _SessionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final isPresent = session.status == AttendanceStatus.present;
-    final statusColor = isPresent ? AppColors.inkMint : AppColors.inkCoral;
+    final statusColor = isPresent ? colors.accentMint : colors.accentCoral;
+    final statusBg = isPresent ? colors.accentMintSoft : colors.accentCoralSoft;
 
     final semanticLabel = StringBuffer(session.status.displayName)
       ..write(' session for ')
@@ -291,45 +281,27 @@ class _SessionCard extends StatelessWidget {
     return Semantics(
       container: true,
       label: semanticLabel.toString(),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.pureWhite,
-          borderRadius: AppRadius.lgBorder,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.ink.withAlpha(6),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Minimal status indicator icon without light background or text
+            // Status indicator circle
             Container(
-              width: 32,
-              height: 32,
+              width: 30,
+              height: 30,
               decoration: BoxDecoration(
-                color: Colors.transparent,
+                color: statusBg,
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: isPresent
-                      ? AppColors.inkMint.withValues(alpha: 0.35)
-                      : AppColors.inkCoral.withValues(alpha: 0.35),
-                  width: 1.5,
-                ),
               ),
               alignment: Alignment.center,
               child: AppIcon(
                 isPresent ? AppIcons.check : AppIcons.close,
-                size: 16,
+                size: 15,
                 color: statusColor,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
 
             // Subject & component info
             Expanded(
@@ -338,34 +310,35 @@ class _SessionCard extends StatelessWidget {
                 children: [
                   Text(
                     subjectName,
-                    style: AppTypography.itemTitle.copyWith(
+                    style: AppTypography.subhead.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: colors.textPrimary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 2),
                   Row(
                     children: [
                       Text(
                         session.component.displayName,
-                        style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.mutedInk,
-                          fontWeight: FontWeight.w600,
+                        style: AppTypography.caption1.copyWith(
+                          color: colors.textSecondary,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       if (session.note != null && session.note!.isNotEmpty) ...[
                         Text(
                           ' · ',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.mutedInk,
+                          style: AppTypography.caption1.copyWith(
+                            color: colors.textTertiary,
                           ),
                         ),
                         Expanded(
                           child: Text(
                             session.note!,
-                            style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.mutedInk,
+                            style: AppTypography.caption1.copyWith(
+                              color: colors.textSecondary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -378,27 +351,31 @@ class _SessionCard extends StatelessWidget {
               ),
             ),
 
-            // Edit button (comfortable 44x44 touch target, muted color)
+            // Edit button
             IconButton(
               key: Key('edit_session_${session.id}'),
               tooltip: 'Edit session',
-              icon: AppIcon(AppIcons.edit, size: 18, color: AppColors.mutedInk),
+              icon: AppIcon(
+                AppIcons.edit,
+                size: 18,
+                color: colors.textSecondary,
+              ),
               padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
               onPressed: onEdit,
             ),
 
-            // Delete button (comfortable 44x44 touch target, muted color)
+            // Delete button
             IconButton(
               key: Key('delete_session_${session.id}'),
               tooltip: 'Delete session',
               icon: AppIcon(
                 AppIcons.delete,
                 size: 18,
-                color: AppColors.mutedInk,
+                color: colors.textSecondary,
               ),
               padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
               onPressed: onDelete,
             ),
           ],

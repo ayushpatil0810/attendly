@@ -9,6 +9,7 @@ import 'package:attendly/features/attendance/data/repositories/attendance_reposi
 import 'package:attendly/features/attendance/domain/entities/attendance_calculation_method.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_status.dart';
 import 'package:attendly/features/attendance/domain/entities/session_component.dart';
+import 'package:attendly/features/dashboard/presentation/widgets/dashboard_trend_card.dart';
 import 'package:attendly/features/dashboard/presentation/widgets/overall_attendance_hero.dart';
 import 'package:attendly/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:attendly/features/semesters/data/repositories/semester_repository_impl.dart';
@@ -471,10 +472,12 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Trend chart is rendered with range and latest
+      // Analytics section and trend chart are rendered without redundant target label
+      expect(find.text('Analytics'), findsOneWidget);
+      expect(find.byType(DashboardTrendCard), findsOneWidget);
       expect(find.text('May 1 – May 2'), findsOneWidget);
       expect(find.text('Latest: '), findsOneWidget);
-      expect(find.text('75% Target'), findsOneWidget);
+      expect(find.text('75% Target'), findsNothing);
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);
@@ -660,6 +663,68 @@ void main() {
 
         expect(find.text('Total Percentage'), findsOneWidget);
         expect(find.text('4'), findsOneWidget);
+
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(Duration.zero);
+      },
+    );
+
+    testWidgets(
+      'tapping "+ X more subjects to review" reveals remaining subjects in-place without navigating away',
+      (tester) async {
+        final semRepo = SemesterRepositoryImpl(db);
+        final semId = await semRepo.createSemester(
+          name: 'Fall 2026',
+          attendanceThreshold: 0.75,
+        );
+        prefs.setInt('selected_active_semester_id_v1', semId);
+
+        final subRepo = SubjectRepositoryImpl(db);
+        // Create 6 subjects (all unrecorded = attention subjects)
+        for (var i = 1; i <= 6; i++) {
+          await subRepo.createSubject(
+            semesterId: semId,
+            name: 'Course $i',
+            lectureEnabled: true,
+            labEnabled: false,
+          );
+        }
+
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pumpAndSettle();
+
+        // Needs Attention section should show Course 1 to 4 initially
+        expect(find.text('Course 1'), findsOneWidget);
+        expect(find.text('Course 4'), findsOneWidget);
+        expect(find.text('Course 5'), findsNothing);
+        expect(find.text('Course 6'), findsNothing);
+
+        // Verify "+ 2 more subjects to review" button
+        final expandButton = find.text('+ 2 more subjects to review');
+        await tester.ensureVisible(expandButton);
+        await tester.pumpAndSettle();
+        expect(expandButton, findsOneWidget);
+
+        // Tap expand button: reveals Course 5 and Course 6 in-place
+        await tester.tap(expandButton);
+        await tester.pumpAndSettle();
+
+        final course5 = find.text('Course 5');
+        await tester.ensureVisible(course5);
+        expect(course5, findsOneWidget);
+        expect(find.text('Course 6'), findsOneWidget);
+
+        final showLessButton = find.text('Show less');
+        await tester.ensureVisible(showLessButton);
+        expect(showLessButton, findsOneWidget);
+
+        // Tap "Show less": collapses back
+        await tester.tap(showLessButton);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Course 5'), findsNothing);
+        expect(find.text('Course 6'), findsNothing);
+        expect(find.text('+ 2 more subjects to review'), findsOneWidget);
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);

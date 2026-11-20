@@ -111,48 +111,19 @@ void main() {
 
       expect(find.text('Settings'), findsOneWidget);
       expect(find.text('Semester Settings'), findsOneWidget);
+      expect(find.text('Appearance'), findsOneWidget);
       expect(find.text('Daily Reminder'), findsOneWidget);
       expect(find.text('Daily Attendance Reminder'), findsOneWidget);
-      expect(find.text('App Preferences'), findsOneWidget);
-      expect(find.text('Local Backup & Restore'), findsOneWidget);
-      expect(find.text('Privacy & Offline Guarantee'), findsOneWidget);
+      expect(find.text('Backup & Restore'), findsOneWidget);
 
       // Semester details
       expect(find.text('Semester 5'), findsOneWidget);
       expect(find.text('75%'), findsOneWidget);
       expect(find.text('Equal weight'), findsOneWidget);
-      expect(find.text('Split in half'), findsOneWidget);
 
       // Buttons
       expect(find.text('Export Backup'), findsOneWidget);
       expect(find.text('Restore Backup'), findsOneWidget);
-      expect(find.text('Haptic Feedback'), findsOneWidget);
-      expect(find.byTooltip('Share Semester via QR'), findsOneWidget);
-
-      await tester.pumpWidget(const SizedBox());
-      await tester.pump(Duration.zero);
-    });
-
-    testWidgets('toggling Haptic Feedback updates preference state', (
-      tester,
-    ) async {
-      setLargeViewport(tester);
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
-
-      expect(prefs.getBool('pref_haptic_feedback_enabled_v1'), isTrue);
-
-      // Tap the Haptic Feedback tile
-      await tester.tap(find.text('Haptic Feedback'));
-      await tester.pumpAndSettle();
-
-      expect(prefs.getBool('pref_haptic_feedback_enabled_v1'), isFalse);
-
-      // Tap again to toggle back on
-      await tester.tap(find.text('Haptic Feedback'));
-      await tester.pumpAndSettle();
-
-      expect(prefs.getBool('pref_haptic_feedback_enabled_v1'), isTrue);
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);
@@ -165,7 +136,12 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Split in half'));
+      // Tap dropdown to open calculation method menu
+      await tester.tap(find.text('Equal weight'));
+      await tester.pumpAndSettle();
+
+      // Select Split in half from menu
+      await tester.tap(find.text('Split in half').last);
       await tester.pumpAndSettle();
 
       final updatedSem = await semesterRepo.getSemesterById(activeSemId);
@@ -174,7 +150,12 @@ void main() {
         AttendanceCalculationMethod.componentAverage,
       );
 
-      await tester.tap(find.text('Equal weight'));
+      // Tap dropdown again to revert
+      await tester.tap(find.text('Split in half'));
+      await tester.pumpAndSettle();
+
+      // Select Equal weight from menu
+      await tester.tap(find.text('Equal weight').last);
       await tester.pumpAndSettle();
 
       final revertedSem = await semesterRepo.getSemesterById(activeSemId);
@@ -363,30 +344,6 @@ void main() {
           sems.first.calculationMethod,
           AttendanceCalculationMethod.componentAverage,
         );
-
-        await tester.pumpWidget(const SizedBox());
-        await tester.pump(Duration.zero);
-      },
-    );
-
-    testWidgets(
-      'Privacy section displays all offline guarantees and data ownership notices',
-      (tester) async {
-        await tester.pumpWidget(createWidgetUnderTest());
-        await tester.pumpAndSettle();
-
-        // Scroll to privacy section
-        await tester.drag(
-          find.byType(SingleChildScrollView),
-          const Offset(0, -600),
-        );
-        await tester.pumpAndSettle();
-
-        expect(find.text('100% Offline & Local Storage'), findsOneWidget);
-        expect(find.text('No Account Required'), findsOneWidget);
-        expect(find.text('No Cloud Synchronization'), findsOneWidget);
-        expect(find.text('Student-Managed Backups'), findsOneWidget);
-        expect(find.text('Data Safety Reminder'), findsOneWidget);
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);

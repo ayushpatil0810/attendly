@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+import 'package:attendly/app/router/route_names.dart';
 import 'package:attendly/core/theme/app_colors.dart';
-import 'package:attendly/core/theme/app_radius.dart';
+import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_calculation_method.dart';
 import 'package:attendly/features/attendance/domain/entities/semester_attendance_summary.dart';
 import 'package:attendly/features/attendance/domain/entities/threshold_status.dart';
 
+/// Card showing safe absences buffer or required recovery count with Apple HIG card styling.
 class SafeAbsenceRecoveryCard extends StatelessWidget {
   const SafeAbsenceRecoveryCard({super.key, required this.summary});
 
@@ -23,7 +27,7 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    // Raw Combined
+    final colors = context.colors;
     final isAtOrAbove = summary.thresholdStatus == ThresholdStatus.meeting;
 
     if (isAtOrAbove) {
@@ -44,13 +48,20 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.pureWhite,
-            borderRadius: AppRadius.mdBorder,
-            border: Border.all(color: AppColors.divider),
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: colors.border.withValues(
+                alpha: colors.isDark ? 0.4 : 0.6,
+              ),
+              width: 0.5,
+            ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.ink.withValues(alpha: 0.03),
-                blurRadius: 8,
+                color: Colors.black.withValues(
+                  alpha: colors.isDark ? 0.25 : 0.03,
+                ),
+                blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
             ],
@@ -61,10 +72,10 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    width: 7,
-                    height: 7,
+                    width: 8,
+                    height: 8,
                     decoration: BoxDecoration(
-                      color: AppColors.brandMint,
+                      color: colors.accentMint,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -72,19 +83,52 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       title,
-                      style: AppTypography.itemTitle.copyWith(
-                        color: AppColors.ink,
+                      style: AppTypography.headline.copyWith(
+                        fontSize: 16,
+                        color: colors.textPrimary,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 bodyText,
-                style: AppTypography.bodySmall.copyWith(
-                  color: AppColors.mutedInk,
+                style: AppTypography.subhead.copyWith(
+                  color: colors.textSecondary,
+                  fontSize: 13.5,
+                ),
+              ),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  context.push(RouteNames.simulatorPath);
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AppIcon(
+                      AppIcons.insights,
+                      size: 14,
+                      color: colors.brandPrimary,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      'Simulate What-if',
+                      style: AppTypography.caption1.copyWith(
+                        color: colors.brandPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: 3),
+                    AppIcon(
+                      AppIcons.forward,
+                      size: 11,
+                      color: colors.brandPrimary,
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -113,13 +157,20 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.pureWhite,
-            borderRadius: AppRadius.mdBorder,
-            border: Border.all(color: AppColors.divider),
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: colors.border.withValues(
+                alpha: colors.isDark ? 0.4 : 0.6,
+              ),
+              width: 0.5,
+            ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.ink.withValues(alpha: 0.03),
-                blurRadius: 8,
+                color: Colors.black.withValues(
+                  alpha: colors.isDark ? 0.25 : 0.03,
+                ),
+                blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
             ],
@@ -130,10 +181,10 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    width: 7,
-                    height: 7,
+                    width: 8,
+                    height: 8,
                     decoration: BoxDecoration(
-                      color: AppColors.brandCoral,
+                      color: colors.accentCoral,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -141,19 +192,52 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       title,
-                      style: AppTypography.itemTitle.copyWith(
-                        color: AppColors.ink,
+                      style: AppTypography.headline.copyWith(
+                        fontSize: 16,
+                        color: colors.textPrimary,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 message,
-                style: AppTypography.bodySmall.copyWith(
-                  color: AppColors.mutedInk,
+                style: AppTypography.subhead.copyWith(
+                  color: colors.textSecondary,
+                  fontSize: 13.5,
+                ),
+              ),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  context.push(RouteNames.simulatorPath);
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AppIcon(
+                      AppIcons.insights,
+                      size: 14,
+                      color: colors.brandPrimary,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      'Simulate What-if',
+                      style: AppTypography.caption1.copyWith(
+                        color: colors.brandPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: 3),
+                    AppIcon(
+                      AppIcons.forward,
+                      size: 11,
+                      color: colors.brandPrimary,
+                    ),
+                  ],
                 ),
               ),
             ],

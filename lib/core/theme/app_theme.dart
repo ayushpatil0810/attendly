@@ -4,26 +4,28 @@ import 'package:flutter/services.dart';
 import 'app_palettes.dart';
 import 'app_radius.dart';
 import 'app_theme_colors.dart';
-import 'app_theme_id.dart';
 import 'app_typography.dart';
 
-/// App ThemeData configuration for all 8 pastel themes across light and dark appearances.
+/// App ThemeData configuration for Attendly's unified Light and Dark themes.
 abstract final class AppTheme {
   /// Currently active theme tokens for global/static access.
   /// Kept in sync by AttendlyApp on build.
-  static AppThemeColors currentColors = AppPalettes.lavenderDreamLight;
+  static AppThemeColors currentColors = AppPalettes.light;
 
   static void setCurrentColors(AppThemeColors colors) {
     currentColors = colors;
   }
 
   // ─────────────────────────────────────────────
-  // Theme Builder for Any Theme & Brightness
+  // Theme Builder for Brightness
   // ─────────────────────────────────────────────
 
-  static ThemeData buildTheme(AppThemeId themeId, Brightness brightness) {
+  static ThemeData buildTheme(dynamic first, [Brightness? second]) {
+    final Brightness brightness = (first is Brightness)
+        ? first
+        : (second ?? Brightness.light);
     final isDark = brightness == Brightness.dark;
-    final colors = themeId.colorsFor(brightness);
+    final colors = isDark ? AppPalettes.dark : AppPalettes.light;
 
     final base = isDark
         ? ThemeData.dark(useMaterial3: true)
@@ -197,13 +199,54 @@ abstract final class AppTheme {
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
         behavior: SnackBarBehavior.floating,
       ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor:
+              isDark ? const Color(0xFFFAFAFA) : const Color(0xFF18181B),
+          foregroundColor:
+              isDark ? const Color(0xFF09090B) : Colors.white,
+          textStyle: AppTypography.labelLarge.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor:
+              isDark ? const Color(0xFFFAFAFA) : const Color(0xFF18181B),
+          foregroundColor:
+              isDark ? const Color(0xFF09090B) : Colors.white,
+          textStyle: AppTypography.labelLarge.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: colors.textPrimary,
+          side: BorderSide(color: colors.border, width: 1.2),
+          textStyle: AppTypography.labelLarge.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: colors.textPrimary,
+          textStyle: AppTypography.labelLarge.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
+        ),
+      ),
     );
   }
 
   // Convenience getters for default theme
-  static ThemeData get lightTheme =>
-      buildTheme(AppThemeId.lavenderDream, Brightness.light);
+  static ThemeData get lightTheme => buildTheme(Brightness.light);
 
-  static ThemeData get darkTheme =>
-      buildTheme(AppThemeId.lavenderDream, Brightness.dark);
+  static ThemeData get darkTheme => buildTheme(Brightness.dark);
 }

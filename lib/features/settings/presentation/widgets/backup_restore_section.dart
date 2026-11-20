@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/services/preferences_service.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
+import 'package:attendly/core/shared/widgets/apple/apple_inset_group.dart';
+import 'package:attendly/core/shared/widgets/apple/apple_list_tile.dart';
 import 'package:attendly/core/shared/widgets/app_toast.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_radius.dart';
-import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/settings/presentation/providers/settings_providers.dart';
 
@@ -16,6 +17,7 @@ class BackupRestoreSection extends ConsumerWidget {
   const BackupRestoreSection({super.key});
 
   void _handleExport(BuildContext context, WidgetRef ref) async {
+    final colors = context.colors;
     AppHaptics.selectionClick(ref);
     final result = await ref
         .read(backupControllerProvider.notifier)
@@ -30,15 +32,18 @@ class BackupRestoreSection extends ConsumerWidget {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: AppColors.pureWhite,
+          backgroundColor: colors.surface,
           shape: const RoundedRectangleBorder(borderRadius: AppRadius.lgBorder),
           title: Text(
             'Export Failed',
-            style: AppTypography.screenTitle.copyWith(fontSize: 18),
+            style: AppTypography.headline.copyWith(
+              fontWeight: FontWeight.w700,
+              color: colors.textPrimary,
+            ),
           ),
           content: Text(
             'Could not export backup: ${result.errorMessage}',
-            style: AppTypography.bodySmall,
+            style: AppTypography.bodySmall.copyWith(color: colors.textSecondary),
           ),
           actions: [
             AppButton(
@@ -53,6 +58,7 @@ class BackupRestoreSection extends ConsumerWidget {
   }
 
   void _handleRestore(BuildContext context, WidgetRef ref) async {
+    final colors = context.colors;
     AppHaptics.selectionClick(ref);
     final validationResult = await ref
         .read(backupControllerProvider.notifier)
@@ -64,21 +70,25 @@ class BackupRestoreSection extends ConsumerWidget {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: AppColors.pureWhite,
+          backgroundColor: colors.surface,
           shape: const RoundedRectangleBorder(borderRadius: AppRadius.lgBorder),
           title: Row(
             children: [
-              AppIcon(AppIcons.alert, color: AppColors.inkCoral, size: 20),
+              AppIcon(AppIcons.alert, color: colors.accentCoral, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Invalid Backup File',
-                style: AppTypography.screenTitle.copyWith(fontSize: 18),
+                style: AppTypography.headline.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: colors.textPrimary,
+                ),
               ),
             ],
           ),
           content: Text(
-            validationResult.error ?? 'The selected file could not be verified as a valid Attendly backup.',
-            style: AppTypography.bodySmall.copyWith(color: AppColors.ink),
+            validationResult.error ??
+                'The selected file could not be verified as a valid Attendly backup.',
+            style: AppTypography.bodySmall.copyWith(color: colors.textSecondary),
           ),
           actions: [
             AppButton(
@@ -115,17 +125,20 @@ class BackupRestoreSection extends ConsumerWidget {
             showDialog(
               context: context,
               builder: (ctx) => AlertDialog(
-                backgroundColor: AppColors.pureWhite,
+                backgroundColor: colors.surface,
                 shape: const RoundedRectangleBorder(
                   borderRadius: AppRadius.lgBorder,
                 ),
                 title: Text(
                   'Restore Failed',
-                  style: AppTypography.screenTitle.copyWith(fontSize: 18),
+                  style: AppTypography.headline.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colors.textPrimary,
+                  ),
                 ),
-                content: const Text(
+                content: Text(
                   'An error occurred during restore. All changes were rolled back and existing data is safe.',
-                  style: AppTypography.bodySmall,
+                  style: AppTypography.bodySmall.copyWith(color: colors.textSecondary),
                 ),
                 actions: [
                   AppButton(
@@ -144,168 +157,57 @@ class BackupRestoreSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.colors;
     final backupState = ref.watch(backupControllerProvider);
 
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.cardPadding),
-      decoration: BoxDecoration(
-        color: AppColors.pureWhite,
-        borderRadius: AppRadius.lgBorder,
-        border: Border.all(color: AppColors.divider.withValues(alpha: 0.8)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.ink.withValues(alpha: 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 3),
+    return AppleInsetGroup(
+      header: 'Backup & Restore',
+      margin: EdgeInsets.zero,
+      children: [
+        // Export Tile
+        AppleListTile(
+          leading: AppleIconTile(
+            icon: AppIcons.exportFile,
+            backgroundColor: colors.accentMint,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Export Card Block
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: AppColors.softMint,
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: AppIcon(
-                  AppIcons.exportFile,
-                  color: AppColors.inkMint,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Export Local Backup',
-                      style: AppTypography.itemTitle,
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      'Save all semesters, subjects, and attendance history to a portable JSON backup file.',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.mutedInk,
-                        height: 1.35,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    AppButton(
-                      label: 'Export Backup',
-                      icon: AppIcon(
-                        AppIcons.exportFile,
-                        size: 16,
-                        color: AppColors.pureWhite,
-                      ),
-                      size: AppButtonSize.small,
-                      isLoading: backupState.isExporting,
-                      onPressed:
-                          backupState.isExporting || backupState.isRestoring
-                          ? null
-                          : () => _handleExport(context, ref),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Divider(height: 1, color: AppColors.divider),
-          const SizedBox(height: 16),
-
-          // Restore Card Block
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: AppColors.softLavender,
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: AppIcon(
-                  AppIcons.importFile,
-                  color: AppColors.brandViolet,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Restore from Backup',
-                      style: AppTypography.itemTitle,
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      'Import data from a previously saved JSON file. Restoring will replace existing local records.',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.mutedInk,
-                        height: 1.35,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    AppButton(
-                      label: 'Restore Backup',
-                      variant: AppButtonVariant.secondary,
-                      icon: AppIcon(
-                        AppIcons.importFile,
-                        size: 16,
-                        color: AppColors.brandViolet,
-                      ),
-                      size: AppButtonSize.small,
-                      isLoading: backupState.isRestoring,
-                      onPressed:
-                          backupState.isExporting || backupState.isRestoring
-                          ? null
-                          : () => _handleRestore(context, ref),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-
-          // Atomic Guarantee Safety Callout
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.softMint.withValues(alpha: 0.6),
-              borderRadius: AppRadius.smBorder,
-            ),
-            child: Row(
-              children: [
-                AppIcon(AppIcons.check, size: 14, color: AppColors.inkMint),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Atomic guarantee: If an import is interrupted, all changes roll back safely with zero data loss.',
-                    style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.inkMint,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                    ),
+          title: 'Export Backup',
+          trailing: backupState.isExporting
+              ? SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: colors.brandPrimary,
                   ),
-                ),
-              ],
-            ),
+                )
+              : null,
+          showDisclosure: !backupState.isExporting,
+          onTap: backupState.isExporting ? null : () => _handleExport(context, ref),
+        ),
+
+        // Restore Tile
+        AppleListTile(
+          leading: AppleIconTile(
+            icon: AppIcons.importFile,
+            backgroundColor: colors.isDark
+                ? const Color(0xFF0A84FF)
+                : const Color(0xFF007AFF),
           ),
-        ],
-      ),
+          title: 'Restore Backup',
+          trailing: backupState.isRestoring
+              ? SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: colors.brandPrimary,
+                  ),
+                )
+              : null,
+          showDisclosure: !backupState.isRestoring,
+          onTap: backupState.isRestoring ? null : () => _handleRestore(context, ref),
+        ),
+      ],
     );
   }
 }
