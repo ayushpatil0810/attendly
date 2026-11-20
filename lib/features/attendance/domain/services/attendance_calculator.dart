@@ -62,10 +62,11 @@ class AttendanceCalculator {
     required AttendanceCalculationMethod calculationMethod,
     double targetGoal = 0.85,
   }) {
-    // Filter sessions belonging to this subject
-    final subjectSessions = sessions
-        .where((s) => s.subjectId == subject.id)
-        .toList();
+    // Filter sessions belonging to this subject (skips re-filtering if already pre-partitioned)
+    final subjectSessions =
+        sessions.length <= 1 || !sessions.any((s) => s.subjectId != subject.id)
+        ? sessions
+        : sessions.where((s) => s.subjectId == subject.id).toList();
 
     var lecPresent = 0;
     var lecConducted = 0;
@@ -222,11 +223,16 @@ class AttendanceCalculator {
     required List<Subject> subjects,
     required List<AttendanceSession> sessions,
   }) {
+    final sessionsBySubjectId = <int, List<AttendanceSession>>{};
+    for (final session in sessions) {
+      (sessionsBySubjectId[session.subjectId] ??= []).add(session);
+    }
+
     final subjectSummaries = subjects
         .map(
           (subject) => calculateSubject(
             subject: subject,
-            sessions: sessions,
+            sessions: sessionsBySubjectId[subject.id] ?? const [],
             threshold: semester.attendanceThreshold,
             calculationMethod: semester.calculationMethod,
             targetGoal: semester.targetGoal,

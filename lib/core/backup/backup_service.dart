@@ -50,6 +50,15 @@ class BackupService {
               ]))
               .get();
 
+      final dayNoteRows =
+          await (_db.select(_db.dayNotes)..orderBy([
+                (tbl) =>
+                    OrderingTerm(expression: tbl.date, mode: OrderingMode.asc),
+                (tbl) =>
+                    OrderingTerm(expression: tbl.id, mode: OrderingMode.asc),
+              ]))
+              .get();
+
       final backupData = BackupData(
         format: BackupConstants.formatIdentifier,
         formatVersion: BackupConstants.currentFormatVersion,
@@ -62,6 +71,7 @@ class BackupService {
                 startDate: r.startDate,
                 endDate: r.endDate,
                 attendanceThreshold: r.attendanceThreshold,
+                targetGoal: r.targetGoal,
                 calculationMethod: r.calculationMethod,
                 isArchived: r.isArchived,
                 createdAt: r.createdAt,
@@ -97,6 +107,18 @@ class BackupService {
               ),
             )
             .toList(),
+        dayNotes: dayNoteRows
+            .map(
+              (r) => DayNoteBackupModel(
+                id: r.id,
+                semesterId: r.semesterId,
+                date: r.date,
+                content: r.content,
+                createdAt: r.createdAt,
+                updatedAt: r.updatedAt,
+              ),
+            )
+            .toList(),
         appPreferences: appPreferences,
       );
 
@@ -119,6 +141,7 @@ class BackupService {
     return await _db.transaction<int?>(() async {
       // 1. Delete all existing records (cascading from semesters, but explicit on each table)
       await _db.delete(_db.attendanceSessions).go();
+      await _db.delete(_db.dayNotes).go();
       await _db.delete(_db.subjects).go();
       await _db.delete(_db.semesters).go();
 
@@ -135,6 +158,7 @@ class BackupService {
                 startDate: Value(semester.startDate),
                 endDate: Value(semester.endDate),
                 attendanceThreshold: Value(semester.attendanceThreshold),
+                targetGoal: Value(semester.targetGoal),
                 calculationMethod: Value(semester.calculationMethod),
                 isArchived: Value(semester.isArchived),
                 createdAt: semester.createdAt,
@@ -174,28 +198,58 @@ class BackupService {
         oldToNewSubjectId[subject.id] = newId;
       }
 
-      // 4. Insert attendance sessions with remapped subject IDs
-      for (final session in backupData.attendanceSessions) {
-        final newSubjectId = oldToNewSubjectId[session.subjectId];
-        if (newSubjectId == null) {
-          throw ValidationFailure(
-            'Session on ${session.sessionDate} references missing subject ${session.subjectId}.',
+      // 4. Insert attendance sessions with remapped subject IDs in batch
+      if (backupData.attendanceSessions.isNotEmpty) {
+        final sessionCompanions = <AttendanceSessionsCompanion>[];
+        for (final session in backupData.attendanceSessions) {
+          final newSubjectId = oldToNewSubjectId[session.subjectId];
+          if (newSubjectId == null) {
+            throw ValidationFailure(
+              'Session on ${session.sessionDate} references missing subject ${session.subjectId}.',
+            );
+          }
+
+          sessionCompanions.add(
+            AttendanceSessionsCompanion.insert(
+              subjectId: newSubjectId,
+              sessionDate: session.sessionDate,
+              component: session.component,
+              status: session.status,
+              note: Value(session.note),
+              createdAt: session.createdAt,
+              updatedAt: session.updatedAt,
+            ),
           );
         }
+        await _db.batch((batch) {
+          batch.insertAll(_db.attendanceSessions, sessionCompanions);
+        });
+      }
 
-        await _db
-            .into(_db.attendanceSessions)
-            .insert(
-              AttendanceSessionsCompanion.insert(
-                subjectId: newSubjectId,
-                sessionDate: session.sessionDate,
-                component: session.component,
-                status: session.status,
-                note: Value(session.note),
-                createdAt: session.createdAt,
-                updatedAt: session.updatedAt,
-              ),
+      // 5. Insert day notes with remapped semester IDs in batch
+      if (backupData.dayNotes.isNotEmpty) {
+        final dayNoteCompanions = <DayNotesCompanion>[];
+        for (final note in backupData.dayNotes) {
+          final newSemesterId = oldToNewSemesterId[note.semesterId];
+          if (newSemesterId == null) {
+            throw ValidationFailure(
+              'Day note on ${note.date} references missing semester ${note.semesterId}.',
             );
+          }
+
+          dayNoteCompanions.add(
+            DayNotesCompanion.insert(
+              semesterId: newSemesterId,
+              date: note.date,
+              content: note.content,
+              createdAt: note.createdAt,
+              updatedAt: note.updatedAt,
+            ),
+          );
+        }
+        await _db.batch((batch) {
+          batch.insertAll(_db.dayNotes, dayNoteCompanions);
+        });
       }
 
       return firstActiveSemesterId;

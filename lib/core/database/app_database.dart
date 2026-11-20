@@ -30,6 +30,14 @@ class AppDatabase extends _$AppDatabase {
         'ON attendance_sessions(session_date);',
       );
       await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_attendance_sessions_subject_date '
+        'ON attendance_sessions(subject_id, session_date);',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_subjects_semester_sort '
+        'ON subjects(semester_id, sort_order);',
+      );
+      await customStatement(
         'CREATE INDEX IF NOT EXISTS idx_day_notes_date '
         'ON day_notes(date);',
       );
@@ -94,6 +102,14 @@ class AppDatabase extends _$AppDatabase {
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON;');
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_attendance_sessions_subject_date '
+        'ON attendance_sessions(subject_id, session_date);',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_subjects_semester_sort '
+        'ON subjects(semester_id, sort_order);',
+      );
     },
   );
 }

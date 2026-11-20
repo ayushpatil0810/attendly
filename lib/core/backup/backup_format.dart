@@ -14,6 +14,7 @@ class SemesterBackupModel {
     this.startDate,
     this.endDate,
     required this.attendanceThreshold,
+    this.targetGoal = 0.85,
     required this.calculationMethod,
     required this.isArchived,
     required this.createdAt,
@@ -25,6 +26,7 @@ class SemesterBackupModel {
   final String? startDate;
   final String? endDate;
   final double attendanceThreshold;
+  final double targetGoal;
   final String calculationMethod;
   final bool isArchived;
   final int createdAt;
@@ -36,6 +38,7 @@ class SemesterBackupModel {
     'startDate': startDate,
     'endDate': endDate,
     'attendanceThreshold': attendanceThreshold,
+    'targetGoal': targetGoal,
     'calculationMethod': calculationMethod,
     'isArchived': isArchived,
     'createdAt': createdAt,
@@ -49,6 +52,7 @@ class SemesterBackupModel {
       startDate: json['startDate'] as String?,
       endDate: json['endDate'] as String?,
       attendanceThreshold: (json['attendanceThreshold'] as num).toDouble(),
+      targetGoal: (json['targetGoal'] as num?)?.toDouble() ?? 0.85,
       calculationMethod: json['calculationMethod'] as String,
       isArchived: json['isArchived'] as bool? ?? false,
       createdAt: json['createdAt'] as int,
@@ -151,6 +155,45 @@ class AttendanceSessionBackupModel {
   }
 }
 
+/// Backup representation of a DayNote
+class DayNoteBackupModel {
+  const DayNoteBackupModel({
+    required this.id,
+    required this.semesterId,
+    required this.date,
+    required this.content,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  final int id;
+  final int semesterId;
+  final String date;
+  final String content;
+  final int createdAt;
+  final int updatedAt;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'semesterId': semesterId,
+    'date': date,
+    'content': content,
+    'createdAt': createdAt,
+    'updatedAt': updatedAt,
+  };
+
+  factory DayNoteBackupModel.fromJson(Map<String, dynamic> json) {
+    return DayNoteBackupModel(
+      id: json['id'] as int,
+      semesterId: json['semesterId'] as int,
+      date: json['date'] as String,
+      content: json['content'] as String,
+      createdAt: json['createdAt'] as int,
+      updatedAt: json['updatedAt'] as int,
+    );
+  }
+}
+
 /// Root data model representing the complete versioned backup
 class BackupData {
   const BackupData({
@@ -160,6 +203,7 @@ class BackupData {
     required this.semesters,
     required this.subjects,
     required this.attendanceSessions,
+    this.dayNotes = const [],
     this.appPreferences,
   });
 
@@ -169,6 +213,7 @@ class BackupData {
   final List<SemesterBackupModel> semesters;
   final List<SubjectBackupModel> subjects;
   final List<AttendanceSessionBackupModel> attendanceSessions;
+  final List<DayNoteBackupModel> dayNotes;
   final Map<String, dynamic>? appPreferences;
 
   Map<String, dynamic> toJson() => {
@@ -179,6 +224,7 @@ class BackupData {
       'semesters': semesters.map((s) => s.toJson()).toList(),
       'subjects': subjects.map((s) => s.toJson()).toList(),
       'attendanceSessions': attendanceSessions.map((s) => s.toJson()).toList(),
+      'dayNotes': dayNotes.map((n) => n.toJson()).toList(),
       if (appPreferences != null) 'preferences': appPreferences,
     },
   };
@@ -210,6 +256,7 @@ class BackupData {
       sessionsCount: attendanceSessions.length,
       presentCount: presents,
       absentCount: absents,
+      dayNotesCount: dayNotes.length,
     );
   }
 }
@@ -224,6 +271,7 @@ class BackupSummary {
     required this.sessionsCount,
     required this.presentCount,
     required this.absentCount,
+    this.dayNotesCount = 0,
   });
 
   final DateTime exportedAt;
@@ -233,4 +281,5 @@ class BackupSummary {
   final int sessionsCount;
   final int presentCount;
   final int absentCount;
+  final int dayNotesCount;
 }

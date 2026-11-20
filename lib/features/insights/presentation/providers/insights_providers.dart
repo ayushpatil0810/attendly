@@ -61,7 +61,19 @@ final filteredSemesterAttendanceSummaryProvider =
       final sessionsAsync = ref.watch(activeSemesterSessionsStreamProvider);
       final filter = ref.watch(insightsFilterProvider);
 
-      if (subjectsAsync.isLoading || sessionsAsync.isLoading) {
+      if (!subjectsAsync.hasValue || !sessionsAsync.hasValue) {
+        if (subjectsAsync.hasError) {
+          return AsyncError(
+            subjectsAsync.error!,
+            subjectsAsync.stackTrace ?? StackTrace.current,
+          );
+        }
+        if (sessionsAsync.hasError) {
+          return AsyncError(
+            sessionsAsync.error!,
+            sessionsAsync.stackTrace ?? StackTrace.current,
+          );
+        }
         return const AsyncLoading();
       }
 

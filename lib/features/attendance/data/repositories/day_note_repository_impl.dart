@@ -92,28 +92,33 @@ class DayNoteRepositoryImpl implements DayNoteRepository {
     final now = DateTime.now().toUtc().millisecondsSinceEpoch;
 
     try {
-      final existing = await getNoteForDate(semesterId, date);
-      if (existing != null) {
-        await (_db.update(_db.dayNotes)..where(
-              (tbl) =>
-                  tbl.semesterId.equals(semesterId) & tbl.date.equals(date),
-            ))
-            .write(
-              DayNotesCompanion(content: Value(trimmed), updatedAt: Value(now)),
-            );
-      } else {
-        await _db
-            .into(_db.dayNotes)
-            .insert(
-              DayNotesCompanion.insert(
-                semesterId: semesterId,
-                date: date,
-                content: trimmed,
-                createdAt: now,
-                updatedAt: now,
-              ),
-            );
-      }
+      await _db.transaction(() async {
+        final existing = await getNoteForDate(semesterId, date);
+        if (existing != null) {
+          await (_db.update(_db.dayNotes)..where(
+                (tbl) =>
+                    tbl.semesterId.equals(semesterId) & tbl.date.equals(date),
+              ))
+              .write(
+                DayNotesCompanion(
+                  content: Value(trimmed),
+                  updatedAt: Value(now),
+                ),
+              );
+        } else {
+          await _db
+              .into(_db.dayNotes)
+              .insert(
+                DayNotesCompanion.insert(
+                  semesterId: semesterId,
+                  date: date,
+                  content: trimmed,
+                  createdAt: now,
+                  updatedAt: now,
+                ),
+              );
+        }
+      });
     } catch (e) {
       throw DatabaseFailure('Failed to save day note: $e');
     }

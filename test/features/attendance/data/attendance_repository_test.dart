@@ -311,5 +311,135 @@ void main() {
       final remaining = await repo.getSessionsForDate(semesterId, '2026-03-10');
       expect(remaining, isEmpty);
     });
+
+    test('getSessionBySubjectDateComponent returns latest session when multiple exist on same day', () async {
+      final id1 = await repo.createSession(
+        subjectId: subjectBothId,
+        sessionDate: '2026-03-10',
+        component: SessionComponent.lecture,
+        status: AttendanceStatus.absent,
+        note: 'First lecture',
+      );
+      final id2 = await repo.createSession(
+        subjectId: subjectBothId,
+        sessionDate: '2026-03-10',
+        component: SessionComponent.lecture,
+        status: AttendanceStatus.present,
+        note: 'Second lecture',
+      );
+
+      expect(id2, greaterThan(id1));
+
+      // Must not throw StateError: Too many elements
+      final session = await repo.getSessionBySubjectDateComponent(
+        subjectBothId,
+        '2026-03-10',
+        SessionComponent.lecture,
+      );
+      expect(session, isNotNull);
+      expect(session!.id, equals(id2));
+      expect(session.note, equals('Second lecture'));
+    });
+
+    test('rejects calendar date rollover such as 2026-02-31', () async {
+      expect(
+        () => repo.createSession(
+          subjectId: subjectBothId,
+          sessionDate: '2026-02-31',
+          component: SessionComponent.lecture,
+          status: AttendanceStatus.present,
+        ),
+        throwsA(isA<ValidationFailure>()),
+      );
+    });
+
+    test('updateSession throws ValidationFailure if subject does not have component enabled', () async {
+      final id = await repo.createSession(
+        subjectId: subjectBothId,
+        sessionDate: '2026-03-10',
+        component: SessionComponent.lecture,
+        status: AttendanceStatus.present,
+      );
+
+      final session = (await repo.getSessionById(id))!;
+      // Point to lecture-only subject but set component to lab
+      final invalidUpdate = session.copyWith(
+        subjectId: subjectLectureOnlyId,
+        component: SessionComponent.lab,
+      );
+
+      expect(
+        () => repo.updateSession(invalidUpdate),
+        throwsA(isA<ValidationFailure>()),
+      );
+    });
+
+    test(
+      'getSessionBySubjectDateComponent returns latest session when multiple exist on same day',
+      () async {
+        final id1 = await repo.createSession(
+          subjectId: subjectBothId,
+          sessionDate: '2026-03-10',
+          component: SessionComponent.lecture,
+          status: AttendanceStatus.absent,
+          note: 'First lecture',
+        );
+        final id2 = await repo.createSession(
+          subjectId: subjectBothId,
+          sessionDate: '2026-03-10',
+          component: SessionComponent.lecture,
+          status: AttendanceStatus.present,
+          note: 'Second lecture',
+        );
+
+        expect(id2, greaterThan(id1));
+
+        // Must not throw StateError: Too many elements
+        final session = await repo.getSessionBySubjectDateComponent(
+          subjectBothId,
+          '2026-03-10',
+          SessionComponent.lecture,
+        );
+        expect(session, isNotNull);
+        expect(session!.id, equals(id2));
+        expect(session.note, equals('Second lecture'));
+      },
+    );
+
+    test('rejects calendar date rollover such as 2026-02-31', () async {
+      expect(
+        () => repo.createSession(
+          subjectId: subjectBothId,
+          sessionDate: '2026-02-31',
+          component: SessionComponent.lecture,
+          status: AttendanceStatus.present,
+        ),
+        throwsA(isA<ValidationFailure>()),
+      );
+    });
+
+    test(
+      'updateSession throws ValidationFailure if subject does not have component enabled',
+      () async {
+        final id = await repo.createSession(
+          subjectId: subjectBothId,
+          sessionDate: '2026-03-10',
+          component: SessionComponent.lecture,
+          status: AttendanceStatus.present,
+        );
+
+        final session = (await repo.getSessionById(id))!;
+        // Point to lecture-only subject but set component to lab
+        final invalidUpdate = session.copyWith(
+          subjectId: subjectLectureOnlyId,
+          component: SessionComponent.lab,
+        );
+
+        expect(
+          () => repo.updateSession(invalidUpdate),
+          throwsA(isA<ValidationFailure>()),
+        );
+      },
+    );
   });
 }

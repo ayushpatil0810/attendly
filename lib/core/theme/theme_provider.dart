@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/home_widget_service.dart';
-import '../../features/onboarding/presentation/providers/onboarding_provider.dart';
+import '../providers/shared_preferences_provider.dart';
 import 'app_palettes.dart';
 import 'app_theme.dart';
 import 'app_theme_id.dart';

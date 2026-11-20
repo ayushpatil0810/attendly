@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:attendly/core/backup/backup_format.dart';
@@ -5,6 +6,8 @@ import 'package:attendly/core/backup/backup_providers.dart';
 import 'package:attendly/core/backup/backup_validator.dart';
 import 'package:attendly/core/services/platform_file_service.dart';
 import 'package:attendly/core/services/preferences_service.dart';
+import 'package:attendly/core/theme/app_theme_id.dart';
+import 'package:attendly/core/theme/theme_provider.dart';
 import 'package:attendly/features/attendance/presentation/providers/attendance_providers.dart';
 import 'package:attendly/features/semesters/presentation/providers/semesters_provider.dart';
 
@@ -48,10 +51,14 @@ class BackupController extends Notifier<BackupOperationState> {
       final backupService = ref.read(backupServiceProvider);
       final fileService = ref.read(platformFileServiceProvider);
       final preferences = ref.read(appPreferencesProvider);
+      final themeMode = ref.read(themeModeProvider);
+      final activeThemeId = ref.read(activeThemeIdProvider);
 
       final jsonContent = await backupService.exportBackupJson(
         appPreferences: {
           'hapticFeedbackEnabled': preferences.hapticFeedbackEnabled,
+          'themeMode': themeMode.name,
+          'colorThemeId': activeThemeId.id,
         },
       );
 
@@ -102,6 +109,20 @@ class BackupController extends Notifier<BackupOperationState> {
         final haptic = data.appPreferences!['hapticFeedbackEnabled'];
         if (haptic is bool) {
           ref.read(appPreferencesProvider.notifier).setHapticFeedback(haptic);
+        }
+        final themeModeName = data.appPreferences!['themeMode'];
+        if (themeModeName is String) {
+          final mode = ThemeMode.values.firstWhere(
+            (m) => m.name == themeModeName,
+            orElse: () => ThemeMode.system,
+          );
+          ref.read(themeModeProvider.notifier).setThemeMode(mode);
+        }
+        final colorThemeId = data.appPreferences!['colorThemeId'];
+        if (colorThemeId is String) {
+          ref
+              .read(activeThemeIdProvider.notifier)
+              .setThemeId(AppThemeId.fromId(colorThemeId));
         }
       }
 

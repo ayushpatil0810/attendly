@@ -6,6 +6,7 @@ import 'package:attendly/core/backup/backup_validator.dart';
 import 'package:attendly/core/database/app_database.dart';
 import 'package:attendly/core/errors/app_failure.dart';
 import 'package:attendly/features/attendance/data/repositories/attendance_repository_impl.dart';
+import 'package:attendly/features/attendance/data/repositories/day_note_repository_impl.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_calculation_method.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_status.dart';
 import 'package:attendly/features/attendance/domain/entities/session_component.dart';
@@ -374,6 +375,257 @@ void main() {
         expect(sess2.length, 3);
 
         await db2.close();
+      },
+    );
+
+    test('round-trip export and restore preserves day notes and semester targetGoal', () async {
+      final dayNoteRepo = DayNoteRepositoryImpl(db);
+
+      // 1. Create semester with custom targetGoal
+      final semId = await semesterRepo.createSemester(
+        name: 'Semester 7',
+        attendanceThreshold: 0.75,
+        targetGoal: 0.90,
+      );
+
+      final subId = await subjectRepo.createSubject(
+        semesterId: semId,
+        name: 'Machine Learning',
+      );
+
+      await attendanceRepo.createSession(
+        subjectId: subId,
+        sessionDate: '2026-03-01',
+        component: SessionComponent.lecture,
+        status: AttendanceStatus.present,
+      );
+
+      await dayNoteRepo.setNoteForDate(
+        semesterId: semId,
+        date: '2026-03-01',
+        content: 'Important revision on neural networks',
+      );
+
+      // 2. Export
+      final exportedJson = await backupService.exportBackupJson();
+      final validation = BackupValidator.validate(exportedJson);
+      expect(validation.isValid, isTrue);
+      expect(validation.data!.dayNotes.length, 1);
+      expect(
+        validation.data!.dayNotes.first.content,
+        'Important revision on neural networks',
+      );
+      expect(validation.data!.semesters.first.targetGoal, 0.90);
+
+      // 3. Restore into fresh database
+      final freshDb = AppDatabase.forTesting(NativeDatabase.memory());
+      final freshBackupService = BackupService(freshDb);
+      final freshSemRepo = SemesterRepositoryImpl(freshDb);
+      final freshDayNoteRepo = DayNoteRepositoryImpl(freshDb);
+
+      final restoredSemId = await freshBackupService.restoreBackup(
+        validation.data!,
+      );
+      expect(restoredSemId, isNotNull);
+
+      // 4. Verify semester targetGoal restored
+      final restoredSemesters = await freshSemRepo.getSemesters();
+      expect(restoredSemesters.first.targetGoal, 0.90);
+
+      // 5. Verify dayNote restored with remapped semesterId
+      final restoredNote = await freshDayNoteRepo.getNoteForDate(
+        restoredSemId!,
+        '2026-03-01',
+      );
+      expect(restoredNote, isNotNull);
+      expect(restoredNote!.semesterId, equals(restoredSemId));
+      expect(restoredNote.content, 'Important revision on neural networks');
+
+      await freshDb.close();
+    });
+
+    test('restores legacy backup without dayNotes or targetGoal with safe defaults', () async {
+      const legacyJson = '''
+{
+  "format": "college-attendance-tracker-backup",
+  "formatVersion": 1,
+  "exportedAt": "2026-01-01T00:00:00.000Z",
+  "data": {
+    "semesters": [
+      {
+        "id": 1,
+        "name": "Legacy Semester",
+        "attendanceThreshold": 0.80,
+        "calculationMethod": "raw_combined",
+        "isArchived": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000
+      }
+    ],
+    "subjects": [
+      {
+        "id": 10,
+        "semesterId": 1,
+        "name": "Physics",
+        "lectureEnabled": true,
+        "labEnabled": false,
+        "sortOrder": 0,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000
+      }
+    ],
+    "attendanceSessions": []
+  }
+}
+''';
+
+      final validation = BackupValidator.validate(legacyJson);
+      expect(validation.isValid, isTrue);
+      expect(validation.data!.dayNotes, isEmpty);
+      expect(validation.data!.semesters.first.targetGoal, 0.85);
+
+      final freshDb = AppDatabase.forTesting(NativeDatabase.memory());
+      final freshBackupService = BackupService(freshDb);
+      final freshSemRepo = SemesterRepositoryImpl(freshDb);
+
+      final restoredId = await freshBackupService.restoreBackup(
+        validation.data!,
+      );
+      expect(restoredId, isNotNull);
+
+      final sems = await freshSemRepo.getSemesters();
+      expect(sems.first.targetGoal, 0.85);
+
+      await freshDb.close();
+    });
+
+    test(
+      'round-trip export and restore preserves day notes and semester targetGoal',
+      () async {
+        final dayNoteRepo = DayNoteRepositoryImpl(db);
+
+        // 1. Create semester with custom targetGoal
+        final semId = await semesterRepo.createSemester(
+          name: 'Semester 7',
+          attendanceThreshold: 0.75,
+          targetGoal: 0.90,
+        );
+
+        final subId = await subjectRepo.createSubject(
+          semesterId: semId,
+          name: 'Machine Learning',
+        );
+
+        await attendanceRepo.createSession(
+          subjectId: subId,
+          sessionDate: '2026-03-01',
+          component: SessionComponent.lecture,
+          status: AttendanceStatus.present,
+        );
+
+        await dayNoteRepo.setNoteForDate(
+          semesterId: semId,
+          date: '2026-03-01',
+          content: 'Important revision on neural networks',
+        );
+
+        // 2. Export
+        final exportedJson = await backupService.exportBackupJson();
+        final validation = BackupValidator.validate(exportedJson);
+        expect(validation.isValid, isTrue);
+        expect(validation.data!.dayNotes.length, 1);
+        expect(
+          validation.data!.dayNotes.first.content,
+          'Important revision on neural networks',
+        );
+        expect(validation.data!.semesters.first.targetGoal, 0.90);
+
+        // 3. Restore into fresh database
+        final freshDb = AppDatabase.forTesting(NativeDatabase.memory());
+        final freshBackupService = BackupService(freshDb);
+        final freshSemRepo = SemesterRepositoryImpl(freshDb);
+        final freshDayNoteRepo = DayNoteRepositoryImpl(freshDb);
+
+        final restoredSemId = await freshBackupService.restoreBackup(
+          validation.data!,
+        );
+        expect(restoredSemId, isNotNull);
+
+        // 4. Verify semester targetGoal restored
+        final restoredSemesters = await freshSemRepo.getSemesters();
+        expect(restoredSemesters.first.targetGoal, 0.90);
+
+        // 5. Verify dayNote restored with remapped semesterId
+        final restoredNote = await freshDayNoteRepo.getNoteForDate(
+          restoredSemId!,
+          '2026-03-01',
+        );
+        expect(restoredNote, isNotNull);
+        expect(restoredNote!.semesterId, equals(restoredSemId));
+        expect(
+          restoredNote.content,
+          'Important revision on neural networks',
+        );
+
+        await freshDb.close();
+      },
+    );
+
+    test(
+      'restores legacy backup without dayNotes or targetGoal with safe defaults',
+      () async {
+        const legacyJson = '''
+{
+  "format": "college-attendance-tracker-backup",
+  "formatVersion": 1,
+  "exportedAt": "2026-01-01T00:00:00.000Z",
+  "data": {
+    "semesters": [
+      {
+        "id": 1,
+        "name": "Legacy Semester",
+        "attendanceThreshold": 0.80,
+        "calculationMethod": "raw_combined",
+        "isArchived": false,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000
+      }
+    ],
+    "subjects": [
+      {
+        "id": 10,
+        "semesterId": 1,
+        "name": "Physics",
+        "lectureEnabled": true,
+        "labEnabled": false,
+        "sortOrder": 0,
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000000000
+      }
+    ],
+    "attendanceSessions": []
+  }
+}
+''';
+
+        final validation = BackupValidator.validate(legacyJson);
+        expect(validation.isValid, isTrue);
+        expect(validation.data!.dayNotes, isEmpty);
+        expect(validation.data!.semesters.first.targetGoal, 0.85);
+
+        final freshDb = AppDatabase.forTesting(NativeDatabase.memory());
+        final freshBackupService = BackupService(freshDb);
+        final freshSemRepo = SemesterRepositoryImpl(freshDb);
+
+        final restoredId = await freshBackupService.restoreBackup(
+          validation.data!,
+        );
+        expect(restoredId, isNotNull);
+
+        final sems = await freshSemRepo.getSemesters();
+        expect(sems.first.targetGoal, 0.85);
+
+        await freshDb.close();
       },
     );
   });
