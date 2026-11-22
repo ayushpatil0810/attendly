@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:attendly/app/router/route_names.dart';
 import 'package:attendly/core/theme/app_colors.dart';
@@ -69,28 +68,13 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: colors.accentMint,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: AppTypography.headline.copyWith(
-                        fontSize: 16,
-                        color: colors.textPrimary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
+              Text(
+                title,
+                style: AppTypography.headline.copyWith(
+                  fontSize: 16,
+                  color: colors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
@@ -103,7 +87,6 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
               const SizedBox(height: 12),
               GestureDetector(
                 onTap: () {
-                  HapticFeedback.selectionClick();
                   context.push(RouteNames.simulatorPath);
                 },
                 child: Row(
@@ -178,28 +161,13 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: colors.accentCoral,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: AppTypography.headline.copyWith(
-                        fontSize: 16,
-                        color: colors.textPrimary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
+              Text(
+                title,
+                style: AppTypography.headline.copyWith(
+                  fontSize: 16,
+                  color: colors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
@@ -212,7 +180,6 @@ class SafeAbsenceRecoveryCard extends StatelessWidget {
               const SizedBox(height: 12),
               GestureDetector(
                 onTap: () {
-                  HapticFeedback.selectionClick();
                   context.push(RouteNames.simulatorPath);
                 },
                 child: Row(

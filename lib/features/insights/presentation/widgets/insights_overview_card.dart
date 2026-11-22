@@ -19,11 +19,11 @@ class InsightsOverviewCard extends StatelessWidget {
   Color _getStatusColor(AppThemeColors colors) {
     switch (summary.thresholdStatus) {
       case ThresholdStatus.meeting:
-        return colors.accentMint;
+        return colors.present;
       case ThresholdStatus.below:
-        return colors.accentCoral;
+        return colors.absent;
       case ThresholdStatus.notAvailable:
-        if (summary.isProvisional) return colors.accentPeach;
+        if (summary.isProvisional) return colors.accentOrange;
         return colors.textSecondary;
     }
   }
@@ -100,9 +100,9 @@ class InsightsOverviewCard extends StatelessWidget {
                       isProvisional: isProvisional,
                       threshold: summary.threshold,
                       trackColor: colors.track,
-                      presentColor: colors.accentMint,
-                      absentColor: colors.accentCoral,
-                      provisionalColor: colors.accentPeach,
+                      presentColor: colors.present,
+                      absentColor: colors.absent,
+                      provisionalColor: colors.accentOrange,
                       markerColor: colors.textPrimary,
                     ),
                     child: Center(
@@ -127,7 +127,7 @@ class InsightsOverviewCard extends StatelessWidget {
                               'Provisional',
                               style: AppTypography.labelSmall.copyWith(
                                 fontSize: 10,
-                                color: colors.accentPeach,
+                                color: colors.accentOrange,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -178,14 +178,14 @@ class InsightsOverviewCard extends StatelessWidget {
 
                       // Present & Absent Breakdown Rows
                       _CountRow(
-                        color: colors.accentMint,
+                        color: colors.present,
                         label: 'Present',
                         count: summary.totalPresent,
                         percentage: presentPct,
                       ),
                       const SizedBox(height: 4),
                       _CountRow(
-                        color: colors.accentCoral,
+                        color: colors.absent,
                         label: 'Absent',
                         count: summary.totalAbsent,
                         percentage: absentPct,
@@ -214,7 +214,7 @@ class InsightsOverviewCard extends StatelessWidget {
                     AppIcon(
                       AppIcons.alert,
                       size: 14,
-                      color: colors.accentPeach,
+                      color: colors.accentOrange,
                     ),
                     const SizedBox(width: 6),
                     Expanded(
@@ -222,7 +222,7 @@ class InsightsOverviewCard extends StatelessWidget {
                         'Both lecture and lab required for 50/50 split total.',
                         style: AppTypography.caption1.copyWith(
                           fontSize: 11,
-                          color: colors.accentPeach,
+                          color: colors.accentOrange,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

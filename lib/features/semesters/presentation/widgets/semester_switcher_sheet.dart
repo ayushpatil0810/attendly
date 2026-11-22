@@ -45,20 +45,40 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
   }
 
   Future<void> _confirmArchive(Semester semester) async {
+    final colors = context.colors;
     final willArchive = !semester.isArchived;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(willArchive ? 'Archive Semester?' : 'Unarchive Semester?'),
+        backgroundColor: colors.surfaceElevated,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+        ),
+        title: Text(
+          willArchive ? 'Archive ${semester.name}?' : 'Unarchive ${semester.name}?',
+          style: AppTypography.headline.copyWith(
+            color: colors.textPrimary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         content: Text(
           willArchive
               ? 'Archiving "${semester.name}" preserves all its subjects and records, but hides it from daily logging.'
               : 'Restore "${semester.name}" back to your active semesters list?',
+          style: AppTypography.subhead.copyWith(
+            color: colors.textSecondary,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: colors.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
           AppButton(
             label: willArchive ? 'Archive' : 'Restore',
@@ -95,17 +115,37 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
   }
 
   Future<void> _confirmDelete(Semester semester) async {
+    final colors = context.colors;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Semester?'),
+        backgroundColor: colors.surfaceElevated,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+        ),
+        title: Text(
+          'Delete ${semester.name}?',
+          style: AppTypography.headline.copyWith(
+            color: colors.textPrimary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         content: Text(
-          'Are you sure you want to permanently delete "${semester.name}"? All subjects and attendance records inside this semester will be removed.',
+          'This will permanently remove all subjects and attendance logs for this semester.',
+          style: AppTypography.subhead.copyWith(
+            color: colors.textSecondary,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: colors.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
           AppButton(
             label: 'Delete',
@@ -138,6 +178,7 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final activeSemester = ref.watch(activeSemesterProvider);
     final semestersStream = _showArchived
         ? ref.watch(allSemestersStreamProvider)
@@ -155,17 +196,24 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
             children: [
               Text(
                 _showArchived ? 'All Semesters' : 'Active Semesters',
-                style: AppTypography.labelMedium,
+                style: AppTypography.labelMedium.copyWith(
+                  color: colors.textSecondary,
+                ),
               ),
               GestureDetector(
-                onTap: () => setState(() => _showArchived = !_showArchived),
+                onTap: () {
+                  setState(() => _showArchived = !_showArchived);
+                },
                 behavior: HitTestBehavior.opaque,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 8,
+                  ),
                   child: Text(
                     _showArchived ? 'Show Active Only' : 'Show Archived',
                     style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.inkViolet,
+                      color: colors.brandPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -185,7 +233,9 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
                       _showArchived
                           ? 'No semesters found.'
                           : 'No active semesters.',
-                      style: AppTypography.bodyMuted,
+                      style: AppTypography.bodyMuted.copyWith(
+                        color: colors.textSecondary,
+                      ),
                     ),
                   ),
                 );
@@ -200,21 +250,28 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
                   final semester = semesters[index];
                   final isSelected = activeSemester?.id == semester.id;
 
+                  final cardBg = isSelected
+                      ? (colors.isDark ? colors.surfaceElevated : colors.surface)
+                      : (colors.isDark
+                          ? colors.surface
+                          : colors.surfaceSubtle.withValues(alpha: 0.5));
+                  final borderColor = colors.border.withValues(
+                    alpha: colors.isDark
+                        ? (isSelected ? 0.6 : 0.4)
+                        : (isSelected ? 0.8 : 0.5),
+                  );
+
                   return Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 14,
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.softLavender
-                          : AppColors.pureWhite,
+                      color: cardBg,
                       borderRadius: AppRadius.lgBorder,
                       border: Border.all(
-                        color: isSelected
-                            ? AppColors.brandViolet
-                            : AppColors.border,
-                        width: isSelected ? 1.5 : 1.0,
+                        color: borderColor,
+                        width: 0.5,
                       ),
                     ),
                     child: Row(
@@ -237,12 +294,21 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
                                       child: Text(
                                         semester.name,
                                         style: AppTypography.itemTitle.copyWith(
+                                          color: colors.textPrimary,
                                           fontWeight: isSelected
                                               ? FontWeight.w700
                                               : FontWeight.w600,
                                         ),
                                       ),
                                     ),
+                                    if (isSelected) ...[
+                                      const SizedBox(width: 6),
+                                      AppIcon(
+                                        AppIcons.check,
+                                        size: 16,
+                                        color: colors.brandPrimary,
+                                      ),
+                                    ],
                                     if (semester.isArchived) ...[
                                       const SizedBox(width: 8),
                                       Container(
@@ -251,14 +317,14 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
                                           vertical: 2,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: AppColors.track,
+                                          color: colors.track,
                                           borderRadius: AppRadius.smBorder,
                                         ),
                                         child: Text(
                                           'Archived',
                                           style: AppTypography.labelSmall
                                               .copyWith(
-                                                color: AppColors.mutedInk,
+                                                color: colors.textSecondary,
                                                 fontSize: 12,
                                               ),
                                         ),
@@ -269,51 +335,122 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
                                 const SizedBox(height: 4),
                                 Text(
                                   'Threshold: ${semester.thresholdPercent}% • ${semester.calculationMethod.displayName}',
-                                  style: AppTypography.labelSmall,
+                                  style: AppTypography.labelSmall.copyWith(
+                                    color: colors.textSecondary,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                         ),
-                        // Actions: Share QR, Edit, Archive, Delete
+                        // Actions: Quick Share QR + Overflow PopupMenuButton
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: const AppIcon(AppIcons.qrCode, size: 18),
-                              color: AppColors.brandViolet,
+                              icon: AppIcon(
+                                AppIcons.qrCode,
+                                size: 20,
+                                color: colors.brandPrimary,
+                              ),
+                              tooltip: 'Share QR',
                               onPressed: () {
                                 showShareSemesterQrSheet(
                                   context: context,
                                   semester: semester,
                                 );
                               },
-                              tooltip: 'Share QR',
                             ),
-                            IconButton(
-                              icon: const AppIcon(AppIcons.edit, size: 18),
-                              color: AppColors.mutedInk,
-                              onPressed: () => _openEditSemester(semester),
-                              tooltip: 'Edit',
-                            ),
-                            IconButton(
-                              icon: const AppIcon(AppIcons.archive, size: 18),
-                              color: semester.isArchived
-                                  ? AppColors.brandViolet
-                                  : AppColors.mutedInk,
-                              onPressed: () => _confirmArchive(semester),
-                              tooltip: semester.isArchived
-                                  ? 'Unarchive'
-                                  : 'Archive',
-                            ),
-                            IconButton(
+                            PopupMenuButton<String>(
                               icon: AppIcon(
-                                AppIcons.delete,
-                                size: 18,
-                                color: AppColors.inkCoral,
+                                AppIcons.moreVert,
+                                size: 20,
+                                color: colors.textSecondary,
                               ),
-                              onPressed: () => _confirmDelete(semester),
-                              tooltip: 'Delete',
+                              tooltip: 'More options',
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: AppRadius.mdBorder,
+                              ),
+                              color: colors.surfaceElevated,
+                              elevation: 6,
+                              onSelected: (action) {
+                                switch (action) {
+                                  case 'edit':
+                                    _openEditSemester(semester);
+                                    break;
+                                  case 'archive':
+                                    _confirmArchive(semester);
+                                    break;
+                                  case 'delete':
+                                    _confirmDelete(semester);
+                                    break;
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                PopupMenuItem<String>(
+                                  value: 'edit',
+                                  child: Row(
+                                    children: [
+                                      AppIcon(
+                                        AppIcons.edit,
+                                        size: 18,
+                                        color: colors.textPrimary,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'Edit',
+                                        style: AppTypography.body.copyWith(
+                                          color: colors.textPrimary,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem<String>(
+                                  value: 'archive',
+                                  child: Row(
+                                    children: [
+                                      AppIcon(
+                                        AppIcons.archive,
+                                        size: 18,
+                                        color: colors.textPrimary,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        semester.isArchived
+                                            ? 'Unarchive'
+                                            : 'Archive',
+                                        style: AppTypography.body.copyWith(
+                                          color: colors.textPrimary,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuDivider(),
+                                PopupMenuItem<String>(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      AppIcon(
+                                        AppIcons.delete,
+                                        size: 18,
+                                        color: colors.accentRed,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'Delete',
+                                        style: AppTypography.body.copyWith(
+                                          color: colors.accentRed,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -341,7 +478,7 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
           const SizedBox(height: 24),
           AppButton(
             label: 'Add New Semester',
-            icon: AppIcon(AppIcons.add, size: 18, color: AppColors.pureWhite),
+            icon: const AppIcon(AppIcons.add, size: 18),
             onPressed: _openCreateSemester,
             isFullWidth: true,
             size: AppButtonSize.medium,
@@ -349,7 +486,11 @@ class _SemesterSwitcherSheetState extends ConsumerState<SemesterSwitcherSheet> {
           const SizedBox(height: 10),
           AppButton(
             label: 'Scan QR to Import',
-            icon: AppIcon(AppIcons.scan, size: 18, color: AppColors.inkViolet),
+            icon: AppIcon(
+              AppIcons.scan,
+              size: 18,
+              color: colors.brandPrimary,
+            ),
             variant: AppButtonVariant.outline,
             onPressed: () async {
               Navigator.of(context).pop();

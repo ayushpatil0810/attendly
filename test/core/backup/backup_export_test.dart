@@ -109,7 +109,7 @@ void main() {
             );
 
         final jsonStr = await backupService.exportBackupJson(
-          appPreferences: {'hapticFeedbackEnabled': true},
+          appPreferences: {'dailyReminder': true},
         );
 
         final validation = BackupValidator.validate(jsonStr);
@@ -155,7 +155,7 @@ void main() {
         expect(labSess.note, isNull);
 
         expect(data.appPreferences, isNotNull);
-        expect(data.appPreferences!['hapticFeedbackEnabled'], isTrue);
+        expect(data.appPreferences!['dailyReminder'], isTrue);
       },
     );
 

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:attendly/core/services/preferences_service.dart';
 import 'package:attendly/core/shared/widgets/app_bottom_sheet.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/shared/widgets/app_text_field.dart';
@@ -69,8 +68,6 @@ class _SemesterImportPreviewSheetState
             replaceExisting: replace,
           );
 
-      AppHaptics.lightImpact(ref);
-
       if (!mounted) return;
       Navigator.of(context).pop(true);
       widget.onImportSuccess?.call();
@@ -91,6 +88,7 @@ class _SemesterImportPreviewSheetState
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final allSemestersAsync = ref.watch(allSemestersStreamProvider);
     final semesters = allSemestersAsync.value ?? [];
     final currentInputName = _nameController.text.trim();
@@ -113,7 +111,7 @@ class _SemesterImportPreviewSheetState
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.divider,
+                color: colors.divider,
                 borderRadius: AppRadius.pillBorder,
               ),
             ),
@@ -134,7 +132,7 @@ class _SemesterImportPreviewSheetState
                 ],
               ),
             ),
-            Divider(color: AppColors.divider, height: 20),
+            Divider(color: colors.divider, height: 20),
 
             Expanded(
               child: SingleChildScrollView(
@@ -160,22 +158,24 @@ class _SemesterImportPreviewSheetState
                           icon: AppIcons.check,
                           label:
                               '${widget.payload.thresholdPercent}% Attendance Goal',
-                          color: AppColors.inkViolet,
-                          backgroundColor: AppColors.softLavender,
+                          color: colors.brandPrimary,
+                          backgroundColor: colors.isDark
+                              ? colors.brandPrimary.withValues(alpha: 0.16)
+                              : colors.brandPrimarySoft,
                         ),
                         _BadgePill(
                           icon: AppIcons.subjects,
                           label: '${widget.payload.subjects.length} Subjects',
-                          color: AppColors.inkViolet,
-                          backgroundColor: AppColors.softLavender,
+                          color: colors.brandPrimary,
+                          backgroundColor: colors.isDark
+                              ? colors.brandPrimary.withValues(alpha: 0.16)
+                              : colors.brandPrimarySoft,
                         ),
                         _BadgePill(
                           icon: AppIcons.insights,
                           label: widget.payload.calculationMethod.displayName,
-                          color: AppColors.mutedInk,
-                          backgroundColor: AppColors.softLavender.withValues(
-                            alpha: 0.5,
-                          ),
+                          color: colors.textSecondary,
+                          backgroundColor: colors.surfaceSubtle,
                         ),
                       ],
                     ),
@@ -186,10 +186,10 @@ class _SemesterImportPreviewSheetState
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: AppColors.softPeach.withValues(alpha: 0.7),
+                          color: colors.accentOrange.withValues(alpha: 0.16),
                           borderRadius: AppRadius.mdBorder,
                           border: Border.all(
-                            color: AppColors.brandPeach.withValues(alpha: 0.6),
+                            color: colors.accentOrange.withValues(alpha: 0.4),
                           ),
                         ),
                         child: Column(
@@ -200,7 +200,7 @@ class _SemesterImportPreviewSheetState
                                 AppIcon(
                                   AppIcons.alert,
                                   size: 16,
-                                  color: AppColors.inkPeach,
+                                  color: colors.accentOrange,
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
@@ -209,7 +209,7 @@ class _SemesterImportPreviewSheetState
                                     style: AppTypography.itemTitle.copyWith(
                                       fontWeight: FontWeight.w700,
                                       fontSize: 14,
-                                      color: AppColors.ink,
+                                      color: colors.textPrimary,
                                     ),
                                   ),
                                 ),
@@ -234,7 +234,7 @@ class _SemesterImportPreviewSheetState
                                     Radio<_ConflictResolution>(
                                       value: _ConflictResolution.importAsNew,
                                       groupValue: _conflictResolution,
-                                      activeColor: AppColors.brandViolet,
+                                      activeColor: colors.brandPrimary,
                                       materialTapTargetSize:
                                           MaterialTapTargetSize.shrinkWrap,
                                       onChanged: (val) {
@@ -282,7 +282,7 @@ class _SemesterImportPreviewSheetState
                                       value:
                                           _ConflictResolution.replaceExisting,
                                       groupValue: _conflictResolution,
-                                      activeColor: AppColors.brandViolet,
+                                      activeColor: colors.brandPrimary,
                                       materialTapTargetSize:
                                           MaterialTapTargetSize.shrinkWrap,
                                       onChanged: (val) {
@@ -304,7 +304,7 @@ class _SemesterImportPreviewSheetState
                                                       .replaceExisting
                                               ? FontWeight.w600
                                               : FontWeight.w400,
-                                          color: AppColors.inkCoral,
+                                          color: colors.accentRed,
                                         ),
                                       ),
                                     ),
@@ -327,9 +327,9 @@ class _SemesterImportPreviewSheetState
                     // Subjects List Preview
                     Container(
                       decoration: BoxDecoration(
-                        color: AppColors.pureWhite,
+                        color: colors.surface,
                         borderRadius: AppRadius.mdBorder,
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: colors.border),
                       ),
                       child: ListView.separated(
                         shrinkWrap: true,
@@ -339,7 +339,7 @@ class _SemesterImportPreviewSheetState
                           height: 1,
                           indent: 14,
                           endIndent: 14,
-                          color: AppColors.divider,
+                          color: colors.divider,
                         ),
                         itemBuilder: (context, index) {
                           final subject = widget.payload.subjects[index];
@@ -354,7 +354,11 @@ class _SemesterImportPreviewSheetState
                                   width: 28,
                                   height: 28,
                                   decoration: BoxDecoration(
-                                    color: AppColors.softLavender,
+                                    color: colors.isDark
+                                        ? colors.brandPrimary.withValues(
+                                            alpha: 0.16,
+                                          )
+                                        : colors.brandPrimarySoft,
                                     borderRadius: AppRadius.smBorder,
                                   ),
                                   alignment: Alignment.center,
@@ -362,7 +366,7 @@ class _SemesterImportPreviewSheetState
                                     '${index + 1}',
                                     style: AppTypography.labelSmall.copyWith(
                                       fontWeight: FontWeight.w700,
-                                      color: AppColors.inkViolet,
+                                      color: colors.brandPrimary,
                                     ),
                                   ),
                                 ),
@@ -384,7 +388,11 @@ class _SemesterImportPreviewSheetState
                                       vertical: 3,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: AppColors.softLavender,
+                                      color: colors.isDark
+                                          ? colors.brandPrimary.withValues(
+                                              alpha: 0.16,
+                                            )
+                                          : colors.brandPrimarySoft,
                                       borderRadius: AppRadius.pillBorder,
                                     ),
                                     child: Row(
@@ -393,14 +401,14 @@ class _SemesterImportPreviewSheetState
                                         AppIcon(
                                           AppIcons.lecture,
                                           size: 11,
-                                          color: AppColors.inkViolet,
+                                          color: colors.brandPrimary,
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
                                           'Theory',
                                           style: AppTypography.labelSmall
                                               .copyWith(
-                                                color: AppColors.inkViolet,
+                                                color: colors.brandPrimary,
                                                 fontWeight: FontWeight.w600,
                                                 fontSize: 11,
                                               ),
@@ -417,7 +425,9 @@ class _SemesterImportPreviewSheetState
                                       vertical: 3,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: AppColors.softMint,
+                                      color: colors.accentGreen.withValues(
+                                        alpha: 0.16,
+                                      ),
                                       borderRadius: AppRadius.pillBorder,
                                     ),
                                     child: Row(
@@ -426,14 +436,14 @@ class _SemesterImportPreviewSheetState
                                         AppIcon(
                                           AppIcons.lab,
                                           size: 11,
-                                          color: AppColors.inkMint,
+                                          color: colors.accentGreen,
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
                                           'Lab',
                                           style: AppTypography.labelSmall
                                               .copyWith(
-                                                color: AppColors.inkMint,
+                                                color: colors.accentGreen,
                                                 fontWeight: FontWeight.w600,
                                                 fontSize: 11,
                                               ),
@@ -456,8 +466,8 @@ class _SemesterImportPreviewSheetState
             Container(
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
               decoration: BoxDecoration(
-                color: AppColors.pureWhite,
-                border: Border(top: BorderSide(color: AppColors.divider)),
+                color: colors.surface,
+                border: Border(top: BorderSide(color: colors.divider)),
               ),
               child: Row(
                 children: [
@@ -473,10 +483,10 @@ class _SemesterImportPreviewSheetState
                     flex: 2,
                     child: AppButton(
                       label: 'Import Semester',
-                      icon: AppIcon(
+                      icon: const AppIcon(
                         AppIcons.check,
                         size: 16,
-                        color: AppColors.pureWhite,
+                        color: Colors.white,
                       ),
                       isLoading: _isImporting,
                       variant: AppButtonVariant.primary,
@@ -541,7 +551,7 @@ Future<bool?> showSemesterImportPreviewSheet({
   return showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.pureWhite,
+    backgroundColor: context.colors.surface,
     shape: const RoundedRectangleBorder(borderRadius: AppRadius.sheetTop),
     builder: (context) {
       return ConstrainedBox(

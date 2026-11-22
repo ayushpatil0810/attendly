@@ -690,6 +690,197 @@ void main() {
       expect(summary.labPercentage, 60.0);
       expect(summary.safeAbsenceResult.requiresScenario, isTrue);
       expect(summary.recoveryResult.requiresScenario, isTrue);
+
+      // Unified calculation: Latest trend point percentage matches overallPercentage identically
+      expect(summary.trendPoints.isNotEmpty, isTrue);
+      expect(
+        summary.trendPoints.last.cumulativePercentage,
+        equals(summary.overallPercentage),
+      );
+    });
+
+    test(
+      'trend points reflect split calculation correctly at every chronological step',
+      () {
+        final compAvgSemester = baseSemester.copyWith(
+          calculationMethod: AttendanceCalculationMethod.componentAverage,
+        );
+
+        final subject = baseSubject.copyWith(
+          id: 10,
+          lectureEnabled: true,
+          labEnabled: true,
+        );
+
+        // Day 1: 2 Lectures Present (100% Lec, Lab has 0 -> provisional 100%)
+        // Day 2: 1 Lab Absent (Lec 100%, Lab 0% -> 50/50 split = 50.0%)
+        // Day 3: 1 Lab Present (Lec 100%, Lab 50% -> 50/50 split = 75.0%)
+        final sessions = [
+          AttendanceSession(
+            id: 1,
+            subjectId: 10,
+            sessionDate: '2026-10-01',
+            component: SessionComponent.lecture,
+            status: AttendanceStatus.present,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+          AttendanceSession(
+            id: 2,
+            subjectId: 10,
+            sessionDate: '2026-10-01',
+            component: SessionComponent.lecture,
+            status: AttendanceStatus.present,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+          AttendanceSession(
+            id: 3,
+            subjectId: 10,
+            sessionDate: '2026-10-02',
+            component: SessionComponent.lab,
+            status: AttendanceStatus.absent,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+          AttendanceSession(
+            id: 4,
+            subjectId: 10,
+            sessionDate: '2026-10-03',
+            component: SessionComponent.lab,
+            status: AttendanceStatus.present,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        ];
+
+        final summary = calculator.calculateSemester(
+          semester: compAvgSemester,
+          subjects: [subject],
+          sessions: sessions,
+        );
+
+        expect(summary.trendPoints.length, 3);
+        // Day 1: only lecture -> 100%
+        expect(summary.trendPoints[0].cumulativePercentage, 100.0);
+        // Day 2: 2/2 lec (100%) and 0/1 lab (0%) -> 50.0%
+        expect(summary.trendPoints[1].cumulativePercentage, 50.0);
+        // Day 3: 2/2 lec (100%) and 1/2 lab (50%) -> 75.0%
+        expect(summary.trendPoints[2].cumulativePercentage, 75.0);
+        // Latest trend point matches semester overall percentage identically
+        expect(
+          summary.trendPoints.last.cumulativePercentage,
+          equals(summary.overallPercentage),
+        );
+      },
+    );
+
+    test('Subject with passing lecture but failing lab flags hasComponentBelowThreshold', () {
+      final subject = Subject(
+        id: 20,
+        semesterId: 1,
+        name: 'Database Systems',
+        lectureEnabled: true,
+        labEnabled: true,
+        createdAt: DateTime(2026, 8, 1),
+        updatedAt: DateTime(2026, 8, 1),
+      );
+
+      final sessions = [
+        // 8/10 lectures present = 80% (meeting 75% target)
+        ...List.generate(
+          8,
+          (i) => AttendanceSession(
+            id: i + 1,
+            subjectId: 20,
+            sessionDate: '2026-10-01',
+            component: SessionComponent.lecture,
+            status: AttendanceStatus.present,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        ),
+        ...List.generate(
+          2,
+          (i) => AttendanceSession(
+            id: i + 9,
+            subjectId: 20,
+            sessionDate: '2026-10-02',
+            component: SessionComponent.lecture,
+            status: AttendanceStatus.absent,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        ),
+        // 1/4 lab present = 25% (failing 75% target)
+        AttendanceSession(
+          id: 11,
+          subjectId: 20,
+          sessionDate: '2026-10-03',
+          component: SessionComponent.lab,
+          status: AttendanceStatus.present,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        ...List.generate(
+          3,
+          (i) => AttendanceSession(
+            id: i + 12,
+            subjectId: 20,
+            sessionDate: '2026-10-04',
+            component: SessionComponent.lab,
+            status: AttendanceStatus.absent,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        ),
+      ];
+
+      final summary = calculator.calculateSubject(
+        subject: subject,
+        sessions: sessions,
+        threshold: 0.75,
+        calculationMethod: AttendanceCalculationMethod.rawCombined,
+      );
+
+      // Lecture: 8/10 (80%) -> meets
+      expect(summary.lectureSummary!.meetsThreshold, isTrue);
+      // Lab: 1/4 (25%) -> below
+      expect(summary.labSummary!.isBelowThreshold, isTrue);
+      // Subject flags that a component is below threshold!
+      expect(summary.hasComponentBelowThreshold, isTrue);
+      expect(summary.componentBelowThreshold, equals(summary.labSummary));
+      expect(summary.hasComponentAtRisk, isTrue);
+    });
+
+    test('calculateComponent evaluates threshold, safe absences, and recovery independently', () {
+      final lecSummary = calculator.calculateComponent(
+        component: SessionComponent.lecture,
+        presentCount: 10,
+        conductedCount: 10,
+        isEnabled: true,
+        threshold: 0.75,
+      );
+
+      expect(lecSummary.meetsThreshold, isTrue);
+      expect(lecSummary.isBelowThreshold, isFalse);
+      expect(lecSummary.percentage, 100.0);
+      expect(lecSummary.safeAbsenceResult.safeAbsences, 3);
+      expect(lecSummary.recoveryResult.requiredConsecutivePresents, 0);
+
+      final labSummary = calculator.calculateComponent(
+        component: SessionComponent.lab,
+        presentCount: 1,
+        conductedCount: 4,
+        isEnabled: true,
+        threshold: 0.75,
+      );
+
+      expect(labSummary.meetsThreshold, isFalse);
+      expect(labSummary.isBelowThreshold, isTrue);
+      expect(labSummary.percentage, 25.0);
+      expect(labSummary.safeAbsenceResult.safeAbsences, 0);
+      expect(labSummary.recoveryResult.requiredConsecutivePresents, 8);
     });
   });
 }

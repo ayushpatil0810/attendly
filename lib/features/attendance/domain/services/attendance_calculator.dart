@@ -6,6 +6,8 @@ import '../entities/attendance_calculation_method.dart';
 import '../entities/attendance_session.dart';
 import '../entities/attendance_trend_point.dart';
 import '../entities/component_attendance_summary.dart';
+import '../entities/recovery_result.dart';
+import '../entities/safe_absence_result.dart';
 import '../entities/semester_attendance_summary.dart';
 import '../entities/session_component.dart';
 import '../entities/subject_attendance_summary.dart';
@@ -28,6 +30,7 @@ class AttendanceCalculator {
     required int presentCount,
     required int conductedCount,
     required bool isEnabled,
+    double threshold = 0.75,
   }) {
     final absentCount = conductedCount - presentCount;
     if (conductedCount == 0 || !isEnabled) {
@@ -39,10 +42,31 @@ class AttendanceCalculator {
         percentage: null,
         availability: AttendanceAvailability.notAvailable,
         isEnabled: isEnabled,
+        thresholdStatus: ThresholdStatus.notAvailable,
+        safeAbsenceResult: const SafeAbsenceResult.notAvailable(),
+        recoveryResult: const RecoveryResult.notAvailable(),
       );
     }
 
     final pct = (presentCount / conductedCount) * 100.0;
+    final thresholdStatus = (pct >= threshold * 100.0 - 1e-9)
+        ? ThresholdStatus.meeting
+        : ThresholdStatus.below;
+
+    final safeAbsences = safeAbsenceCalculator.calculate(
+      present: presentCount,
+      conducted: conductedCount,
+      threshold: threshold,
+      calculationMethod: AttendanceCalculationMethod.rawCombined,
+    );
+
+    final recovery = recoveryCalculator.calculate(
+      present: presentCount,
+      conducted: conductedCount,
+      threshold: threshold,
+      calculationMethod: AttendanceCalculationMethod.rawCombined,
+    );
+
     return ComponentAttendanceSummary(
       component: component,
       presentCount: presentCount,
@@ -51,6 +75,9 @@ class AttendanceCalculator {
       percentage: pct,
       availability: AttendanceAvailability.available,
       isEnabled: isEnabled,
+      thresholdStatus: thresholdStatus,
+      safeAbsenceResult: safeAbsences,
+      recoveryResult: recovery,
     );
   }
 
@@ -89,6 +116,7 @@ class AttendanceCalculator {
             presentCount: lecPresent,
             conductedCount: lecConducted,
             isEnabled: true,
+            threshold: threshold,
           )
         : null;
 
@@ -98,6 +126,7 @@ class AttendanceCalculator {
             presentCount: labPresent,
             conductedCount: labConducted,
             isEnabled: true,
+            threshold: threshold,
           )
         : null;
 
@@ -217,6 +246,49 @@ class AttendanceCalculator {
     );
   }
 
+  /// Shared attendance percentage calculation utility respecting calculation methods.
+  static double? calculateOverallPercentage({
+    required AttendanceCalculationMethod calculationMethod,
+    required int totalPresent,
+    required int totalConducted,
+    required int lecturePresent,
+    required int lectureConducted,
+    required int labPresent,
+    required int labConducted,
+    bool anyLectureEnabled = true,
+    bool anyLabEnabled = true,
+  }) {
+    if (totalConducted == 0) return null;
+
+    if (calculationMethod == AttendanceCalculationMethod.rawCombined) {
+      return (totalPresent / totalConducted) * 100.0;
+    }
+
+    // Component Average (50/50 split)
+    final double? lecPct = lectureConducted > 0
+        ? (lecturePresent / lectureConducted) * 100.0
+        : null;
+    final double? labPct = labConducted > 0
+        ? (labPresent / labConducted) * 100.0
+        : null;
+
+    if (anyLectureEnabled && anyLabEnabled) {
+      if (lectureConducted > 0 && labConducted > 0) {
+        return (lecPct! + labPct!) / 2.0;
+      } else if (lectureConducted > 0) {
+        return lecPct;
+      } else if (labConducted > 0) {
+        return labPct;
+      }
+      return null;
+    } else if (anyLectureEnabled) {
+      return lectureConducted > 0 ? lecPct : null;
+    } else if (anyLabEnabled) {
+      return labConducted > 0 ? labPct : null;
+    }
+    return (totalPresent / totalConducted) * 100.0;
+  }
+
   /// Calculates semester-level overall attendance summary.
   SemesterAttendanceSummary calculateSemester({
     required Semester semester,
@@ -266,7 +338,6 @@ class AttendanceCalculator {
         ? (totalLabPresent / totalLabConducted) * 100.0
         : null;
 
-    double? overallPct;
     AttendanceAvailability availability;
     ThresholdStatus thresholdStatus;
     double? differenceFromThreshold;
@@ -278,14 +349,24 @@ class AttendanceCalculator {
         ? false
         : subjects.any((s) => s.labEnabled);
 
-    if (totalConducted == 0) {
-      overallPct = null;
+    final overallPct = calculateOverallPercentage(
+      calculationMethod: semester.calculationMethod,
+      totalPresent: totalPresent,
+      totalConducted: totalConducted,
+      lecturePresent: totalLecPresent,
+      lectureConducted: totalLecConducted,
+      labPresent: totalLabPresent,
+      labConducted: totalLabConducted,
+      anyLectureEnabled: anyLectureEnabled,
+      anyLabEnabled: anyLabEnabled,
+    );
+
+    if (totalConducted == 0 || overallPct == null) {
       availability = AttendanceAvailability.notAvailable;
       thresholdStatus = ThresholdStatus.notAvailable;
       differenceFromThreshold = null;
     } else if (semester.calculationMethod ==
         AttendanceCalculationMethod.rawCombined) {
-      overallPct = (totalPresent / totalConducted) * 100.0;
       availability = AttendanceAvailability.available;
       thresholdStatus =
           (overallPct >= semester.attendanceThreshold * 100.0 - 1e-9)
@@ -297,7 +378,6 @@ class AttendanceCalculator {
       // Component Average (50/50)
       if (anyLectureEnabled && anyLabEnabled) {
         if (totalLecConducted > 0 && totalLabConducted > 0) {
-          overallPct = (lecPct! + labPct!) / 2.0;
           availability = AttendanceAvailability.available;
           thresholdStatus =
               (overallPct >= semester.attendanceThreshold * 100.0 - 1e-9)
@@ -305,61 +385,20 @@ class AttendanceCalculator {
               : ThresholdStatus.below;
           differenceFromThreshold =
               overallPct - (semester.attendanceThreshold * 100.0);
-        } else if (totalLecConducted > 0) {
-          // Lab enabled but has no sessions -> provisional lecture
-          overallPct = lecPct;
+        } else {
+          // One component has no sessions -> provisional
           availability = AttendanceAvailability.provisional;
-          thresholdStatus = ThresholdStatus.notAvailable;
-          differenceFromThreshold = null;
-        } else if (totalLabConducted > 0) {
-          // Lecture enabled but has no sessions -> provisional lab
-          overallPct = labPct;
-          availability = AttendanceAvailability.provisional;
-          thresholdStatus = ThresholdStatus.notAvailable;
-          differenceFromThreshold = null;
-        } else {
-          overallPct = null;
-          availability = AttendanceAvailability.notAvailable;
-          thresholdStatus = ThresholdStatus.notAvailable;
-          differenceFromThreshold = null;
-        }
-      } else if (anyLectureEnabled) {
-        if (totalLecConducted > 0) {
-          overallPct = lecPct;
-          availability = AttendanceAvailability.available;
-          thresholdStatus =
-              (overallPct! >= semester.attendanceThreshold * 100.0 - 1e-9)
-              ? ThresholdStatus.meeting
-              : ThresholdStatus.below;
-          differenceFromThreshold =
-              overallPct - (semester.attendanceThreshold * 100.0);
-        } else {
-          overallPct = null;
-          availability = AttendanceAvailability.notAvailable;
-          thresholdStatus = ThresholdStatus.notAvailable;
-          differenceFromThreshold = null;
-        }
-      } else if (anyLabEnabled) {
-        if (totalLabConducted > 0) {
-          overallPct = labPct;
-          availability = AttendanceAvailability.available;
-          thresholdStatus =
-              (overallPct! >= semester.attendanceThreshold * 100.0 - 1e-9)
-              ? ThresholdStatus.meeting
-              : ThresholdStatus.below;
-          differenceFromThreshold =
-              overallPct - (semester.attendanceThreshold * 100.0);
-        } else {
-          overallPct = null;
-          availability = AttendanceAvailability.notAvailable;
           thresholdStatus = ThresholdStatus.notAvailable;
           differenceFromThreshold = null;
         }
       } else {
-        overallPct = null;
-        availability = AttendanceAvailability.notAvailable;
-        thresholdStatus = ThresholdStatus.notAvailable;
-        differenceFromThreshold = null;
+        availability = AttendanceAvailability.available;
+        thresholdStatus =
+            (overallPct >= semester.attendanceThreshold * 100.0 - 1e-9)
+            ? ThresholdStatus.meeting
+            : ThresholdStatus.below;
+        differenceFromThreshold =
+            overallPct - (semester.attendanceThreshold * 100.0);
       }
     }
 
@@ -384,8 +423,13 @@ class AttendanceCalculator {
       calculationMethod: semester.calculationMethod,
     );
 
-    // Compute Trend Points from actual recorded sessions
-    final trendPoints = _computeTrendPoints(sessions);
+    // Compute Trend Points from actual recorded sessions using unified calculation
+    final trendPoints = _computeTrendPoints(
+      sessions: sessions,
+      calculationMethod: semester.calculationMethod,
+      anyLectureEnabled: anyLectureEnabled,
+      anyLabEnabled: anyLabEnabled,
+    );
 
     return SemesterAttendanceSummary(
       semesterId: semester.id,
@@ -414,9 +458,13 @@ class AttendanceCalculator {
     );
   }
 
-  List<AttendanceTrendPoint> _computeTrendPoints(
-    List<AttendanceSession> sessions,
-  ) {
+  List<AttendanceTrendPoint> _computeTrendPoints({
+    required List<AttendanceSession> sessions,
+    AttendanceCalculationMethod calculationMethod =
+        AttendanceCalculationMethod.rawCombined,
+    bool anyLectureEnabled = true,
+    bool anyLabEnabled = true,
+  }) {
     if (sessions.isEmpty) return const [];
 
     // Group sessions by date string
@@ -431,12 +479,28 @@ class AttendanceCalculator {
     final List<AttendanceTrendPoint> points = [];
     var cumPresent = 0;
     var cumConducted = 0;
+    var cumLecPresent = 0;
+    var cumLecConducted = 0;
+    var cumLabPresent = 0;
+    var cumLabConducted = 0;
 
     for (final dateStr in sortedDates) {
       final dateSessions = byDate[dateStr]!;
       var dayPresent = 0;
       for (final s in dateSessions) {
-        if (s.isPresent) dayPresent++;
+        if (s.isPresent) {
+          dayPresent++;
+          if (s.component == SessionComponent.lecture) {
+            cumLecPresent++;
+          } else if (s.component == SessionComponent.lab) {
+            cumLabPresent++;
+          }
+        }
+        if (s.component == SessionComponent.lecture) {
+          cumLecConducted++;
+        } else if (s.component == SessionComponent.lab) {
+          cumLabConducted++;
+        }
       }
       final dayConducted = dateSessions.length;
 
@@ -450,9 +514,17 @@ class AttendanceCalculator {
         int.parse(parts[2]),
       );
 
-      final cumPct = cumConducted > 0
-          ? (cumPresent / cumConducted) * 100.0
-          : 0.0;
+      final cumPct = calculateOverallPercentage(
+        calculationMethod: calculationMethod,
+        totalPresent: cumPresent,
+        totalConducted: cumConducted,
+        lecturePresent: cumLecPresent,
+        lectureConducted: cumLecConducted,
+        labPresent: cumLabPresent,
+        labConducted: cumLabConducted,
+        anyLectureEnabled: anyLectureEnabled,
+        anyLabEnabled: anyLabEnabled,
+      ) ?? 0.0;
 
       points.add(
         AttendanceTrendPoint(

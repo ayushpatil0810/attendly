@@ -151,17 +151,23 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: colors.isDark
-                              ? colors.brandPrimary.withValues(alpha: 0.16)
-                              : colors.brandPrimarySoft,
-                          borderRadius: AppRadius.pillBorder,
+                          color: colors.surfaceSubtle.withValues(
+                            alpha: colors.isDark ? 0.6 : 0.8,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: colors.border.withValues(
+                              alpha: colors.isDark ? 0.4 : 0.6,
+                            ),
+                            width: 0.5,
+                          ),
                         ),
                         child: Text(
                           '${_thresholdPercent.round()}%',
                           style: AppTypography.labelLarge.copyWith(
-                            color: colors.isDark
-                                ? colors.brandPrimary
-                                : colors.brandPrimaryInk,
+                            color: colors.textPrimary,
+                            fontWeight: FontWeight.w600,
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         ),
                       ),
@@ -259,18 +265,22 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
                               width: 36,
                               height: 36,
                               decoration: BoxDecoration(
-                                color: colors.isDark
-                                    ? colors.brandPrimary.withValues(alpha: 0.16)
-                                    : colors.brandPrimarySoft,
-                                borderRadius: AppRadius.smBorder,
+                                color: colors.surfaceSubtle.withValues(
+                                  alpha: colors.isDark ? 0.6 : 0.8,
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: colors.border.withValues(
+                                    alpha: colors.isDark ? 0.4 : 0.6,
+                                  ),
+                                  width: 0.5,
+                                ),
                               ),
                               alignment: Alignment.center,
                               child: AppIcon(
                                 AppIcons.notification,
                                 size: 18,
-                                color: colors.isDark
-                                    ? colors.brandPrimary
-                                    : colors.brandPrimaryInk,
+                                color: colors.brandPrimary,
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -412,25 +422,26 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? (colors.isDark
-                  ? colors.brandPrimary.withValues(alpha: 0.16)
-                  : colors.brandPrimarySoft)
-              : colors.surface,
-          borderRadius: AppRadius.pillBorder,
+              ? colors.brandPrimary
+              : colors.surfaceSubtle.withValues(
+                  alpha: colors.isDark ? 0.6 : 0.8,
+                ),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? colors.brandPrimary : colors.border,
-            width: isSelected ? 1.5 : 1,
+            color: isSelected
+                ? colors.brandPrimary
+                : colors.border.withValues(
+                    alpha: colors.isDark ? 0.4 : 0.6,
+                  ),
+            width: 0.5,
           ),
         ),
         child: Text(
           label,
           style: AppTypography.labelSmall.copyWith(
-            color: isSelected
-                ? (colors.isDark
-                    ? colors.brandPrimary
-                    : colors.brandPrimaryInk)
-                : colors.textPrimary,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            color: isSelected ? Colors.white : colors.textPrimary,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
       ),
@@ -482,14 +493,18 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? (colors.isDark
-                  ? colors.brandPrimary.withValues(alpha: 0.16)
-                  : colors.brandPrimarySoft)
-              : colors.surface,
-          borderRadius: AppRadius.pillBorder,
+              ? colors.brandPrimary
+              : colors.surfaceSubtle.withValues(
+                  alpha: colors.isDark ? 0.6 : 0.8,
+                ),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? colors.brandPrimary : colors.border,
-            width: isSelected ? 1.5 : 1,
+            color: isSelected
+                ? colors.brandPrimary
+                : colors.border.withValues(
+                    alpha: colors.isDark ? 0.4 : 0.6,
+                  ),
+            width: 0.5,
           ),
         ),
         child: Row(
@@ -498,23 +513,16 @@ class _SemesterSetupScreenState extends ConsumerState<SemesterSetupScreen> {
             Text(
               customLabel,
               style: AppTypography.labelSmall.copyWith(
-                color: isSelected
-                    ? (colors.isDark
-                        ? colors.brandPrimary
-                        : colors.brandPrimaryInk)
-                    : colors.textPrimary,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? Colors.white : colors.textPrimary,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
             const SizedBox(width: 4),
             AppIcon(
               AppIcons.arrowDown,
               size: 12,
-              color: isSelected
-                  ? (colors.isDark
-                      ? colors.brandPrimary
-                      : colors.brandPrimaryInk)
-                  : colors.textSecondary,
+              color: isSelected ? Colors.white : colors.textSecondary,
             ),
           ],
         ),

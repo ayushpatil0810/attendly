@@ -1,29 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#FFFAF9</color>
-    <color name="splash_background">#FFFAF9</color>
+    <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="splash_background">#FFFFFF</color>
 
-    <!-- Attendly Widget Design Tokens -->
-    <color name="widget_ink">#FF30263F</color>
-    <color name="widget_muted_ink">#FF6E6778</color>
-    <color name="widget_subtle_ink">#FF756C84</color>
-    <color name="widget_pure_white">#FFFFFFFF</color>
-    <color name="widget_warm_white">#FFFFFAF9</color>
-    <color name="widget_border">#FFE8E2EE</color>
-    <color name="widget_track">#FFEEEAF2</color>
+    <!-- Attendly Apple HIG Widget Tokens (Light Mode) -->
+    <color name="widget_card_bg">#FFFFFF</color>
+    <color name="widget_border">#E5E5EA</color>
+    <color name="widget_track">#E5E5EA</color>
+    <color name="widget_ink">#000000</color>
+    <color name="widget_muted_ink">#6C6C70</color>
+    <color name="widget_subtle_ink">#8E8E93</color>
+    <color name="widget_pure_white">#FFFFFF</color>
 
-    <!-- Brand & Accent -->
-    <color name="widget_brand_violet">#FF9278F2</color>
-    <color name="widget_ink_violet">#FF704EEE</color>
-    <color name="widget_soft_lavender">#FFF5F1FF</color>
+    <!-- Brand & Accent (Apple System Blue) -->
+    <color name="widget_brand_primary">#007AFF</color>
 
-    <!-- Semantic Present / Goal -->
-    <color name="widget_brand_mint">#FF8BE4D0</color>
-    <color name="widget_ink_mint">#FF166151</color>
-    <color name="widget_soft_mint">#FFF0FAF7</color>
+    <!-- Status Meeting (Apple System Green) -->
+    <color name="widget_brand_green">#34C759</color>
+    <color name="widget_badge_meeting_bg">#E8F8EE</color>
+    <color name="widget_badge_meeting_text">#1F7A38</color>
 
-    <!-- Semantic Absent / Warning -->
-    <color name="widget_brand_coral">#FFFF929B</color>
-    <color name="widget_ink_coral">#FF7D1A22</color>
-    <color name="widget_soft_coral">#FFFFF1F1</color>
+    <!-- Status Below (Apple System Red) -->
+    <color name="widget_brand_red">#FF3B30</color>
+    <color name="widget_badge_below_bg">#FDEBEC</color>
+    <color name="widget_badge_below_text">#D70015</color>
+
+    <!-- Status Neutral (Apple System Orange / Gray) -->
+    <color name="widget_brand_orange">#FF9500</color>
+    <color name="widget_badge_neutral_bg">#F2F2F7</color>
+    <color name="widget_badge_neutral_text">#6C6C70</color>
+
+    <!-- Backward Compatibility Aliases -->
+    <color name="widget_warm_white">#FFFFFF</color>
+    <color name="widget_brand_violet">#007AFF</color>
+    <color name="widget_ink_violet">#007AFF</color>
+    <color name="widget_soft_lavender">#F2F2F7</color>
+    <color name="widget_brand_mint">#34C759</color>
+    <color name="widget_ink_mint">#1F7A38</color>
+    <color name="widget_soft_mint">#E8F8EE</color>
+    <color name="widget_brand_coral">#FF3B30</color>
+    <color name="widget_ink_coral">#D70015</color>
+    <color name="widget_soft_coral">#FDEBEC</color>
 </resources>

@@ -12,11 +12,14 @@ abstract final class AppIcons {
   static const quickLog = Icons.add;
   static const history = Icons.calendar_today_outlined;
   static const historyFill = Icons.calendar_today;
+  static const settings = Icons.settings_outlined;
+  static const settingsFill = Icons.settings;
   static const insights = Icons.insights_outlined;
   static const insightsFill = Icons.insights;
 
   // Actions
   static const add = Icons.add;
+  static const minus = Icons.remove;
   static const edit = Icons.edit_outlined;
   static const delete = Icons.delete_outline;
   static const check = Icons.check;
@@ -28,10 +31,10 @@ abstract final class AppIcons {
   static const arrowDown = Icons.keyboard_arrow_down;
   static const arrowUp = Icons.keyboard_arrow_up;
   static const caretRight = Icons.chevron_right;
-  static const settings = Icons.settings_outlined;
   static const undo = Icons.undo;
   static const archive = Icons.archive_outlined;
   static const more = Icons.more_horiz;
+  static const moreVert = Icons.more_vert;
 
   // Components & Concepts
   static const lecture = Icons.school_outlined;

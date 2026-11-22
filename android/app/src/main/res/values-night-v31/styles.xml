@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Android 12+ (API 31+) system splash screen styling -->
-    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+    <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
         <!-- Maintain consistent warm-white surface for splash in all modes -->
         <item name="android:windowSplashScreenBackground">@color/splash_background</item>
         <!-- Use transparent icon to suppress the default big launcher icon splash -->

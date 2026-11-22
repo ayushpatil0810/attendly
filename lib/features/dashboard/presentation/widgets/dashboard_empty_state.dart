@@ -22,6 +22,8 @@ class DashboardEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
@@ -29,12 +31,12 @@ class DashboardEmptyState extends StatelessWidget {
         vertical: AppSpacing.lg + 4,
       ),
       decoration: BoxDecoration(
-        color: AppColors.pureWhite,
+        color: colors.surface,
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: colors.divider),
         boxShadow: [
           BoxShadow(
-            color: AppColors.ink.withValues(alpha: 0.03),
+            color: colors.textPrimary.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -44,7 +46,7 @@ class DashboardEmptyState extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Clean, unboxed icon (no colored bubble container)
-          AppIcon(AppIcons.calendar, size: 32, color: AppColors.brandViolet),
+          AppIcon(AppIcons.calendar, size: 32, color: colors.brandPrimary),
           const SizedBox(height: AppSpacing.sm),
           Text(
             hasSubjects ? 'No Classes Recorded Yet' : 'Start Semester Setup',
@@ -59,15 +61,16 @@ class DashboardEmptyState extends StatelessWidget {
             hasSubjects
                 ? 'Log your first class session to calculate safe absences and track progress.'
                 : 'Add your courses to this semester to begin tracking attendance.',
-            style: AppTypography.bodySmall.copyWith(color: AppColors.mutedInk),
+            style: AppTypography.bodySmall.copyWith(color: colors.textSecondary),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.md),
           if (hasSubjects)
             AppButton(
               label: 'Quick Log Session',
-              icon: AppIcon(AppIcons.add, size: 16, color: AppColors.pureWhite),
-              size: AppButtonSize.small,
+              icon: const AppIcon(AppIcons.add, size: 18),
+              size: AppButtonSize.medium,
+              isFullWidth: false,
               onPressed: () {
                 showQuickLogSheet(context: context);
               },
@@ -75,8 +78,9 @@ class DashboardEmptyState extends StatelessWidget {
           else
             AppButton(
               label: 'Add First Subject',
-              icon: AppIcon(AppIcons.add, size: 16, color: AppColors.pureWhite),
-              size: AppButtonSize.small,
+              icon: const AppIcon(AppIcons.add, size: 18),
+              size: AppButtonSize.medium,
+              isFullWidth: false,
               onPressed: () {
                 showAppBottomSheet(
                   context: context,

@@ -109,10 +109,10 @@ class _ComponentBarRow extends StatelessWidget {
     final meetsTarget = hasData && pct! >= (threshold * 100.0 - 1e-9);
 
     final barColor = hasData
-        ? (meetsTarget ? colors.accentMint : colors.accentCoral)
+        ? (meetsTarget ? colors.present : colors.absent)
         : colors.track;
     final statColor = hasData
-        ? (meetsTarget ? colors.accentMint : colors.accentCoral)
+        ? (meetsTarget ? colors.present : colors.absent)
         : colors.textSecondary;
 
     final fillRatio = hasData ? (pct! / 100.0).clamp(0.0, 1.0) : 0.0;
@@ -120,10 +120,11 @@ class _ComponentBarRow extends StatelessWidget {
     final semanticLabel = '$label: ${hasData ? "${pct!.toStringAsFixed(1)}%" : "Not available"}. '
         '${summary.presentCount} of ${summary.conductedCount} classes attended.';
 
-    return Semantics(
-      container: true,
-      label: semanticLabel,
-      child: Column(
+    return RepaintBoundary(
+      child: Semantics(
+        container: true,
+        label: semanticLabel,
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -201,6 +202,7 @@ class _ComponentBarRow extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

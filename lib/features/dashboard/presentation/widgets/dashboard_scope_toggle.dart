@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 
@@ -43,7 +42,6 @@ class DashboardScopeToggle extends StatelessWidget {
               label: 'Overall',
               isSelected: selectedScope == DashboardAttendanceScope.overall,
               onTap: () {
-                HapticFeedback.selectionClick();
                 onScopeChanged(DashboardAttendanceScope.overall);
               },
             ),
@@ -51,7 +49,6 @@ class DashboardScopeToggle extends StatelessWidget {
               label: 'This Month',
               isSelected: selectedScope == DashboardAttendanceScope.thisMonth,
               onTap: () {
-                HapticFeedback.selectionClick();
                 onScopeChanged(DashboardAttendanceScope.thisMonth);
               },
             ),

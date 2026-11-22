@@ -6,8 +6,8 @@ enum AttendanceCalculationMethod {
   ),
   componentAverage(
     'component_average',
-    'Split in half',
-    'Lecture and lab each count for half.',
+    '50/50 Lecture & Lab',
+    'Lecture and lab each count for 50%.',
   );
 
   const AttendanceCalculationMethod(

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:attendly/core/database/app_database.dart';
 import 'package:attendly/core/providers/database_provider.dart';
+import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/features/attendance/data/repositories/attendance_repository_impl.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_status.dart';
 import 'package:attendly/features/attendance/domain/entities/session_component.dart';
@@ -59,7 +60,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text("Today's Schedule"), findsOneWidget);
-    expect(find.text('Log Class'), findsOneWidget);
+    expect(find.text('Log Attendance'), findsOneWidget);
     expect(find.text('No classes recorded for this date'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());
@@ -96,6 +97,11 @@ void main() {
     expect(find.text('Tuesday, Mar 10'), findsOneWidget);
     expect(find.text('Computer Networks'), findsOneWidget);
     expect(find.text('Lecture'), findsOneWidget);
+
+    // Apple-inspired crisp 24dp solid filled status circle with white icon
+    final checkIcon = tester.widget<Icon>(find.byIcon(AppIcons.check));
+    expect(checkIcon.color, equals(Colors.white));
+    expect(checkIcon.size, equals(14));
 
     await tester.pumpWidget(const SizedBox());
     await tester.pumpAndSettle();

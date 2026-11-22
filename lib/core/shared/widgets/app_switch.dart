@@ -36,11 +36,19 @@ class AppSwitchTile extends StatelessWidget {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: value ? colors.brandPrimarySoft : colors.surface,
+          color: value
+              ? (colors.isDark ? colors.surfaceElevated : colors.surface)
+              : (colors.isDark
+                  ? colors.surface
+                  : colors.surfaceSubtle.withValues(alpha: 0.5)),
           borderRadius: AppRadius.lgBorder,
           border: Border.all(
-            color: value ? colors.brandPrimary : colors.border,
-            width: value ? 1.5 : 1.0,
+            color: colors.border.withValues(
+              alpha: colors.isDark
+                  ? (value ? 0.6 : 0.4)
+                  : (value ? 0.8 : 0.5),
+            ),
+            width: 0.5,
           ),
         ),
         child: Row(

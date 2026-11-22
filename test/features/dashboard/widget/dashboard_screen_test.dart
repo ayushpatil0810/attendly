@@ -472,12 +472,12 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Analytics section and trend chart are rendered without redundant target label
+      // Analytics section and trend chart are rendered with target pill
       expect(find.text('Analytics'), findsOneWidget);
       expect(find.byType(DashboardTrendCard), findsOneWidget);
       expect(find.text('May 1 – May 2'), findsOneWidget);
       expect(find.text('Latest: '), findsOneWidget);
-      expect(find.text('75% Target'), findsNothing);
+      expect(find.text('75% Target'), findsOneWidget);
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);

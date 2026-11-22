@@ -45,6 +45,16 @@ class SafeAbsenceCalculator {
       );
     }
 
+    // Target threshold <= 0% allows any number of absences
+    if (threshold <= 0.0) {
+      return const SafeAbsenceResult(
+        safeAbsences: 999,
+        isAvailable: true,
+        message: 'At 0% target threshold, any number of absences is permitted.',
+        requiresScenario: false,
+      );
+    }
+
     // Formula: max(0, floor(A / t - C))
     final rawX = (present / threshold) - conducted;
     var x = math.max(0, rawX.floor());

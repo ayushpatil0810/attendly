@@ -259,7 +259,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Provisional'), findsWidgets);
-        expect(find.text('Split in half'), findsWidgets);
+        expect(find.text('50/50 Lecture & Lab'), findsWidgets);
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);
@@ -304,7 +304,7 @@ void main() {
 
         expect(tester.takeException(), isNull);
         expect(find.text('Attendance Overview'), findsOneWidget);
-        expect(find.text('Split in half'), findsOneWidget);
+        expect(find.text('50/50 Lecture & Lab'), findsOneWidget);
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);
@@ -352,7 +352,7 @@ void main() {
         await tester.tap(find.text('All classes'));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.text('Lectures'));
+        await tester.tap(find.text('Lectures').last);
         await tester.pumpAndSettle();
 
         // Lecture vs. Lab breakdown should now be hidden

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:attendly/core/services/preferences_service.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/shared/widgets/app_text_field.dart';
 import 'package:attendly/core/shared/widgets/app_toast.dart';
@@ -18,6 +17,17 @@ Future<void> showDayNoteDialog({
   required String dateStr,
   String? initialContent,
 }) async {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  DateTime? parsedDate;
+  try {
+    parsedDate = DateTime.parse(dateStr);
+  } catch (_) {}
+  if (parsedDate != null &&
+      DateTime(parsedDate.year, parsedDate.month, parsedDate.day).isAfter(today)) {
+    AppToast.showError(context, message: 'Cannot add notes for future dates.');
+    return;
+  }
   return showDialog<void>(
     context: context,
     builder: (ctx) =>
@@ -53,6 +63,7 @@ class _DayNoteDialogState extends ConsumerState<_DayNoteDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     DateTime parsedDate;
     try {
       parsedDate = DateTime.parse(widget.dateStr);
@@ -65,7 +76,7 @@ class _DayNoteDialogState extends ConsumerState<_DayNoteDialog> {
         widget.initialContent!.trim().isNotEmpty;
 
     return AlertDialog(
-      backgroundColor: AppColors.pureWhite,
+      backgroundColor: colors.surface,
       surfaceTintColor: Colors.transparent,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.lgBorder),
       titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
@@ -74,17 +85,25 @@ class _DayNoteDialogState extends ConsumerState<_DayNoteDialog> {
       title: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
-              color: AppColors.softLavender,
-              borderRadius: AppRadius.smBorder,
+              color: colors.surfaceSubtle.withValues(
+                alpha: colors.isDark ? 0.6 : 0.8,
+              ),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: colors.border.withValues(
+                  alpha: colors.isDark ? 0.4 : 0.6,
+                ),
+                width: 0.5,
+              ),
             ),
             alignment: Alignment.center,
             child: AppIcon(
               AppIcons.note,
-              size: 16,
-              color: AppColors.brandViolet,
+              size: 18,
+              color: colors.brandPrimary,
             ),
           ),
           const SizedBox(width: 10),
@@ -101,7 +120,7 @@ class _DayNoteDialogState extends ConsumerState<_DayNoteDialog> {
                 Text(
                   formattedDate,
                   style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.mutedInk,
+                    color: colors.textSecondary,
                     fontSize: 12,
                   ),
                 ),
@@ -134,13 +153,12 @@ class _DayNoteDialogState extends ConsumerState<_DayNoteDialog> {
                 icon: AppIcon(
                   AppIcons.delete,
                   size: 18,
-                  color: AppColors.inkCoral,
+                  color: colors.accentRed,
                 ),
                 constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
                 onPressed: _isSaving
                     ? null
                     : () async {
-                        AppHaptics.lightImpact(ref);
                         setState(() => _isSaving = true);
                         final parentContext = context;
                         final noteToDelete = widget.initialContent;
@@ -190,7 +208,7 @@ class _DayNoteDialogState extends ConsumerState<_DayNoteDialog> {
               child: Text(
                 'Cancel',
                 style: AppTypography.labelMedium.copyWith(
-                  color: AppColors.mutedInk,
+                  color: colors.textSecondary,
                 ),
               ),
             ),
@@ -201,7 +219,6 @@ class _DayNoteDialogState extends ConsumerState<_DayNoteDialog> {
               isLoading: _isSaving,
               onPressed: () async {
                 final text = _controller.text.trim();
-                AppHaptics.selectionClick(ref);
                 setState(() => _isSaving = true);
                 final parentContext = context;
                 Navigator.of(context).pop();

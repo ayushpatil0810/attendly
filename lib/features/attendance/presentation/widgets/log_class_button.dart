@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_typography.dart';
 import 'session_form_sheet.dart';
 
-/// Reusable Apple capsule pill button for logging a class session.
+/// Reusable Apple capsule pill button for logging attendance.
 ///
 /// Used consistently across both the Dashboard (HomeScreen) and HistoryScreen.
-class LogClassButton extends StatelessWidget {
-  const LogClassButton({
+class LogAttendanceButton extends StatelessWidget {
+  const LogAttendanceButton({
     super.key,
     required this.selectedDate,
     this.semanticLabel,
@@ -24,10 +23,19 @@ class LogClassButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final isFuture =
+        DateTime(selectedDate.year, selectedDate.month, selectedDate.day)
+            .isAfter(today);
+
+    if (isFuture) {
+      return const SizedBox.shrink();
+    }
 
     return Semantics(
       button: true,
-      label: semanticLabel ?? 'Log class',
+      label: semanticLabel ?? 'Log attendance',
       child: Material(
         color: colors.surfaceSubtle.withValues(
           alpha: colors.isDark ? 0.6 : 0.8,
@@ -36,7 +44,6 @@ class LogClassButton extends StatelessWidget {
         child: InkWell(
           onTap: onPressed ??
               () {
-                HapticFeedback.selectionClick();
                 showSessionFormSheet(
                   context: context,
                   prefilledDate: selectedDate,
@@ -44,9 +51,10 @@ class LogClassButton extends StatelessWidget {
               },
           borderRadius: BorderRadius.circular(16),
           child: Container(
+            constraints: const BoxConstraints(minHeight: 36),
             padding: const EdgeInsets.symmetric(
               horizontal: 10,
-              vertical: 5,
+              vertical: 6,
             ),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
@@ -67,7 +75,7 @@ class LogClassButton extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'Log Class',
+                  'Log Attendance',
                   style: AppTypography.caption1.copyWith(
                     color: colors.brandPrimary,
                     fontWeight: FontWeight.w700,
@@ -81,3 +89,6 @@ class LogClassButton extends StatelessWidget {
     );
   }
 }
+
+/// Backwards compatibility alias for LogAttendanceButton
+typedef LogClassButton = LogAttendanceButton;

@@ -148,18 +148,14 @@ class SimulatorProjectionCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: delta > 0.05
-                    ? colors.accentMintSoft
-                    : (delta < -0.05
-                          ? colors.accentCoralSoft
-                          : colors.surfaceSubtle),
+                color: colors.surfaceSubtle.withValues(
+                  alpha: colors.isDark ? 0.6 : 0.8,
+                ),
                 borderRadius: AppRadius.mdBorder,
                 border: Border.all(
-                  color: delta > 0.05
-                      ? colors.accentMint.withValues(alpha: 0.3)
-                      : (delta < -0.05
-                            ? colors.accentCoral.withValues(alpha: 0.3)
-                            : colors.border),
+                  color: colors.border.withValues(
+                    alpha: colors.isDark ? 0.4 : 0.6,
+                  ),
                   width: 0.5,
                 ),
               ),
@@ -169,22 +165,18 @@ class SimulatorProjectionCard extends StatelessWidget {
                     delta >= 0 ? AppIcons.check : AppIcons.alert,
                     size: 16,
                     color: delta > 0.05
-                        ? colors.accentMint
+                        ? colors.present
                         : (delta < -0.05
-                              ? colors.accentCoral
-                              : colors.textPrimary),
+                              ? colors.absent
+                              : colors.textSecondary),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _getDeltaMessage(projection, delta),
                       style: AppTypography.subhead.copyWith(
-                        color: delta > 0.05
-                            ? colors.accentMintInk
-                            : (delta < -0.05
-                                  ? colors.accentCoralInk
-                                  : colors.textPrimary),
-                        fontWeight: FontWeight.w700,
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w600,
                         fontSize: 12.5,
                       ),
                     ),
@@ -284,7 +276,7 @@ class _MetricColumn extends StatelessWidget {
               style: AppTypography.heroNumber.copyWith(
                 fontSize: 24,
                 fontFeatures: const [FontFeature.tabularFigures()],
-                color: meetsTarget ? colors.accentMint : colors.textPrimary,
+                color: meetsTarget ? colors.present : colors.textPrimary,
               ),
             ),
           ),
@@ -302,7 +294,7 @@ class _MetricColumn extends StatelessWidget {
               child: Text(
                 'Provisional',
                 style: AppTypography.caption2.copyWith(
-                  color: colors.accentPeach,
+                  color: colors.accentOrange,
                   fontWeight: FontWeight.w700,
                 ),
               ),

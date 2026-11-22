@@ -49,10 +49,14 @@ class HypotheticalSessionList extends ConsumerWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: colors.accentCoralSoft,
+                    color: colors.surfaceSubtle.withValues(
+                      alpha: colors.isDark ? 0.6 : 0.8,
+                    ),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: colors.accentCoral.withValues(alpha: 0.3),
+                      color: colors.border.withValues(
+                        alpha: colors.isDark ? 0.4 : 0.6,
+                      ),
                       width: 0.5,
                     ),
                   ),
@@ -62,18 +66,14 @@ class HypotheticalSessionList extends ConsumerWidget {
                       AppIcon(
                         AppIcons.delete,
                         size: 13,
-                        color: colors.isDark
-                            ? colors.accentCoral
-                            : colors.accentCoralInk,
+                        color: colors.textSecondary,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'Reset Scenario',
                         style: AppTypography.caption1.copyWith(
-                          color: colors.isDark
-                              ? colors.accentCoral
-                              : colors.accentCoralInk,
-                          fontWeight: FontWeight.w700,
+                          color: colors.textSecondary,
+                          fontWeight: FontWeight.w600,
                           fontSize: 11.5,
                         ),
                       ),
@@ -276,14 +276,16 @@ class _HypotheticalRow extends StatelessWidget {
           onTap: onToggleStatus,
           behavior: HitTestBehavior.opaque,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: isPresent ? colors.accentMintSoft : colors.accentCoralSoft,
+              color: colors.surfaceSubtle.withValues(
+                alpha: colors.isDark ? 0.6 : 0.8,
+              ),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isPresent
-                    ? colors.accentMint.withValues(alpha: 0.3)
-                    : colors.accentCoral.withValues(alpha: 0.3),
+                color: colors.border.withValues(
+                  alpha: colors.isDark ? 0.4 : 0.6,
+                ),
                 width: 0.5,
               ),
             ),
@@ -292,19 +294,15 @@ class _HypotheticalRow extends StatelessWidget {
               children: [
                 AppIcon(
                   isPresent ? AppIcons.check : AppIcons.close,
-                  size: 12,
-                  color: isPresent
-                      ? (colors.isDark ? colors.accentMint : colors.accentMintInk)
-                      : (colors.isDark ? colors.accentCoral : colors.accentCoralInk),
+                  size: 13,
+                  color: isPresent ? colors.present : colors.absent,
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 5),
                 Text(
                   isPresent ? 'Present' : 'Absent',
                   style: AppTypography.caption1.copyWith(
-                    color: isPresent
-                        ? (colors.isDark ? colors.accentMint : colors.accentMintInk)
-                        : (colors.isDark ? colors.accentCoral : colors.accentCoralInk),
-                    fontWeight: FontWeight.w700,
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w600,
                     fontSize: 11.5,
                   ),
                 ),

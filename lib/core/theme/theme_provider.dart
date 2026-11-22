@@ -9,7 +9,6 @@ import 'app_theme_id.dart';
 
 /// SharedPreferences keys for persistent theme settings.
 const String prefThemeModeKey = 'pref_theme_mode_v1';
-const String prefThemeIdKey = 'pref_color_theme_id_v1';
 
 /// Manages the application's [ThemeMode] (system, light, dark).
 class ThemeModeNotifier extends Notifier<ThemeMode> {

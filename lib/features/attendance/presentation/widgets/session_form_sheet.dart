@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:attendly/core/errors/app_failure.dart';
-import 'package:attendly/core/services/preferences_service.dart';
 import 'package:attendly/core/shared/widgets/app_bottom_sheet.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/shared/widgets/app_error_state.dart';
@@ -47,16 +46,20 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
   void initState() {
     super.initState();
     final toEdit = widget.sessionToEdit;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     if (toEdit != null) {
-      _sessionDate = DateTime.parse(toEdit.sessionDate);
+      final parsed = DateTime.parse(toEdit.sessionDate);
+      _sessionDate = parsed.isAfter(today) ? today : parsed;
       _subjectId = toEdit.subjectId;
       _component = toEdit.component;
       _status = toEdit.status;
       _noteController = TextEditingController(text: toEdit.note ?? '');
     } else {
-      final now = DateTime.now();
-      _sessionDate =
-          widget.prefilledDate ?? DateTime(now.year, now.month, now.day);
+      final prefilled = widget.prefilledDate;
+      _sessionDate = (prefilled != null && !prefilled.isAfter(today))
+          ? prefilled
+          : today;
       _component = SessionComponent.lecture;
       _status = AttendanceStatus.present;
       _noteController = TextEditingController();
@@ -72,11 +75,13 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
   Future<void> _pickDate() async {
     final colors = context.colors;
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final initialDate = _sessionDate.isAfter(today) ? today : _sessionDate;
     final picked = await showDatePicker(
       context: context,
-      initialDate: _sessionDate,
+      initialDate: initialDate,
       firstDate: DateTime(2020),
-      lastDate: DateTime(now.year, now.month, now.day),
+      lastDate: today,
       builder: (ctx, child) {
         return Theme(
           data: Theme.of(ctx).copyWith(
@@ -110,6 +115,13 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
       return;
     }
 
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    if (DateTime(_sessionDate.year, _sessionDate.month, _sessionDate.day).isAfter(today)) {
+      AppToast.showError(context, message: 'Cannot log attendance for future dates.');
+      return;
+    }
+
     setState(() => _isSubmitting = true);
     final dateStr = formatDateOnly(_sessionDate);
 
@@ -128,8 +140,6 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
         await ref
             .read(attendanceControllerProvider.notifier)
             .updateSession(updated);
-
-        AppHaptics.lightImpact(ref);
 
         if (!mounted) return;
         Navigator.of(context).pop();
@@ -157,8 +167,6 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                   ? null
                   : _noteController.text.trim(),
             );
-
-        AppHaptics.lightImpact(ref);
 
         if (!mounted) return;
         Navigator.of(context).pop();
@@ -236,7 +244,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
     if (!_isEditing) {
       return QuickLogSheet(
         initialDate: widget.prefilledDate,
-        title: 'Record Historical Session',
+        title: 'Log Attendance',
       );
     }
 
@@ -303,9 +311,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                     AppIcon(
                       AppIcons.subjects,
                       size: 18,
-                      color: colors.isDark
-                          ? colors.brandPrimary
-                          : colors.brandPrimaryInk,
+                      color: colors.brandPrimary,
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -396,7 +402,6 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                   ],
                   selectedValue: _component,
                   onChanged: (comp) {
-                    AppHaptics.selectionClick(ref);
                     setState(() => _component = comp);
                   },
                 ),
@@ -424,9 +429,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                       child: Text(
                         _component.displayName,
                         style: AppTypography.labelSmall.copyWith(
-                          color: colors.isDark
-                              ? colors.brandPrimary
-                              : colors.brandPrimaryInk,
+                          color: colors.brandPrimary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -452,7 +455,7 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                     icon: AppIcon(
                       AppIcons.check,
                       size: 16,
-                      color: colors.accentMintInk,
+                      color: colors.present,
                     ),
                   ),
                   SegmentItem(
@@ -461,13 +464,12 @@ class _SessionFormSheetState extends ConsumerState<SessionFormSheet> {
                     icon: AppIcon(
                       AppIcons.close,
                       size: 16,
-                      color: colors.accentCoralInk,
+                      color: colors.absent,
                     ),
                   ),
                 ],
                 selectedValue: _status,
                 onChanged: (st) {
-                  AppHaptics.selectionClick(ref);
                   setState(() => _status = st);
                 },
               ),
@@ -525,11 +527,18 @@ void showSessionFormSheet({
   AttendanceSession? sessionToEdit,
   DateTime? prefilledDate,
 }) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final clampedPrefilled =
+      (prefilledDate != null && prefilledDate.isAfter(today))
+          ? today
+          : prefilledDate;
+
   if (sessionToEdit == null) {
     showQuickLogSheet(
       context: context,
-      initialDate: prefilledDate,
-      title: 'Record Historical Session',
+      initialDate: clampedPrefilled,
+      title: 'Log Attendance',
     );
     return;
   }
@@ -583,7 +592,7 @@ void showSessionFormSheet({
                 Expanded(
                   child: SessionFormSheet(
                     sessionToEdit: sessionToEdit,
-                    prefilledDate: prefilledDate,
+                    prefilledDate: clampedPrefilled,
                   ),
                 ),
               ],

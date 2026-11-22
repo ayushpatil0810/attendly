@@ -53,9 +53,7 @@ void main() {
   late int activeSemId;
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({
-      'pref_haptic_feedback_enabled_v1': true,
-    });
+    SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
     db = AppDatabase.forTesting(NativeDatabase.memory());
     mockFileService = MockPlatformFileService();
@@ -129,6 +127,68 @@ void main() {
       await tester.pump(Duration.zero);
     });
 
+    testWidgets('threshold stepper buttons adjust percentage by 1%', (
+      tester,
+    ) async {
+      setLargeViewport(tester);
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      expect(find.text('75%'), findsOneWidget);
+
+      // Decrement stepper
+      final decBtn = find.byKey(const Key('threshold_stepper_decrement'));
+      expect(decBtn, findsOneWidget);
+      await tester.tap(decBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.text('74%'), findsOneWidget);
+      var sem = await semesterRepo.getSemesterById(activeSemId);
+      expect(sem!.attendanceThreshold, closeTo(0.74, 0.001));
+
+      // Increment stepper
+      final incBtn = find.byKey(const Key('threshold_stepper_increment'));
+      expect(incBtn, findsOneWidget);
+      await tester.tap(incBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.text('75%'), findsOneWidget);
+      sem = await semesterRepo.getSemesterById(activeSemId);
+      expect(sem!.attendanceThreshold, closeTo(0.75, 0.001));
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(Duration.zero);
+    });
+
+    testWidgets('tapping threshold pill opens dialog and updates threshold', (
+      tester,
+    ) async {
+      setLargeViewport(tester);
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      // Tap percentage pill
+      await tester.tap(find.text('75%'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Set Attendance Threshold'), findsOneWidget);
+
+      // Enter 80
+      await tester.enterText(find.byType(TextField), '80');
+      await tester.pumpAndSettle();
+
+      // Tap Save
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('80%'), findsOneWidget);
+      final sem = await semesterRepo.getSemesterById(activeSemId);
+      expect(sem!.attendanceThreshold, closeTo(0.80, 0.001));
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(Duration.zero);
+    });
+
     testWidgets('changing calculation method updates the semester', (
       tester,
     ) async {
@@ -140,8 +200,8 @@ void main() {
       await tester.tap(find.text('Equal weight'));
       await tester.pumpAndSettle();
 
-      // Select Split in half from menu
-      await tester.tap(find.text('Split in half').last);
+      // Select 50/50 Lecture & Lab from menu
+      await tester.tap(find.text('50/50 Lecture & Lab').last);
       await tester.pumpAndSettle();
 
       final updatedSem = await semesterRepo.getSemesterById(activeSemId);
@@ -151,7 +211,7 @@ void main() {
       );
 
       // Tap dropdown again to revert
-      await tester.tap(find.text('Split in half'));
+      await tester.tap(find.text('50/50 Lecture & Lab'));
       await tester.pumpAndSettle();
 
       // Select Equal weight from menu
@@ -344,6 +404,52 @@ void main() {
           sems.first.calculationMethod,
           AttendanceCalculationMethod.componentAverage,
         );
+
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(Duration.zero);
+      },
+    );
+
+    testWidgets(
+      'tapping Load Sample Data populates 4 subjects and 76 classes',
+      (tester) async {
+        tester.view.physicalSize = const Size(800, 1200);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pumpAndSettle();
+
+        // Find and tap Load Sample Data tile
+        final loadTile = find.text('Load Sample Data');
+        await tester.scrollUntilVisible(loadTile, 100);
+        expect(loadTile, findsOneWidget);
+        await tester.tap(loadTile);
+        await tester.pumpAndSettle();
+
+        // Confirmation dialog appears
+        expect(find.text('Load Sample Data?'), findsOneWidget);
+
+        // Tap Load Data in dialog
+        await tester.tap(find.text('Load Data'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Sample data loaded! 4 subjects & 76 classes seeded.'),
+          findsOneWidget,
+        );
+
+        // Verify database state
+        final sems = await semesterRepo.getSemesters();
+        expect(sems.length, 1);
+        expect(sems.first.name, 'Fall 2026');
+
+        final subjects = await subjectRepo.getSubjectsForSemester(sems.first.id);
+        expect(subjects.length, 4);
+
+        final allSessions = await db.select(db.attendanceSessions).get();
+        expect(allSessions.length, 76);
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);

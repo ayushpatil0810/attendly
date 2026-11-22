@@ -110,6 +110,8 @@ class _SubjectFormSheetState extends ConsumerState<SubjectFormSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Form(
@@ -140,16 +142,40 @@ class _SubjectFormSheetState extends ConsumerState<SubjectFormSheet> {
             Text(
               'Select which class types this subject conducts.',
               style: AppTypography.labelSmall.copyWith(
-                color: AppColors.mutedInk,
+                color: colors.textSecondary,
               ),
             ),
             const SizedBox(height: 12),
 
-            // Lecture Toggle
+            // Theory Lecture Toggle
             AppSwitchTile(
               title: 'Theory Lecture',
               subtitle: 'Track lecture classroom sessions',
-              icon: AppIcon(AppIcons.lecture, color: AppColors.brandViolet),
+              icon: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: colors.surfaceSubtle.withValues(
+                    alpha: colors.isDark ? 0.6 : 0.8,
+                  ),
+                  border: Border.all(
+                    color: colors.border.withValues(
+                      alpha: colors.isDark ? 0.4 : 0.5,
+                    ),
+                    width: 0.5,
+                  ),
+                ),
+                child: Center(
+                  child: AppIcon(
+                    AppIcons.lecture,
+                    size: 18,
+                    color: _lectureEnabled
+                        ? colors.textPrimary
+                        : colors.textSecondary,
+                  ),
+                ),
+              ),
               value: _lectureEnabled,
               onChanged: (val) {
                 if (!val && !_labEnabled) {
@@ -164,11 +190,35 @@ class _SubjectFormSheetState extends ConsumerState<SubjectFormSheet> {
             ),
             const SizedBox(height: 10),
 
-            // Lab Toggle
+            // Practical Lab Toggle
             AppSwitchTile(
               title: 'Practical Lab',
               subtitle: 'Track laboratory or workshop sessions',
-              icon: AppIcon(AppIcons.lab, color: AppColors.inkMint),
+              icon: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: colors.surfaceSubtle.withValues(
+                    alpha: colors.isDark ? 0.6 : 0.8,
+                  ),
+                  border: Border.all(
+                    color: colors.border.withValues(
+                      alpha: colors.isDark ? 0.4 : 0.5,
+                    ),
+                    width: 0.5,
+                  ),
+                ),
+                child: Center(
+                  child: AppIcon(
+                    AppIcons.lab,
+                    size: 18,
+                    color: _labEnabled
+                        ? colors.textPrimary
+                        : colors.textSecondary,
+                  ),
+                ),
+              ),
               value: _labEnabled,
               onChanged: (val) {
                 if (!val && !_lectureEnabled) {

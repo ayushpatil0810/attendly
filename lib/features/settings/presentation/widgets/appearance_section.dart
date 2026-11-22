@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:attendly/core/services/preferences_service.dart';
 import 'package:attendly/core/shared/widgets/app_segmented_control.dart';
 import 'package:attendly/core/shared/widgets/apple/apple_inset_group.dart';
 import 'package:attendly/core/theme/app_icons.dart';
@@ -40,7 +39,6 @@ class AppearanceSection extends ConsumerWidget {
             selectedValue: currentMode,
             onChanged: (mode) {
               ref.read(themeModeProvider.notifier).setThemeMode(mode);
-              AppHaptics.selectionClick(ref);
             },
           ),
         ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
-import '../../theme/app_radius.dart';
 import '../../theme/app_typography.dart';
 import 'app_button.dart';
 
@@ -13,6 +12,7 @@ class AppEmptyState extends StatelessWidget {
     this.icon,
     this.actionLabel,
     this.onAction,
+    this.actionIcon,
   });
 
   final String title;
@@ -20,6 +20,7 @@ class AppEmptyState extends StatelessWidget {
   final Widget? icon;
   final String? actionLabel;
   final VoidCallback? onAction;
+  final Widget? actionIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -35,8 +36,16 @@ class AppEmptyState extends StatelessWidget {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: colors.brandPrimarySoft,
-                  borderRadius: AppRadius.xlBorder,
+                  color: colors.surfaceSubtle.withValues(
+                    alpha: colors.isDark ? 0.6 : 0.8,
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: colors.border.withValues(
+                      alpha: colors.isDark ? 0.4 : 0.6,
+                    ),
+                    width: 0.5,
+                  ),
                 ),
                 alignment: Alignment.center,
                 child: icon,
@@ -64,8 +73,10 @@ class AppEmptyState extends StatelessWidget {
               const SizedBox(height: 20),
               AppButton(
                 label: actionLabel!,
+                icon: actionIcon,
                 onPressed: onAction,
                 size: AppButtonSize.medium,
+                isFullWidth: false,
               ),
             ],
           ],

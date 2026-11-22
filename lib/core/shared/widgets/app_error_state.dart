@@ -22,7 +22,7 @@ class AppErrorState extends StatelessWidget {
           Text(
             message,
             style: AppTypography.bodySmall.copyWith(
-              color: colors.accentCoralInk,
+              color: colors.accentRed,
             ),
             textAlign: TextAlign.center,
           ),

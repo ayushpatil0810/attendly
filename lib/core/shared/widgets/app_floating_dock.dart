@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_icons.dart';
@@ -22,6 +21,14 @@ class AppFloatingDock extends StatelessWidget {
   final ValueChanged<int> onDestinationSelected;
   final VoidCallback onQuickLogPressed;
 
+  // Strict concentric geometry:
+  // innerRadius = outerRadius - dockPadding (32.0 - 6.0 = 26.0)
+  static const double outerRadius = 32.0;
+  static const double dockPadding = 6.0;
+  static const double innerRadius = outerRadius - dockPadding; // 26.0
+  static const double dockHeight = 62.0;
+  static const double innerHeight = dockHeight - (dockPadding * 2); // 50.0
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -32,47 +39,50 @@ class AppFloatingDock extends StatelessWidget {
       left: false,
       right: false,
       bottom: bottomInset == 0,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          16,
-          0,
-          16,
-          bottomInset > 0 ? bottomInset + 4 : 16,
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(32),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              height: 62,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              decoration: BoxDecoration(
-                color: (colors.isDark
-                        ? const Color(0xFF1E1E22)
-                        : const Color(0xFF18181B))
-                    .withValues(alpha: 0.88),
-                borderRadius: BorderRadius.circular(32),
-                border: Border.all(
-                  color: colors.isDark
-                      ? const Color(0xFF3F3F46).withValues(alpha: 0.6)
-                      : Colors.white.withValues(alpha: 0.12),
-                  width: 0.8,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(
-                      alpha: colors.isDark ? 0.45 : 0.18,
+      child: RepaintBoundary(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            16,
+            0,
+            16,
+            bottomInset > 0 ? bottomInset + 4 : 16,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(outerRadius),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+              child: Container(
+                height: dockHeight,
+                padding: const EdgeInsets.all(dockPadding),
+                decoration: BoxDecoration(
+                  color: (colors.isDark
+                          ? const Color(0xFF1E1E22)
+                          : Colors.white)
+                      .withValues(alpha: colors.isDark ? 0.88 : 0.92),
+                  borderRadius: BorderRadius.circular(outerRadius),
+                  border: Border.all(
+                    color: colors.isDark
+                        ? const Color(0xFF3F3F46).withValues(alpha: 0.6)
+                        : colors.border.withValues(alpha: 0.7),
+                    width: 0.8,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: colors.isDark ? 0.45 : 0.08,
+                      ),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
                     ),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: colors.isDark ? 0.06 : 0.04,
+                      ),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -105,14 +115,23 @@ class AppFloatingDock extends StatelessWidget {
                     isSelected: currentIndex == 2,
                     onTap: () => onDestinationSelected(2),
                   ),
+                  _DockItem(
+                    key: const Key('dock_tab_settings'),
+                    icon: AppIcons.settings,
+                    selectedIcon: AppIcons.settingsFill,
+                    label: 'Settings',
+                    isSelected: currentIndex == 3,
+                    onTap: () => onDestinationSelected(3),
+                  ),
                 ],
               ),
             ),
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _DockItem extends StatelessWidget {
@@ -133,11 +152,23 @@ class _DockItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final disableAnimations =
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     final duration = disableAnimations
         ? Duration.zero
         : const Duration(milliseconds: 240);
+
+    final itemBg = isSelected
+        ? (colors.isDark
+            ? Colors.white.withValues(alpha: 0.22)
+            : const Color(0xFF09090B).withValues(alpha: 0.08))
+        : Colors.transparent;
+
+    final selectedFg = colors.isDark ? Colors.white : colors.textPrimary;
+    final unselectedFg = colors.isDark
+        ? Colors.white.withValues(alpha: 0.70)
+        : colors.textSecondary;
 
     return Semantics(
       button: true,
@@ -145,32 +176,28 @@ class _DockItem extends StatelessWidget {
       selected: isSelected,
       child: GestureDetector(
         onTap: () {
-          HapticFeedback.selectionClick();
           onTap();
         },
         behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
           duration: duration,
           curve: Curves.easeOutCubic,
+          height: AppFloatingDock.innerHeight,
           padding: EdgeInsets.symmetric(
-            horizontal: isSelected ? 14 : 10,
-            vertical: 8,
+            horizontal: isSelected ? 12 : 8,
           ),
           decoration: BoxDecoration(
-            color: isSelected
-                ? Colors.white.withValues(alpha: 0.22)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(22),
+            color: itemBg,
+            borderRadius: BorderRadius.circular(AppFloatingDock.innerRadius),
           ),
+          alignment: Alignment.center,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               AppIcon(
                 isSelected ? selectedIcon : icon,
-                color: isSelected
-                    ? Colors.white
-                    : Colors.white.withValues(alpha: 0.70),
+                color: isSelected ? selectedFg : unselectedFg,
                 size: 21,
               ),
               ClipRect(
@@ -182,15 +209,18 @@ class _DockItem extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const SizedBox(width: 6),
-                            Text(
-                              label,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13,
-                                letterSpacing: -0.2,
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                label,
+                                style: TextStyle(
+                                  color: selectedFg,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                  letterSpacing: -0.2,
+                                ),
+                                maxLines: 1,
                               ),
-                              maxLines: 1,
                             ),
                           ],
                         )
@@ -219,8 +249,12 @@ class _QuickLogButtonState extends State<_QuickLogButton> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final disableAnimations =
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+
+    final buttonBg = colors.isDark ? Colors.white : const Color(0xFF18181B);
+    final iconColor = colors.isDark ? const Color(0xFF18181B) : Colors.white;
 
     return Semantics(
       button: true,
@@ -230,7 +264,6 @@ class _QuickLogButtonState extends State<_QuickLogButton> {
         onTapUp: (_) => setState(() => _isPressed = false),
         onTapCancel: () => setState(() => _isPressed = false),
         onTap: () {
-          HapticFeedback.lightImpact();
           widget.onPressed();
         },
         behavior: HitTestBehavior.opaque,
@@ -241,14 +274,16 @@ class _QuickLogButtonState extends State<_QuickLogButton> {
               : const Duration(milliseconds: 100),
           curve: Curves.easeOutCubic,
           child: Container(
-            width: 38,
-            height: 38,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: buttonBg,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.14),
+                  color: Colors.black.withValues(
+                    alpha: colors.isDark ? 0.14 : 0.18,
+                  ),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -257,7 +292,7 @@ class _QuickLogButtonState extends State<_QuickLogButton> {
             alignment: Alignment.center,
             child: AppIcon(
               AppIcons.add,
-              color: const Color(0xFF18181B),
+              color: iconColor,
               size: 22,
             ),
           ),
@@ -326,6 +361,15 @@ class AppSideRail extends StatelessWidget {
                 isSelected: currentIndex == 2,
                 onTap: () => onDestinationSelected(2),
               ),
+              const SizedBox(height: 8),
+              _RailItem(
+                key: const Key('dock_tab_settings'),
+                icon: AppIcons.settings,
+                selectedIcon: AppIcons.settingsFill,
+                label: 'Settings',
+                isSelected: currentIndex == 3,
+                onTap: () => onDestinationSelected(3),
+              ),
             ],
           ),
         ),
@@ -359,7 +403,6 @@ class _RailItem extends StatelessWidget {
       selected: isSelected,
       child: GestureDetector(
         onTap: () {
-          HapticFeedback.selectionClick();
           onTap();
         },
         behavior: HitTestBehavior.opaque,
@@ -376,7 +419,7 @@ class _RailItem extends StatelessWidget {
               AppIcon(
                 isSelected ? selectedIcon : icon,
                 color:
-                    isSelected ? colors.brandPrimaryInk : colors.textSecondary,
+                    isSelected ? colors.brandPrimary : colors.textSecondary,
                 size: 22,
               ),
               const SizedBox(height: 4),
@@ -384,7 +427,7 @@ class _RailItem extends StatelessWidget {
                 label,
                 style: TextStyle(
                   color: isSelected
-                      ? colors.brandPrimaryInk
+                      ? colors.brandPrimary
                       : colors.textSecondary,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   fontSize: 11,

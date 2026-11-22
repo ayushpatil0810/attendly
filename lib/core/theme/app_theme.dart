@@ -33,20 +33,20 @@ abstract final class AppTheme {
 
     final colorScheme = ColorScheme(
       brightness: brightness,
-      primary: colors.brandPrimaryInk,
-      onPrimary: isDark ? colors.background : Colors.white,
+      primary: colors.brandPrimary,
+      onPrimary: Colors.white,
       primaryContainer: colors.brandPrimarySoft,
-      onPrimaryContainer: colors.brandPrimaryInk,
-      secondary: colors.accentMint,
-      onSecondary: isDark ? colors.background : colors.textPrimary,
-      secondaryContainer: colors.accentMintSoft,
-      onSecondaryContainer: colors.accentMintInk,
-      tertiary: colors.accentPeach,
-      onTertiary: isDark ? colors.background : colors.textPrimary,
-      error: colors.accentCoralInk,
+      onPrimaryContainer: colors.brandPrimary,
+      secondary: colors.accentGreen,
+      onSecondary: Colors.white,
+      secondaryContainer: colors.surfaceSubtle,
+      onSecondaryContainer: colors.textPrimary,
+      tertiary: colors.accentOrange,
+      onTertiary: Colors.white,
+      error: colors.accentRed,
       onError: Colors.white,
-      errorContainer: colors.accentCoralSoft,
-      onErrorContainer: colors.accentCoralInk,
+      errorContainer: colors.surfaceSubtle,
+      onErrorContainer: colors.accentRed,
       surface: colors.surface,
       onSurface: colors.textPrimary,
       surfaceContainer: colors.surface,
@@ -60,12 +60,35 @@ abstract final class AppTheme {
     );
 
     return base.copyWith(
+      splashFactory: NoSplash.splashFactory,
+      splashColor: Colors.transparent,
+      highlightColor: colors.surfaceSubtle.withValues(
+        alpha: isDark ? 0.30 : 0.45,
+      ),
       scaffoldBackgroundColor: colors.background,
       canvasColor: colors.surface,
       cardColor: colors.surface,
       dialogBackgroundColor: colors.surface,
       colorScheme: colorScheme,
       extensions: [colors],
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.all(Colors.white),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colors.brandPrimary;
+          }
+          return isDark ? const Color(0xFF39393D) : const Color(0xFFE9E9EA);
+        }),
+        trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+      ),
+      sliderTheme: SliderThemeData(
+        activeTrackColor: colors.brandPrimary,
+        inactiveTrackColor: colors.track,
+        thumbColor: colors.brandPrimary,
+        overlayColor: colors.brandPrimary.withValues(alpha: 0.12),
+        trackHeight: 4,
+        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+      ),
       textTheme: (isDark
           ? const TextTheme(
               headlineLarge: AppTypography.heroNumber,
@@ -154,15 +177,15 @@ abstract final class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: AppRadius.mdBorder,
-          borderSide: BorderSide(color: colors.brandPrimaryInk, width: 1.5),
+          borderSide: BorderSide(color: colors.brandPrimary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: AppRadius.mdBorder,
-          borderSide: BorderSide(color: colors.accentCoralInk),
+          borderSide: BorderSide(color: colors.accentRed),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: AppRadius.mdBorder,
-          borderSide: BorderSide(color: colors.accentCoralInk, width: 1.5),
+          borderSide: BorderSide(color: colors.accentRed, width: 1.5),
         ),
       ),
       bottomSheetTheme: BottomSheetThemeData(

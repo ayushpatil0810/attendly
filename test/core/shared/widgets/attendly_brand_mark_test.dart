@@ -28,7 +28,7 @@ void main() {
   testWidgets('AttendlyBrandMark adopts theme colors from context extension', (
     tester,
   ) async {
-    final themeColors = AppPalettes.oceanBreezeLight;
+    final themeColors = AppPalettes.light;
 
     await tester.pumpWidget(
       MaterialApp(

@@ -473,7 +473,7 @@ void main() {
 
       // 1-3. Export backup and verify
       final jsonStr = await backupService.exportBackupJson(
-        appPreferences: {'hapticFeedback': true},
+        appPreferences: {'themeMode': 'system'},
       );
       expect(jsonStr, isNotEmpty);
       final parsed = jsonDecode(jsonStr) as Map<String, dynamic>;

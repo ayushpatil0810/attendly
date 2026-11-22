@@ -5,13 +5,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:attendly/core/database/app_database.dart';
 import 'package:attendly/core/providers/database_provider.dart';
-import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/features/attendance/data/repositories/attendance_repository_impl.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_status.dart';
 import 'package:attendly/features/attendance/domain/entities/session_component.dart';
 import 'package:attendly/features/attendance/presentation/providers/attendance_providers.dart';
 import 'package:attendly/features/attendance/presentation/screens/history_screen.dart';
+import 'package:attendly/features/attendance/presentation/widgets/quick_log_sheet.dart';
 import 'package:attendly/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:attendly/features/semesters/data/repositories/semester_repository_impl.dart';
 import 'package:attendly/features/subjects/data/repositories/subject_repository_impl.dart';
@@ -79,7 +79,7 @@ void main() {
           ),
           findsOneWidget,
         );
-        expect(find.text('Log Class'), findsOneWidget);
+        expect(find.text('Log Attendance'), findsOneWidget);
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);
@@ -118,12 +118,20 @@ void main() {
         expect(find.byIcon(AppIcons.check), findsOneWidget);
         expect(find.byIcon(AppIcons.close), findsOneWidget);
 
+        // Apple HIG crisp 24dp solid status circles with white icons
+        final checkIcon = tester.widget<Icon>(find.byIcon(AppIcons.check));
+        expect(checkIcon.color, equals(Colors.white));
+        expect(checkIcon.size, equals(14));
+        final closeIcon = tester.widget<Icon>(find.byIcon(AppIcons.close));
+        expect(closeIcon.color, equals(Colors.white));
+        expect(closeIcon.size, equals(14));
+
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);
       },
     );
 
-    testWidgets('opens session edit sheet when edit icon tapped', (
+    testWidgets('opens session edit sheet when session row tapped', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(800, 1200);
@@ -147,10 +155,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Tap edit button
-      final editBtn = find.byKey(Key('edit_session_$sessId'));
-      expect(editBtn, findsOneWidget);
-      await tester.tap(editBtn);
+      // Tap session row to open edit sheet
+      final sessionRow = find.byKey(Key('session_tile_$sessId'));
+      expect(sessionRow, findsOneWidget);
+      await tester.tap(sessionRow);
       await tester.pumpAndSettle();
 
       expect(find.text('Edit Session'), findsOneWidget);
@@ -161,7 +169,7 @@ void main() {
       await tester.pump(Duration.zero);
     });
 
-    testWidgets('deletes session after confirming delete dialog', (
+    testWidgets('deletes session via swipe-to-delete with undo affordance', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(800, 1200);
@@ -187,27 +195,18 @@ void main() {
 
       expect(find.text('Distributed Systems'), findsOneWidget);
 
-      // Tap delete icon on session card
-      final deleteBtn = find.byKey(Key('delete_session_$sessId'));
-      expect(deleteBtn, findsOneWidget);
-      await tester.tap(deleteBtn);
-      await tester.pumpAndSettle();
-
-      // Confirmation dialog opens
-      expect(find.text('Delete Session'), findsOneWidget);
-      expect(
-        find.text(
-          'Are you sure you want to delete this Lecture session for Distributed Systems on 2026-03-10? This session will be permanently removed from attendance calculations.',
-        ),
-        findsOneWidget,
-      );
-
-      // Tap Delete in dialog
-      await tester.tap(find.widgetWithText(AppButton, 'Delete'));
+      // Swipe session row left to delete
+      final dismissible = find.byKey(Key('session_dismissible_$sessId'));
+      expect(dismissible, findsOneWidget);
+      await tester.drag(dismissible, const Offset(-500, 0));
       await tester.pumpAndSettle();
 
       // Session deleted in DB
       expect(await repo.getSessionById(sessId), isNull);
+
+      // Undo snackbar shown
+      expect(find.text('Session deleted'), findsOneWidget);
+      expect(find.text('Undo'), findsOneWidget);
 
       // Empty state now shown
       expect(find.text('No sessions recorded for this date'), findsOneWidget);
@@ -217,7 +216,7 @@ void main() {
     });
 
     testWidgets(
-      'opens redesigned historical session drawer (matching quick log style) and logs attendance on the spot when Log Class tapped',
+      'opens redesigned historical session drawer (matching quick log style) and logs attendance on the spot when Log Attendance tapped',
       (tester) async {
         tester.view.physicalSize = const Size(800, 1200);
         tester.view.devicePixelRatio = 1.0;
@@ -231,40 +230,82 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Tap Log Class on History screen
-        final addBtn = find.text('Log Class');
+        // Tap Log Attendance on History screen
+        final addBtn = find.text('Log Attendance');
         expect(addBtn, findsOneWidget);
         await tester.tap(addBtn);
         await tester.pumpAndSettle();
 
-        // Drawer is open with redesigned Quick Attendance Log model style
-        expect(find.text('Record Historical Session'), findsOneWidget);
+        // Drawer is open with Log Attendance model style
+        expect(
+          find.descendant(
+            of: find.byType(QuickLogSheet),
+            matching: find.text('Log Attendance'),
+          ),
+          findsOneWidget,
+        );
         expect(find.text('Distributed Systems'), findsOneWidget);
-        expect(find.text('Theory Lecture'), findsOneWidget);
-        expect(find.text('Practical Lab'), findsOneWidget);
-        expect(find.text('Done Logging'), findsOneWidget);
+        expect(find.text('Lecture'), findsOneWidget);
+        expect(find.text('Lab'), findsOneWidget);
+        expect(find.text('Done'), findsOneWidget);
 
-        // Tap "+ Present" for Lecture
-        final markPresentBtn = find.text('+ Present').first;
+        // Tap "Present" for Lecture
+        final markPresentBtn = find.text('Present').first;
         expect(markPresentBtn, findsOneWidget);
         await tester.tap(markPresentBtn);
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
         await tester.pumpAndSettle();
 
-        // Immediate session chip feedback in drawer without closing
-        expect(find.text('Lec 1: Present'), findsOneWidget);
-        expect(find.text('Record Historical Session'), findsOneWidget);
+        // Immediate live counter feedback on button without closing
+        expect(find.text('Present · 1'), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(QuickLogSheet),
+            matching: find.text('Log Attendance'),
+          ),
+          findsOneWidget,
+        );
 
-        // Tap "Done Logging" to close drawer
-        await tester.tap(find.text('Done Logging'));
+        // Tap "Done" to close drawer
+        await tester.tap(find.text('Done'));
         await tester.pumpAndSettle();
 
         // Drawer is closed and session is now rendered on HistoryScreen
-        expect(find.text('Record Historical Session'), findsNothing);
+        expect(find.byType(QuickLogSheet), findsNothing);
         expect(find.text('Distributed Systems'), findsOneWidget);
         expect(find.text('Lecture'), findsOneWidget);
         expect(find.byIcon(AppIcons.check), findsOneWidget);
+
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(Duration.zero);
+      },
+    );
+
+    testWidgets(
+      'hides Log Attendance button and shows Future date placeholder on future dates',
+      (tester) async {
+        final futureDate = DateTime(2099, 5, 20);
+        await tester.pumpWidget(
+          createWidgetUnderTest(initialSelectedDate: futureDate),
+        );
+        await tester.pumpAndSettle();
+
+        // Header shows date
+        expect(find.text('History'), findsOneWidget);
+
+        // Log Attendance button is hidden for future date
+        expect(find.text('+ Log Attendance'), findsNothing);
+
+        // Add note button is hidden for future date
+        expect(find.text('+ Add note for this day'), findsNothing);
+
+        // Empty state shows future date notice
+        expect(find.text('Future date'), findsOneWidget);
+        expect(
+          find.text('Attendance cannot be logged in advance.'),
+          findsOneWidget,
+        );
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);

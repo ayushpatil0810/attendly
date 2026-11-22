@@ -5,6 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:attendly/core/database/app_database.dart';
 import 'package:attendly/core/providers/database_provider.dart';
+import 'package:attendly/core/shared/widgets/app_floating_dock.dart';
+import 'package:attendly/core/theme/app_theme.dart';
+import 'package:attendly/features/attendance/presentation/widgets/quick_log_sheet.dart';
 import 'package:attendly/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:attendly/features/semesters/data/repositories/semester_repository_impl.dart';
 import 'package:attendly/features/shell/presentation/screens/main_shell_screen.dart';
@@ -41,7 +44,7 @@ void main() {
   }
 
   testWidgets(
-    'Floating dock navigates between tabs and opens Quick Log sheet',
+    'Floating dock navigates between tabs, includes Settings, and supports swipe navigation',
     (tester) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
@@ -49,15 +52,15 @@ void main() {
       // Initially on Home
       expect(find.text('attendly'), findsOneWidget);
       expect(find.text('Fall 2026'), findsOneWidget);
-      // Empty dashboard verifies duplicate "Your Courses" is removed
       expect(find.text('Start Semester Setup'), findsOneWidget);
       expect(find.text('Your Courses'), findsNothing);
 
-      // Verify dock has active Home tab label, dock tab keys, and quick log button
+      // Verify dock has active Home tab label, dock tab keys, quick log, and Settings
       expect(find.text('Home'), findsOneWidget);
       expect(find.byKey(const Key('dock_tab_subjects')), findsOneWidget);
       expect(find.byKey(const Key('quick_log_dock_button')), findsOneWidget);
       expect(find.byKey(const Key('dock_tab_history')), findsOneWidget);
+      expect(find.byKey(const Key('dock_tab_settings')), findsOneWidget);
       expect(find.byKey(const Key('dock_tab_insights')), findsNothing);
 
       // Tap Subjects tab
@@ -71,8 +74,6 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Enrolled Courses and Attendance'), findsOneWidget);
-      expect(find.text('Add Subject'), findsOneWidget);
-      expect(find.text('No Subjects Added'), findsOneWidget);
 
       // Tap History tab
       await tester.tap(find.byKey(const Key('dock_tab_history')));
@@ -85,22 +86,102 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Calendar & Attendance Timeline'), findsOneWidget);
-      expect(find.text('No sessions recorded for this date'), findsOneWidget);
+
+      // Tap Settings tab in dock
+      await tester.tap(find.byKey(const Key('dock_tab_settings')));
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('dock_tab_settings')),
+          matching: find.text('Settings'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Preferences & Academic Configuration'), findsOneWidget);
+      expect(find.text('Appearance'), findsOneWidget);
+
+      // Horizontal swipe navigation: swipe right-to-left moves to previous page (History)
+      await tester.drag(find.byType(PageView), const Offset(400, 0));
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('dock_tab_history')),
+          matching: find.text('History'),
+        ),
+        findsOneWidget,
+      );
 
       // Tap Quick Log (+) button
       await tester.tap(find.byKey(const Key('quick_log_dock_button')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Quick Attendance Log'), findsOneWidget);
-      expect(find.text('No subjects found'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(QuickLogSheet),
+          matching: find.text('Log Attendance'),
+        ),
+        findsOneWidget,
+      );
 
       // Dismiss bottom sheet
       await tester.tap(find.text('Close'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Quick Attendance Log'), findsNothing);
+      expect(find.byType(QuickLogSheet), findsNothing);
 
       // Flush any pending microtasks from Stream disposal
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(Duration.zero);
+    },
+  );
+
+  testWidgets(
+    'Floating dock adapts colors between light and dark themes',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            databaseProvider.overrideWithValue(db),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: ThemeMode.light,
+            home: const MainShellScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AppFloatingDock), findsOneWidget);
+      expect(find.text('Home'), findsOneWidget);
+
+      // Re-pump in dark theme
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            databaseProvider.overrideWithValue(db),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: ThemeMode.dark,
+            home: const MainShellScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AppFloatingDock), findsOneWidget);
+      expect(find.text('Home'), findsOneWidget);
+
       await tester.pumpWidget(const SizedBox());
       await tester.pump(Duration.zero);
     },

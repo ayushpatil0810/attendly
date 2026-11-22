@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 868 930" width="868" height="930" fill="none">
+  <!-- Calendar Body -->
+  <path d="M 145 106
+       H 720
+       A 145 145 0 0 1 764 117
+       L 560 329
+       H 92
+       V 773
+       A 62 62 0 0 0 154 835
+       H 409
+       A 76 76 0 0 0 418.5 929
+       H 145
+       A 145 145 0 0 1 0 784
+       V 251
+       A 145 145 0 0 1 145 106
+       Z" fill="#007AFF" />
+
+  <!-- Top Calendar Binding Tabs -->
+  <rect x="187" y="0" width="93" height="192" rx="46.5" fill="#007AFF" />
+  <rect x="576" y="0" width="94" height="193" rx="47" fill="#007AFF" />
+
+  <!-- Subtle Overlap Shadows Inside Header -->
+  <path d="M 187 106 H 280 V 145.5 A 46.5 46.5 0 0 1 187 145.5 Z" fill="#005EC4" />
+  <path d="M 576 106 H 670 V 146 A 47 47 0 0 1 576 146 Z" fill="#005EC4" />
+
+  <!-- Green Attendance Checkmark -->
+  <path d="M 801 137
+       L 373 584
+       L 284 497
+       A 60 60 0 0 0 196 580
+       L 336 725
+       A 48 48 0 0 0 405 727
+       L 829 287
+       C 858 257 858 196 825 162
+       C 817 153 809 145 801 137
+       Z" fill="#34C759" />
+
+  <!-- Outer Progress Arc -->
+  <path d="M 779.3 392.5
+       A 316 316 0 0 1 466.5 916.2
+       A 40 40 0 0 1 488.1 839.2
+       A 236 236 0 0 0 721.8 448.1
+       Z" fill="#007AFF" />
+
+  <!-- Inner Progress Arc -->
+  <path d="M 698.4 480.2
+       A 197 197 0 0 1 552 809
+       A 30.5 30.5 0 0 1 552 748
+       A 136 136 0 0 0 653.1 521
+       Z" fill="#34C759" />
+</svg>

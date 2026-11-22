@@ -106,12 +106,12 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(AppTheme.currentColors.background, AppPalettes.light.background);
-      expect(AppColors.warmWhite, AppPalettes.light.background);
+      expect(AppColors.background, AppPalettes.light.background);
       expect(
         AppTheme.currentColors.brandPrimary,
         AppPalettes.light.brandPrimary,
       );
-      expect(AppColors.brandViolet, AppPalettes.light.brandPrimary);
+      expect(AppColors.brandPrimary, AppPalettes.light.brandPrimary);
 
       // Verify Scaffolds on screen match the light background
       final scaffolds = tester.widgetList<Scaffold>(find.byType(Scaffold));
@@ -127,12 +127,12 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(AppTheme.currentColors.background, AppPalettes.dark.background);
-      expect(AppColors.warmWhite, AppPalettes.dark.background);
+      expect(AppColors.background, AppPalettes.dark.background);
       expect(
         AppTheme.currentColors.brandPrimary,
         AppPalettes.dark.brandPrimary,
       );
-      expect(AppColors.brandViolet, AppPalettes.dark.brandPrimary);
+      expect(AppColors.brandPrimary, AppPalettes.dark.brandPrimary);
 
       // Verify Scaffolds on screen match the dark background
       final darkScaffolds = tester.widgetList<Scaffold>(find.byType(Scaffold));
@@ -154,7 +154,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(AppTheme.currentColors.background, AppPalettes.light.background);
-      expect(AppColors.warmWhite, AppPalettes.light.background);
+      expect(AppColors.background, AppPalettes.light.background);
 
       // Switch back to Dark mode on Insights
       await container
@@ -163,7 +163,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(AppTheme.currentColors.background, AppPalettes.dark.background);
-      expect(AppColors.warmWhite, AppPalettes.dark.background);
+      expect(AppColors.background, AppPalettes.dark.background);
     },
   );
 }

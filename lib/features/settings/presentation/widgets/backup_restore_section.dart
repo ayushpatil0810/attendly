@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:attendly/core/services/preferences_service.dart';
+import 'package:attendly/core/backup/sample_data.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/shared/widgets/apple/apple_inset_group.dart';
 import 'package:attendly/core/shared/widgets/apple/apple_list_tile.dart';
@@ -18,7 +18,6 @@ class BackupRestoreSection extends ConsumerWidget {
 
   void _handleExport(BuildContext context, WidgetRef ref) async {
     final colors = context.colors;
-    AppHaptics.selectionClick(ref);
     final result = await ref
         .read(backupControllerProvider.notifier)
         .exportBackup();
@@ -26,7 +25,6 @@ class BackupRestoreSection extends ConsumerWidget {
     if (!context.mounted) return;
 
     if (result.isSuccess && !result.isCanceled) {
-      AppHaptics.lightImpact(ref);
       AppToast.showSuccess(context, message: 'Backup exported successfully!');
     } else if (!result.isSuccess && result.errorMessage != null) {
       showDialog(
@@ -59,7 +57,6 @@ class BackupRestoreSection extends ConsumerWidget {
 
   void _handleRestore(BuildContext context, WidgetRef ref) async {
     final colors = context.colors;
-    AppHaptics.selectionClick(ref);
     final validationResult = await ref
         .read(backupControllerProvider.notifier)
         .pickAndValidateBackup();
@@ -74,7 +71,7 @@ class BackupRestoreSection extends ConsumerWidget {
           shape: const RoundedRectangleBorder(borderRadius: AppRadius.lgBorder),
           title: Row(
             children: [
-              AppIcon(AppIcons.alert, color: colors.accentCoral, size: 20),
+              AppIcon(AppIcons.alert, color: colors.accentRed, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Invalid Backup File',
@@ -116,7 +113,6 @@ class BackupRestoreSection extends ConsumerWidget {
           if (!context.mounted) return;
 
           if (success) {
-            AppHaptics.lightImpact(ref);
             AppToast.showSuccess(
               context,
               message: 'Attendance data restored successfully!',
@@ -155,6 +151,69 @@ class BackupRestoreSection extends ConsumerWidget {
     );
   }
 
+  void _handleLoadSampleData(BuildContext context, WidgetRef ref) {
+    final colors = context.colors;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.lgBorder),
+        title: Text(
+          'Load Sample Data?',
+          style: AppTypography.headline.copyWith(
+            fontWeight: FontWeight.w700,
+            color: colors.textPrimary,
+          ),
+        ),
+        content: Text(
+          'This will seed a complete test scenario ("Fall 2026") with 4 subjects, 76 sessions, and day notes. It will replace existing data so you can test calculations and simulators.\n\nAre you sure you want to proceed?',
+          style: AppTypography.bodySmall.copyWith(
+            color: colors.textSecondary,
+            fontSize: 14,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              'Cancel',
+              style: AppTypography.headline.copyWith(
+                color: colors.textSecondary,
+                fontSize: 15,
+              ),
+            ),
+          ),
+          AppButton(
+            label: 'Load Data',
+            size: AppButtonSize.small,
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              final sampleData = SampleData.getSampleBackupData();
+              final success = await ref
+                  .read(backupControllerProvider.notifier)
+                  .executeRestore(sampleData);
+
+              if (!context.mounted) return;
+
+              if (success) {
+                AppToast.showSuccess(
+                  context,
+                  message: 'Sample data loaded! 4 subjects & 76 classes seeded.',
+                );
+              } else {
+                AppToast.showError(
+                  context,
+                  message: 'Failed to load sample data.',
+                );
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
@@ -168,7 +227,7 @@ class BackupRestoreSection extends ConsumerWidget {
         AppleListTile(
           leading: AppleIconTile(
             icon: AppIcons.exportFile,
-            backgroundColor: colors.accentMint,
+            backgroundColor: colors.accentGreen,
           ),
           title: 'Export Backup',
           trailing: backupState.isExporting
@@ -189,9 +248,7 @@ class BackupRestoreSection extends ConsumerWidget {
         AppleListTile(
           leading: AppleIconTile(
             icon: AppIcons.importFile,
-            backgroundColor: colors.isDark
-                ? const Color(0xFF0A84FF)
-                : const Color(0xFF007AFF),
+            backgroundColor: colors.brandPrimary,
           ),
           title: 'Restore Backup',
           trailing: backupState.isRestoring
@@ -206,6 +263,28 @@ class BackupRestoreSection extends ConsumerWidget {
               : null,
           showDisclosure: !backupState.isRestoring,
           onTap: backupState.isRestoring ? null : () => _handleRestore(context, ref),
+        ),
+
+        // Seed Sample Data Tile
+        AppleListTile(
+          leading: AppleIconTile(
+            icon: AppIcons.insights,
+            backgroundColor: colors.accentOrange,
+          ),
+          title: 'Load Sample Data',
+          trailing: backupState.isRestoring
+              ? null
+              : Text(
+                  'Demo',
+                  style: AppTypography.caption1.copyWith(
+                    color: colors.textTertiary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+          showDisclosure: !backupState.isRestoring,
+          onTap: backupState.isRestoring
+              ? null
+              : () => _handleLoadSampleData(context, ref),
         ),
       ],
     );

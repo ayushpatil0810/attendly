@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:attendly/core/database/app_database.dart';
+import 'package:attendly/core/errors/app_failure.dart';
 import 'package:attendly/core/providers/database_provider.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_status.dart';
 import 'package:attendly/features/attendance/domain/entities/session_component.dart';
@@ -57,6 +58,18 @@ void main() {
 
       notifier.selectToday();
       expect(container.read(selectedDateProvider).day, equals(now.day));
+    });
+
+    test('SelectedDateNotifier does not allow selecting a future date', () {
+      final container = createContainer();
+      final notifier = container.read(selectedDateProvider.notifier);
+      final initial = container.read(selectedDateProvider);
+
+      final futureDate = DateTime(2099, 1, 1);
+      notifier.selectDate(futureDate);
+
+      // Remains unchanged
+      expect(container.read(selectedDateProvider), equals(initial));
     });
 
     test('CurrentMonthNotifier navigates months correctly', () {
@@ -278,6 +291,38 @@ void main() {
       expect(secondId, isNot(equals(0)));
       final rows = await db.select(db.attendanceSessions).get();
       expect(rows.where((row) => row.sessionDate == dateStr).length, equals(2));
+
+      sub1.close();
+    });
+
+    test('AttendanceController rejects logging attendance for future date', () async {
+      final container = createContainer();
+      final sub1 = container.listen(activeSemestersStreamProvider, (_, _) {});
+
+      final semId = await container
+          .read(semesterControllerProvider.notifier)
+          .createSemester(name: 'Future Date Sem');
+      await container.read(activeSemestersStreamProvider.future);
+
+      final subId = await container
+          .read(subjectControllerProvider.notifier)
+          .createSubject(
+            semesterId: semId!,
+            name: 'Physics',
+            lectureEnabled: true,
+            labEnabled: false,
+          );
+
+      final controller = container.read(attendanceControllerProvider.notifier);
+      expect(
+        () => controller.recordSession(
+          subjectId: subId,
+          sessionDate: '2099-01-01',
+          component: SessionComponent.lecture,
+          status: AttendanceStatus.present,
+        ),
+        throwsA(isA<ValidationFailure>()),
+      );
 
       sub1.close();
     });

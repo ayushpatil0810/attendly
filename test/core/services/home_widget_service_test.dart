@@ -70,7 +70,6 @@ void main() {
         containsAll([
           'SmallAttendanceWidgetProvider',
           'MediumAttendanceWidgetProvider',
-          'LargeAttendanceWidgetProvider',
         ]),
       );
     });
@@ -150,7 +149,6 @@ void main() {
         expect(mockWrapper.updatedWidgets, [
           'SmallAttendanceWidgetProvider',
           'MediumAttendanceWidgetProvider',
-          'LargeAttendanceWidgetProvider',
         ]);
       },
     );

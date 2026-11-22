@@ -194,9 +194,7 @@ class _SimulatorInputPanelState extends ConsumerState<SimulatorInputPanel> {
               Expanded(
                 child: _SimulateActionButton(
                   label: '+1 Present',
-                  color: colors.accentMint,
-                  bgColor: colors.accentMintSoft,
-                  textColor: colors.accentMintInk,
+                  iconColor: colors.present,
                   icon: AppIcons.check,
                   onTap: () {
                     ref
@@ -213,9 +211,7 @@ class _SimulatorInputPanelState extends ConsumerState<SimulatorInputPanel> {
               Expanded(
                 child: _SimulateActionButton(
                   label: '+1 Absent',
-                  color: colors.accentCoral,
-                  bgColor: colors.accentCoralSoft,
-                  textColor: colors.accentCoralInk,
+                  iconColor: colors.absent,
                   icon: AppIcons.close,
                   onTap: () {
                     ref
@@ -321,27 +317,24 @@ class _ComponentChoicePill extends StatelessWidget {
 class _SimulateActionButton extends StatelessWidget {
   const _SimulateActionButton({
     required this.label,
-    required this.color,
-    required this.bgColor,
-    required this.textColor,
+    required this.iconColor,
     required this.icon,
     required this.onTap,
   });
 
   final String label;
-  final Color color;
-  final Color bgColor;
-  final Color textColor;
+  final Color iconColor;
   final IconData icon;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final fg = colors.isDark ? color : textColor;
 
     return Material(
-      color: bgColor,
+      color: colors.surfaceSubtle.withValues(
+        alpha: colors.isDark ? 0.6 : 0.8,
+      ),
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
@@ -353,20 +346,22 @@ class _SimulateActionButton extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: color.withValues(alpha: colors.isDark ? 0.4 : 0.6),
-              width: 1.0,
+              color: colors.border.withValues(
+                alpha: colors.isDark ? 0.4 : 0.6,
+              ),
+              width: 0.5,
             ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              AppIcon(icon, size: 16, color: fg),
+              AppIcon(icon, size: 16, color: iconColor),
               const SizedBox(width: 6),
               Text(
                 label,
                 style: AppTypography.subhead.copyWith(
-                  color: fg,
-                  fontWeight: FontWeight.w700,
+                  color: colors.textPrimary,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],

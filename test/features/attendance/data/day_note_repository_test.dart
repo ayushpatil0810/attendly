@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:attendly/core/database/app_database.dart';
+import 'package:attendly/core/errors/app_failure.dart';
 import 'package:attendly/features/attendance/data/repositories/day_note_repository_impl.dart';
 import 'package:attendly/features/semesters/data/repositories/semester_repository_impl.dart';
 
@@ -129,6 +130,17 @@ void main() {
       final updated = await stream.first;
       expect(updated, isNotNull);
       expect(updated!.content, equals('Guest lecture'));
+    });
+
+    test('throws ValidationFailure when setting a note for a future date', () async {
+      expect(
+        () => repo.setNoteForDate(
+          semesterId: semesterId,
+          date: '2099-01-01',
+          content: 'Cannot take notes for future',
+        ),
+        throwsA(isA<ValidationFailure>()),
+      );
     });
   });
 }

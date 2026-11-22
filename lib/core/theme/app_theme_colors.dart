@@ -5,20 +5,9 @@ import 'package:flutter/material.dart';
 class AppThemeColors extends ThemeExtension<AppThemeColors> {
   const AppThemeColors({
     required this.brandPrimary,
-    required this.brandPrimaryInk,
-    required this.brandPrimarySoft,
-    required this.brandSecondary,
-    required this.brandSecondaryInk,
-    required this.brandSecondarySoft,
-    required this.accentMint,
-    required this.accentMintInk,
-    required this.accentMintSoft,
-    required this.accentCoral,
-    required this.accentCoralInk,
-    required this.accentCoralSoft,
-    required this.accentPeach,
-    required this.accentPeachInk,
-    required this.accentPeachSoft,
+    required this.accentGreen,
+    required this.accentRed,
+    required this.accentOrange,
     required this.background,
     required this.surface,
     required this.surfaceSubtle,
@@ -32,28 +21,25 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
     required this.isDark,
   });
 
-  // Primary Brand Hues
+  // Primary Brand Hue
   final Color brandPrimary;
-  final Color brandPrimaryInk;
-  final Color brandPrimarySoft;
-
-  // Secondary Brand Hues
-  final Color brandSecondary;
-  final Color brandSecondaryInk;
-  final Color brandSecondarySoft;
+  Color get brandPrimarySoft =>
+      brandPrimary.withValues(alpha: isDark ? 0.16 : 0.12);
 
   // Semantic Status Hues: Attendance & Health
-  final Color accentMint;
-  final Color accentMintInk;
-  final Color accentMintSoft;
+  final Color accentGreen;
+  Color get present => accentGreen;
+  Color get onPresent => isDark ? accentGreen : const Color(0xFF248A3D);
 
-  final Color accentCoral;
-  final Color accentCoralInk;
-  final Color accentCoralSoft;
+  final Color accentRed;
+  Color get absent => accentRed;
+  Color get onAbsent => isDark ? accentRed : const Color(0xFFD70015);
+  Color get warning => accentRed;
 
-  final Color accentPeach;
-  final Color accentPeachInk;
-  final Color accentPeachSoft;
+  final Color accentOrange;
+  Color get accentOrangeSoft =>
+      accentOrange.withValues(alpha: isDark ? 0.16 : 0.12);
+  Color get onProvisional => isDark ? accentOrange : const Color(0xFFC97000);
 
   // Surfaces & Canvas
   final Color background;
@@ -75,34 +61,17 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
   final bool isDark;
 
   // Semantic Aliases
-  Color get present => accentMint;
-  Color get onPresent => accentMintInk;
-  Color get absent => accentCoral;
-  Color get onAbsent => accentCoralInk;
-  Color get warning => accentCoralInk;
-  Color get onProvisional => accentPeachInk;
   Color get neutral => textSecondary;
-  Color get primaryAction => brandPrimaryInk;
+  Color get primaryAction => isDark ? brandPrimary : const Color(0xFF0056B3);
   Color get cardBackground => surface;
   Color get dockBackground => surface.withValues(alpha: isDark ? 0.95 : 0.97);
 
   @override
   AppThemeColors copyWith({
     Color? brandPrimary,
-    Color? brandPrimaryInk,
-    Color? brandPrimarySoft,
-    Color? brandSecondary,
-    Color? brandSecondaryInk,
-    Color? brandSecondarySoft,
-    Color? accentMint,
-    Color? accentMintInk,
-    Color? accentMintSoft,
-    Color? accentCoral,
-    Color? accentCoralInk,
-    Color? accentCoralSoft,
-    Color? accentPeach,
-    Color? accentPeachInk,
-    Color? accentPeachSoft,
+    Color? accentGreen,
+    Color? accentRed,
+    Color? accentOrange,
     Color? background,
     Color? surface,
     Color? surfaceSubtle,
@@ -117,20 +86,9 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
   }) {
     return AppThemeColors(
       brandPrimary: brandPrimary ?? this.brandPrimary,
-      brandPrimaryInk: brandPrimaryInk ?? this.brandPrimaryInk,
-      brandPrimarySoft: brandPrimarySoft ?? this.brandPrimarySoft,
-      brandSecondary: brandSecondary ?? this.brandSecondary,
-      brandSecondaryInk: brandSecondaryInk ?? this.brandSecondaryInk,
-      brandSecondarySoft: brandSecondarySoft ?? this.brandSecondarySoft,
-      accentMint: accentMint ?? this.accentMint,
-      accentMintInk: accentMintInk ?? this.accentMintInk,
-      accentMintSoft: accentMintSoft ?? this.accentMintSoft,
-      accentCoral: accentCoral ?? this.accentCoral,
-      accentCoralInk: accentCoralInk ?? this.accentCoralInk,
-      accentCoralSoft: accentCoralSoft ?? this.accentCoralSoft,
-      accentPeach: accentPeach ?? this.accentPeach,
-      accentPeachInk: accentPeachInk ?? this.accentPeachInk,
-      accentPeachSoft: accentPeachSoft ?? this.accentPeachSoft,
+      accentGreen: accentGreen ?? this.accentGreen,
+      accentRed: accentRed ?? this.accentRed,
+      accentOrange: accentOrange ?? this.accentOrange,
       background: background ?? this.background,
       surface: surface ?? this.surface,
       surfaceSubtle: surfaceSubtle ?? this.surfaceSubtle,
@@ -151,32 +109,9 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
 
     return AppThemeColors(
       brandPrimary: Color.lerp(brandPrimary, other.brandPrimary, t)!,
-      brandPrimaryInk: Color.lerp(brandPrimaryInk, other.brandPrimaryInk, t)!,
-      brandPrimarySoft: Color.lerp(
-        brandPrimarySoft,
-        other.brandPrimarySoft,
-        t,
-      )!,
-      brandSecondary: Color.lerp(brandSecondary, other.brandSecondary, t)!,
-      brandSecondaryInk: Color.lerp(
-        brandSecondaryInk,
-        other.brandSecondaryInk,
-        t,
-      )!,
-      brandSecondarySoft: Color.lerp(
-        brandSecondarySoft,
-        other.brandSecondarySoft,
-        t,
-      )!,
-      accentMint: Color.lerp(accentMint, other.accentMint, t)!,
-      accentMintInk: Color.lerp(accentMintInk, other.accentMintInk, t)!,
-      accentMintSoft: Color.lerp(accentMintSoft, other.accentMintSoft, t)!,
-      accentCoral: Color.lerp(accentCoral, other.accentCoral, t)!,
-      accentCoralInk: Color.lerp(accentCoralInk, other.accentCoralInk, t)!,
-      accentCoralSoft: Color.lerp(accentCoralSoft, other.accentCoralSoft, t)!,
-      accentPeach: Color.lerp(accentPeach, other.accentPeach, t)!,
-      accentPeachInk: Color.lerp(accentPeachInk, other.accentPeachInk, t)!,
-      accentPeachSoft: Color.lerp(accentPeachSoft, other.accentPeachSoft, t)!,
+      accentGreen: Color.lerp(accentGreen, other.accentGreen, t)!,
+      accentRed: Color.lerp(accentRed, other.accentRed, t)!,
+      accentOrange: Color.lerp(accentOrange, other.accentOrange, t)!,
       background: Color.lerp(background, other.background, t)!,
       surface: Color.lerp(surface, other.surface, t)!,
       surfaceSubtle: Color.lerp(surfaceSubtle, other.surfaceSubtle, t)!,
