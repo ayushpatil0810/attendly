@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:attendly/core/services/preferences_service.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/shared/widgets/app_text_field.dart';
 import 'package:attendly/core/shared/widgets/app_toast.dart';
@@ -80,8 +79,6 @@ class _ScanSemesterQrScreenState extends ConsumerState<ScanSemesterQrScreen> {
       return;
     }
 
-    AppHaptics.selectionClick(ref);
-
     if (!mounted) return;
     final imported = await showSemesterImportPreviewSheet(
       context: context,
@@ -110,6 +107,8 @@ class _ScanSemesterQrScreenState extends ConsumerState<ScanSemesterQrScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -154,24 +153,24 @@ class _ScanSemesterQrScreenState extends ConsumerState<ScanSemesterQrScreen> {
                           shape: BoxShape.circle,
                         ),
                         child: IconButton(
-                          icon: AppIcon(
+                          icon: const AppIcon(
                             AppIcons.close,
                             size: 20,
-                            color: AppColors.pureWhite,
+                            color: Colors.white,
                           ),
                           onPressed: () => Navigator.of(context).pop(false),
                           tooltip: 'Close scanner',
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(
+                      const Expanded(
                         child: Text(
                           'Scan Semester QR',
                           style: TextStyle(
                             fontFamily: 'PlusJakartaSans',
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.pureWhite,
+                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -185,7 +184,7 @@ class _ScanSemesterQrScreenState extends ConsumerState<ScanSemesterQrScreen> {
                             icon: AppIcon(
                               _isTorchOn ? AppIcons.flashOff : AppIcons.flash,
                               size: 20,
-                              color: AppColors.pureWhite,
+                              color: Colors.white,
                             ),
                             onPressed: () async {
                               await _scannerController.toggleTorch();
@@ -209,16 +208,16 @@ class _ScanSemesterQrScreenState extends ConsumerState<ScanSemesterQrScreen> {
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
                         color: _isProcessing
-                            ? AppColors.inkMint
-                            : AppColors.brandViolet,
+                            ? colors.accentGreen
+                            : colors.brandPrimary,
                         width: 2.5,
                       ),
                       boxShadow: [
                         BoxShadow(
                           color:
                               (_isProcessing
-                                      ? AppColors.inkMint
-                                      : AppColors.brandViolet)
+                                      ? colors.accentGreen
+                                      : colors.brandPrimary)
                                   .withValues(alpha: 0.2),
                           blurRadius: 20,
                           spreadRadius: 2,
@@ -228,7 +227,7 @@ class _ScanSemesterQrScreenState extends ConsumerState<ScanSemesterQrScreen> {
                     child: _isProcessing
                         ? Center(
                             child: CircularProgressIndicator(
-                              color: AppColors.brandViolet,
+                              color: colors.brandPrimary,
                             ),
                           )
                         : null,
@@ -245,13 +244,13 @@ class _ScanSemesterQrScreenState extends ConsumerState<ScanSemesterQrScreen> {
                     color: Colors.black.withValues(alpha: 0.6),
                     borderRadius: AppRadius.pillBorder,
                   ),
-                  child: Text(
+                  child: const Text(
                     'Point camera at an Attendly Semester QR code',
                     style: TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.pureWhite,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -266,7 +265,7 @@ class _ScanSemesterQrScreenState extends ConsumerState<ScanSemesterQrScreen> {
                     icon: AppIcon(
                       AppIcons.importFile,
                       size: 16,
-                      color: AppColors.ink,
+                      color: colors.textPrimary,
                     ),
                     variant: AppButtonVariant.secondary,
                     isFullWidth: true,
@@ -290,6 +289,8 @@ class _CameraErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -300,24 +301,24 @@ class _CameraErrorView extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: AppColors.softCoral,
+                color: colors.accentRed.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
               child: AppIcon(
                 AppIcons.alert,
                 size: 28,
-                color: AppColors.inkCoral,
+                color: colors.accentRed,
               ),
             ),
             const SizedBox(height: 16),
-            Text(
+            const Text(
               'Camera Unavailable',
               style: TextStyle(
                 fontFamily: 'PlusJakartaSans',
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppColors.pureWhite,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 8),
@@ -326,7 +327,7 @@ class _CameraErrorView extends StatelessWidget {
               style: TextStyle(
                 fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
-                color: AppColors.mutedInk,
+                color: colors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -379,7 +380,7 @@ class _ManualPasteDialogState extends State<_ManualPasteDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: AppColors.pureWhite,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.lgBorder),
       title: const Text('Paste Semester Code', style: AppTypography.itemTitle),
       content: Column(

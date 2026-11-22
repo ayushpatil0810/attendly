@@ -15,8 +15,9 @@ abstract final class AppSpacing {
   static const double screenHorizontal = 20.0;
   // Screen top padding
   static const double screenTop = 16.0;
-  // Dock bottom clearance
+  // Dock bottom clearance: 100.0 baseline; 140.0 safe clearance above floating dock
   static const double dockClearance = 100.0;
+  static const double safeDockClearance = 140.0;
 
   // Common insets
   static const double cardPadding = 16.0;

@@ -50,6 +50,36 @@ class SubjectAttendanceSummary {
   bool get meetsThreshold => thresholdStatus == ThresholdStatus.meeting;
   bool get isBelowThreshold => thresholdStatus == ThresholdStatus.below;
 
+  /// True if either Lecture or Lab component is below target threshold.
+  bool get hasComponentBelowThreshold =>
+      (lectureSummary?.isBelowThreshold ?? false) ||
+      (labSummary?.isBelowThreshold ?? false);
+
+  /// True if either component is below threshold or has 0/1 safe absences left.
+  bool get hasComponentAtRisk {
+    if (hasComponentBelowThreshold) return true;
+    final lecSafe = lectureSummary?.safeAbsenceResult.safeAbsences;
+    if ((lectureSummary?.isAvailable ?? false) &&
+        lecSafe != null &&
+        lecSafe <= 1) {
+      return true;
+    }
+    final labSafe = labSummary?.safeAbsenceResult.safeAbsences;
+    if ((labSummary?.isAvailable ?? false) &&
+        labSafe != null &&
+        labSafe <= 1) {
+      return true;
+    }
+    return false;
+  }
+
+  /// Returns the component that is below threshold, preferring lab if only lab is below.
+  ComponentAttendanceSummary? get componentBelowThreshold {
+    if (labSummary?.isBelowThreshold == true) return labSummary;
+    if (lectureSummary?.isBelowThreshold == true) return lectureSummary;
+    return null;
+  }
+
   bool get meetsGoal =>
       percentage != null &&
       !isNotAvailable &&

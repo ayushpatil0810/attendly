@@ -209,4 +209,77 @@ void main() {
       expect(remaining, isEmpty);
     },
   );
+
+  testWidgets(
+    'Component selection switch tiles toggle and prevent disabling both components',
+    (tester) async {
+      final semRepo = SemesterRepositoryImpl(db);
+      final semId = await semRepo.createSemester(name: 'Fall 2026');
+
+      await tester.pumpWidget(
+        createTestApp(
+          Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () {
+                  showAppBottomSheet(
+                    context: context,
+                    title: 'Add Subject',
+                    child: SubjectFormSheet(semesterId: semId),
+                  );
+                },
+                child: const Text('Open Sheet'),
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Open Sheet'));
+      await tester.pumpAndSettle();
+
+      // Verify Theory Lecture and Practical Lab cards are present
+      expect(find.text('Theory Lecture'), findsOneWidget);
+      expect(find.text('Practical Lab'), findsOneWidget);
+
+      // By default, Theory Lecture is enabled and Practical Lab is not.
+      // Tap Practical Lab to enable it as well.
+      await tester.tap(find.text('Practical Lab'));
+      await tester.pumpAndSettle();
+
+      // Now both are enabled. Tapping Theory Lecture disables it cleanly.
+      await tester.tap(find.text('Theory Lecture'));
+      await tester.pumpAndSettle();
+
+      // With only Practical Lab enabled, tapping it must show error toast and prevent disabling.
+      await tester.tap(find.text('Practical Lab'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('At least one component must remain enabled.'),
+        findsOneWidget,
+      );
+
+      // Enter name and save
+      final nameField = find.byType(TextField);
+      await tester.enterText(nameField, 'Physics Lab Only');
+
+      final submitButton = find.widgetWithText(ElevatedButton, 'Add Subject');
+      if (submitButton.evaluate().isNotEmpty) {
+        await tester.tap(submitButton);
+      } else {
+        await tester.tap(find.text('Add Subject').last);
+      }
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
+
+      final subjRepo = SubjectRepositoryImpl(db);
+      final subjects = await subjRepo.getSubjectsForSemester(semId);
+      expect(subjects.length, equals(1));
+      expect(subjects.first.lectureEnabled, isFalse);
+      expect(subjects.first.labEnabled, isTrue);
+    },
+  );
 }

@@ -126,8 +126,8 @@ class AdvancedTrendCard extends StatelessWidget {
                       text: '${latestPct.toStringAsFixed(1)}%',
                       style: AppTypography.subhead.copyWith(
                         color: meetsTarget
-                            ? colors.accentMint
-                            : colors.accentCoral,
+                            ? colors.present
+                            : colors.absent,
                         fontWeight: FontWeight.w700,
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
@@ -143,13 +143,15 @@ class AdvancedTrendCard extends StatelessWidget {
           SizedBox(
             height: 110,
             width: double.infinity,
-            child: CustomPaint(
-              painter: _AdvancedTrendLinePainter(
-                points: trendPoints,
-                threshold: threshold,
-                lineColor: colors.brandPrimary,
-                dividerColor: colors.divider,
-                dotBorderColor: colors.surface,
+            child: RepaintBoundary(
+              child: CustomPaint(
+                painter: _AdvancedTrendLinePainter(
+                  points: trendPoints,
+                  threshold: threshold,
+                  lineColor: colors.brandPrimary,
+                  dividerColor: colors.divider,
+                  dotBorderColor: colors.surface,
+                ),
               ),
             ),
           ),

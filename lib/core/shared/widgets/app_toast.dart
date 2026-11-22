@@ -20,7 +20,7 @@ abstract final class AppToast {
       backgroundColor: colors.surfaceElevated,
       textColor: colors.textPrimary,
       actionLabel: actionLabel,
-      actionTextColor: colors.accentMint,
+      actionTextColor: colors.accentGreen,
       onAction: onAction,
       duration: duration,
       persist: persist,
@@ -37,9 +37,9 @@ abstract final class AppToast {
     _show(
       context,
       message: message,
-      backgroundColor: colors.accentCoralInk,
+      backgroundColor: colors.accentRed,
       textColor: Colors.white,
-      actionTextColor: colors.accentMintSoft,
+      actionTextColor: Colors.white,
       duration: duration,
       persist: persist,
     );
@@ -60,7 +60,7 @@ abstract final class AppToast {
       backgroundColor: colors.surfaceElevated,
       textColor: colors.textPrimary,
       actionLabel: actionLabel,
-      actionTextColor: colors.accentMint,
+      actionTextColor: colors.brandPrimary,
       onAction: onAction,
       duration: duration,
       persist: persist,
@@ -103,7 +103,7 @@ abstract final class AppToast {
         action: actionLabel != null
             ? SnackBarAction(
                 label: actionLabel,
-                textColor: actionTextColor ?? colors.accentMint,
+                textColor: actionTextColor ?? colors.accentGreen,
                 onPressed: () {
                   onAction?.call();
                 },

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -9,6 +8,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../attendance/domain/entities/attendance_session.dart';
 import '../../../attendance/domain/entities/attendance_status.dart';
 import '../../../attendance/presentation/providers/attendance_providers.dart';
+import '../../../attendance/presentation/widgets/log_class_button.dart';
 import '../../../attendance/presentation/widgets/session_form_sheet.dart';
 import '../../../subjects/presentation/providers/subjects_provider.dart';
 
@@ -37,7 +37,12 @@ class DashboardDayScheduleCard extends ConsumerWidget {
       for (final s in subjectsAsync.asData?.value ?? []) s.id: s,
     };
 
-    final isToday = _isSameDay(selectedDate, DateTime.now());
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final isFuture =
+        DateTime(selectedDate.year, selectedDate.month, selectedDate.day)
+            .isAfter(today);
+    final isToday = _isSameDay(selectedDate, now);
     final title = isToday
         ? "Today's Schedule"
         : DateFormat('EEEE, MMM d').format(selectedDate);
@@ -62,62 +67,9 @@ class DashboardDayScheduleCard extends ConsumerWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Semantics(
-              button: true,
-              label: 'Log class for $title',
-              child: Material(
-                color: colors.surfaceSubtle.withValues(
-                  alpha: colors.isDark ? 0.6 : 0.8,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                child: InkWell(
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    showSessionFormSheet(
-                      context: context,
-                      prefilledDate: selectedDate,
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: colors.border.withValues(
-                          alpha: colors.isDark ? 0.4 : 0.6,
-                        ),
-                        width: 0.5,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        AppIcon(
-                          AppIcons.add,
-                          size: 14,
-                          color: colors.isDark
-                              ? const Color(0xFF5E81F4)
-                              : const Color(0xFF3F5BF6),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Log Class',
-                          style: AppTypography.caption1.copyWith(
-                            color: colors.isDark
-                                ? const Color(0xFF5E81F4)
-                                : const Color(0xFF3F5BF6),
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+            LogAttendanceButton(
+              selectedDate: selectedDate,
+              semanticLabel: 'Log attendance for $title',
             ),
           ],
         ),
@@ -146,13 +98,14 @@ class DashboardDayScheduleCard extends ConsumerWidget {
                 color: colors.surface,
                 borderRadius: BorderRadius.circular(18),
                 child: InkWell(
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    showSessionFormSheet(
-                      context: context,
-                      prefilledDate: selectedDate,
-                    );
-                  },
+                  onTap: isFuture
+                      ? null
+                      : () {
+                          showSessionFormSheet(
+                            context: context,
+                            prefilledDate: selectedDate,
+                          );
+                        },
                   borderRadius: BorderRadius.circular(18),
                   child: Container(
                     width: double.infinity,
@@ -203,7 +156,9 @@ class DashboardDayScheduleCard extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'No classes recorded for this date',
+                                isFuture
+                                    ? 'Future date'
+                                    : 'No classes recorded for this date',
                                 style: AppTypography.subhead.copyWith(
                                   fontWeight: FontWeight.w600,
                                   color: colors.textPrimary,
@@ -211,7 +166,9 @@ class DashboardDayScheduleCard extends ConsumerWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Tap to quickly record a lecture or lab.',
+                                isFuture
+                                    ? 'Attendance cannot be logged in advance.'
+                                    : 'Tap to quickly record a lecture or lab.',
                                 style: AppTypography.footnote.copyWith(
                                   color: colors.textSecondary,
                                   fontSize: 12.5,
@@ -220,11 +177,12 @@ class DashboardDayScheduleCard extends ConsumerWidget {
                             ],
                           ),
                         ),
-                        AppIcon(
-                          AppIcons.forward,
-                          size: 14,
-                          color: colors.textTertiary,
-                        ),
+                        if (!isFuture)
+                          AppIcon(
+                            AppIcons.caretRight,
+                            size: 16,
+                            color: colors.textTertiary,
+                          ),
                       ],
                     ),
                   ),
@@ -266,7 +224,7 @@ class DashboardDayScheduleCard extends ConsumerWidget {
                       Divider(
                         height: 1,
                         thickness: 0.5,
-                        indent: 56,
+                        indent: 54,
                         endIndent: 16,
                         color: colors.divider.withValues(
                           alpha: colors.isDark ? 0.5 : 0.7,
@@ -300,6 +258,7 @@ class _DailySessionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final isPresent = session.status == AttendanceStatus.present;
+    final statusColor = isPresent ? colors.present : colors.absent;
 
     return Material(
       color: Colors.transparent,
@@ -312,12 +271,13 @@ class _DailySessionRow extends StatelessWidget {
                   : BorderRadius.zero,
       child: InkWell(
         onTap: () {
-          HapticFeedback.selectionClick();
           showSessionFormSheet(
             context: context,
             sessionToEdit: session,
           );
         },
+        splashColor: colors.brandPrimary.withValues(alpha: 0.08),
+        highlightColor: colors.brandPrimary.withValues(alpha: 0.05),
         borderRadius: isFirst && isLast
             ? BorderRadius.circular(18)
             : isFirst
@@ -326,27 +286,26 @@ class _DailySessionRow extends StatelessWidget {
                     ? const BorderRadius.vertical(bottom: Radius.circular(18))
                     : BorderRadius.zero,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Squircle / Circle status badge
+              // Apple-inspired crisp 24dp solid filled status circle
               Container(
-                width: 32,
-                height: 32,
+                width: 24,
+                height: 24,
                 decoration: BoxDecoration(
-                  color:
-                      isPresent ? colors.accentMintSoft : colors.accentCoralSoft,
+                  color: statusColor,
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
                 child: AppIcon(
                   isPresent ? AppIcons.check : AppIcons.close,
-                  size: 16,
-                  color: isPresent ? colors.accentMint : colors.accentCoral,
+                  size: 14,
+                  color: Colors.white,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
 
               // Subject and component
               Expanded(
@@ -400,8 +359,8 @@ class _DailySessionRow extends StatelessWidget {
 
               // Trailing disclosure caret
               AppIcon(
-                AppIcons.forward,
-                size: 14,
+                AppIcons.caretRight,
+                size: 16,
                 color: colors.textTertiary,
               ),
             ],

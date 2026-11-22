@@ -122,5 +122,42 @@ void main() {
 
       expect(selected, isNotNull);
     });
+
+    testWidgets('AppleWeekStrip dims future dates and disables tap', (
+      tester,
+    ) async {
+      DateTime? selected;
+      // Fixed reference: Thursday, Jan 15 2026
+      final fixedNow = DateTime(2026, 1, 15);
+      final currentDay = DateTime(2026, 1, 15);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: Scaffold(
+            body: AppleWeekStrip(
+              selectedDate: currentDay,
+              now: fixedNow,
+              onDateSelected: (d) => selected = d,
+            ),
+          ),
+        ),
+      );
+
+      // In the week containing Jan 15 (Jan 12 to Jan 18):
+      // Jan 16, 17, 18 are in the future
+      expect(find.text('16'), findsOneWidget);
+
+      // Attempting to tap future day 16 should NOT trigger selection
+      await tester.tap(find.text('16'));
+      await tester.pumpAndSettle();
+      expect(selected, isNull);
+
+      // Tapping past day 14 should trigger selection
+      expect(find.text('14'), findsOneWidget);
+      await tester.tap(find.text('14'));
+      await tester.pumpAndSettle();
+      expect(selected, equals(DateTime(2026, 1, 14)));
+    });
   });
 }

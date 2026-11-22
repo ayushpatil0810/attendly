@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:attendly/app/router/route_names.dart';
 import 'package:attendly/core/shared/widgets/app_frame.dart';
 import 'package:attendly/core/theme/app_colors.dart';
-import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/semesters/presentation/providers/semesters_provider.dart';
@@ -24,49 +21,39 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: colors.background,
-      appBar: AppBar(
-        title: Text(
-          'Settings',
-          style: AppTypography.headline.copyWith(
-            fontWeight: FontWeight.w700,
-            color: colors.textPrimary,
-          ),
-        ),
-        backgroundColor: colors.background,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: false,
-        leading: IconButton(
-          icon: AppIcon(
-            AppIcons.back,
-            size: 20,
-            color: colors.textPrimary,
-          ),
-          tooltip: 'Back',
-          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go(RouteNames.homePath);
-            }
-          },
-        ),
-      ),
       body: SafeArea(
-        top: false,
         child: AppFrame(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(
               parent: AlwaysScrollableScrollPhysics(),
             ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.screenHorizontal,
-              vertical: AppSpacing.md,
+            padding: const EdgeInsets.only(
+              left: AppSpacing.screenHorizontal,
+              right: AppSpacing.screenHorizontal,
+              top: AppSpacing.screenTop,
+              bottom: AppSpacing.safeDockClearance,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Top Screen Header: Apple Large Title & Subtitle
+                Text(
+                  'Settings',
+                  style: AppTypography.title1.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.8,
+                    color: colors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Preferences & Academic Configuration',
+                  style: AppTypography.footnote.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 18),
+
                 SemesterSettingsSection(activeSemester: activeSemester),
                 const SizedBox(height: 24),
                 const AppearanceSection(),
@@ -87,7 +74,6 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
               ],
             ),
           ),

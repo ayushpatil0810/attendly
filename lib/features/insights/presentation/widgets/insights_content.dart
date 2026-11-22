@@ -95,7 +95,7 @@ class InsightsContent extends ConsumerWidget {
                           child: Text(
                             'Clear Filter',
                             style: AppTypography.labelMedium.copyWith(
-                              color: colors.brandPrimaryInk,
+                              color: colors.brandPrimary,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -117,6 +117,7 @@ class InsightsContent extends ConsumerWidget {
               color: colors.brandPrimary,
             ),
             actionLabel: 'Log First Class',
+            actionIcon: const AppIcon(AppIcons.add, size: 18),
             onAction: () => showQuickLogSheet(context: context),
           );
         }

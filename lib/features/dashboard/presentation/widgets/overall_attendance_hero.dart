@@ -3,10 +3,13 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:attendly/core/theme/app_colors.dart';
+import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_motion.dart';
 import 'package:attendly/core/theme/app_typography.dart';
+import 'package:attendly/features/attendance/domain/entities/attendance_calculation_method.dart';
 import 'package:attendly/features/attendance/domain/entities/semester_attendance_summary.dart';
 import 'package:attendly/features/attendance/domain/entities/threshold_status.dart';
+import 'package:attendly/features/attendance/domain/services/attendance_action_helper.dart';
 import 'package:attendly/features/dashboard/presentation/providers/dashboard_scope_provider.dart';
 
 class OverallAttendanceHero extends StatelessWidget {
@@ -17,7 +20,7 @@ class OverallAttendanceHero extends StatelessWidget {
   });
 
   static const double _chartSize = 196;
-  static const double _strokeWidth = 16;
+  static const double _strokeWidth = 13;
 
   final SemesterAttendanceSummary summary;
   final DashboardAttendanceScope scope;
@@ -26,12 +29,12 @@ class OverallAttendanceHero extends StatelessWidget {
     final colors = context.colors;
     switch (summary.thresholdStatus) {
       case ThresholdStatus.meeting:
-        return colors.accentMint;
+        return colors.present;
       case ThresholdStatus.below:
-        return colors.accentCoral;
+        return colors.absent;
       case ThresholdStatus.notAvailable:
         if (summary.availability.isProvisional) {
-          return colors.accentPeach;
+          return colors.accentOrange;
         }
         return colors.textSecondary;
     }
@@ -75,84 +78,86 @@ class OverallAttendanceHero extends StatelessWidget {
           children: [
             // Centered Circular Progress Chart
             Center(
-              child: SizedBox(
-                width: _chartSize,
-                height: _chartSize,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Custom Circular Progress Painter
-                    Positioned.fill(
-                      child: TweenAnimationBuilder<double>(
-                        tween: Tween<double>(begin: 0.0, end: progress),
-                        duration: AppMotion.duration(
-                          context,
-                          const Duration(milliseconds: 650),
+              child: RepaintBoundary(
+                child: SizedBox(
+                  width: _chartSize,
+                  height: _chartSize,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Custom Circular Progress Painter
+                      Positioned.fill(
+                        child: TweenAnimationBuilder<double>(
+                          tween: Tween<double>(begin: 0.0, end: progress),
+                          duration: AppMotion.duration(
+                            context,
+                            const Duration(milliseconds: 650),
+                          ),
+                          curve: Curves.easeOutCubic,
+                          builder: (context, animatedProgress, _) {
+                            return CustomPaint(
+                              size: const Size.square(_chartSize),
+                              painter: _CircularGaugePainter(
+                                progress: animatedProgress,
+                                progressColor: isAvailable || isProvisional
+                                    ? statusColor
+                                    : colors.track,
+                                trackColor: colors.track,
+                                threshold: summary.threshold,
+                                hasData: isAvailable || isProvisional,
+                                strokeWidth: _strokeWidth,
+                                markerColor: colors.textPrimary,
+                              ),
+                            );
+                          },
                         ),
-                        curve: Curves.easeOutCubic,
-                        builder: (context, animatedProgress, _) {
-                          return CustomPaint(
-                            size: const Size.square(_chartSize),
-                            painter: _CircularGaugePainter(
-                              progress: animatedProgress,
-                              progressColor: isAvailable || isProvisional
-                                  ? statusColor
-                                  : colors.track,
-                              trackColor: colors.track,
-                              threshold: summary.threshold,
-                              hasData: isAvailable || isProvisional,
-                              strokeWidth: _strokeWidth,
-                              markerColor: colors.textPrimary,
-                            ),
-                          );
-                        },
                       ),
-                    ),
-                    // Centered content inside the circle: Percentage + "Total Percentage" label
-                    Padding(
-                      padding: const EdgeInsets.all(_strokeWidth + 8),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              formattedPct,
-                              textAlign: TextAlign.center,
-                              style: AppTypography.heroNumber.copyWith(
-                                fontSize: 38,
-                                height: 1.0,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -1.0,
-                                color: isAvailable
-                                    ? colors.textPrimary
-                                    : colors.textSecondary,
-                                fontFeatures: const [
-                                  FontFeature.tabularFigures(),
-                                ],
+                      // Centered content inside the circle: Percentage + "Total Percentage" label
+                      Padding(
+                        padding: const EdgeInsets.all(_strokeWidth + 8),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                formattedPct,
+                                textAlign: TextAlign.center,
+                                style: AppTypography.heroNumber.copyWith(
+                                  fontSize: 38,
+                                  height: 1.0,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -1.0,
+                                  color: isAvailable
+                                      ? colors.textPrimary
+                                      : colors.textSecondary,
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            labelText,
-                            textAlign: TextAlign.center,
-                            style: AppTypography.labelSmall.copyWith(
-                              color: colors.textSecondary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 11,
+                            const SizedBox(height: 4),
+                            Text(
+                              labelText,
+                              textAlign: TextAlign.center,
+                              style: AppTypography.labelSmall.copyWith(
+                                color: colors.textSecondary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 11,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 14),
 
-            // Target line and delta comparison
+            // Target line, delta comparison, and calculation info
             Center(
               child: Wrap(
                 alignment: WrapAlignment.center,
@@ -175,16 +180,106 @@ class OverallAttendanceHero extends StatelessWidget {
                           : '${summary.differenceFromThreshold!.toStringAsFixed(1)}%',
                       style: AppTypography.labelLarge.copyWith(
                         color: summary.differenceFromThreshold! >= 0
-                          ? colors.accentMint
-                          : colors.accentCoral,
+                          ? colors.present
+                          : colors.absent,
                         fontWeight: FontWeight.w800,
                         fontSize: 14.5,
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
+                  Tooltip(
+                    message: summary.calculationMethod ==
+                            AttendanceCalculationMethod.componentAverage
+                        ? 'Calculated using 50/50 Lecture & Lab split'
+                        : 'Calculated using raw Present / Conducted ratio (equal weight)',
+                    triggerMode: TooltipTriggerMode.tap,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.isDark
+                          ? const Color(0xFF2C2C2E)
+                          : const Color(0xFF1C1C1E),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    textStyle: AppTypography.caption1.copyWith(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      alignment: Alignment.center,
+                      child: AppIcon(
+                        AppIcons.info,
+                        size: 16,
+                        color: colors.textTertiary,
+                        semanticLabel: 'Calculation method information',
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
+
+            // Actionable "Can Miss / Must Attend" class counts
+            () {
+              final actionable = AttendanceActionHelper.calculateActionableInsight(
+                present: summary.totalPresent,
+                conducted: summary.totalConducted,
+                threshold: summary.threshold,
+              );
+              if (actionable != null && (isAvailable || isProvisional)) {
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.surfaceSubtle.withValues(
+                        alpha: colors.isDark ? 0.6 : 0.8,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: colors.border.withValues(
+                          alpha: colors.isDark ? 0.4 : 0.6,
+                        ),
+                        width: 0.5,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AppIcon(
+                          actionable.isAboveOrAtTarget
+                              ? AppIcons.checkCircle
+                              : AppIcons.alert,
+                          size: 14,
+                          color: actionable.isAboveOrAtTarget
+                              ? colors.present
+                              : colors.absent,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          actionable.headlineText,
+                          style: AppTypography.caption1.copyWith(
+                            color: colors.textPrimary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12.5,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            }(),
 
             // Provisional note (if applicable)
             if (isProvisional)
@@ -194,7 +289,7 @@ class OverallAttendanceHero extends StatelessWidget {
                   'Combined available when both components have sessions.',
                   textAlign: TextAlign.center,
                   style: AppTypography.labelSmall.copyWith(
-                    color: colors.accentPeach,
+                    color: colors.accentOrange,
                     fontSize: 11.5,
                   ),
                 ),

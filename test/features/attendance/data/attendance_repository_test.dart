@@ -441,5 +441,34 @@ void main() {
         );
       },
     );
+
+    test('createSession throws ValidationFailure if sessionDate is in the future', () async {
+      expect(
+        () => repo.createSession(
+          subjectId: subjectBothId,
+          sessionDate: '2099-01-01',
+          component: SessionComponent.lecture,
+          status: AttendanceStatus.present,
+        ),
+        throwsA(isA<ValidationFailure>()),
+      );
+    });
+
+    test('updateSession throws ValidationFailure if sessionDate is in the future', () async {
+      final id = await repo.createSession(
+        subjectId: subjectBothId,
+        sessionDate: '2026-03-10',
+        component: SessionComponent.lecture,
+        status: AttendanceStatus.present,
+      );
+
+      final session = (await repo.getSessionById(id))!;
+      final futureUpdate = session.copyWith(sessionDate: '2099-01-01');
+
+      expect(
+        () => repo.updateSession(futureUpdate),
+        throwsA(isA<ValidationFailure>()),
+      );
+    });
   });
 }

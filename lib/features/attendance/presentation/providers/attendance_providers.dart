@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:attendly/core/errors/app_failure.dart';
 import 'package:attendly/core/providers/database_provider.dart';
 import 'package:attendly/features/semesters/presentation/providers/semesters_provider.dart';
 import 'package:attendly/features/subjects/presentation/providers/subjects_provider.dart';
@@ -36,7 +37,11 @@ class SelectedDateNotifier extends Notifier<DateTime> {
   }
 
   void selectDate(DateTime date) {
-    state = DateTime(date.year, date.month, date.day);
+    final normalized = DateTime(date.year, date.month, date.day);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    if (normalized.isAfter(today)) return;
+    state = normalized;
   }
 
   void selectToday() {
@@ -168,6 +173,12 @@ class AttendanceController extends AsyncNotifier<UndoAction?> {
     required AttendanceStatus status,
     String? note,
   }) async {
+    final now = DateTime.now();
+    final todayStr = formatDateOnly(now);
+    if (sessionDate.compareTo(todayStr) > 0) {
+      throw const ValidationFailure('Cannot log attendance for future dates.');
+    }
+
     state = const AsyncLoading();
     try {
       final repo = ref.read(attendanceRepositoryProvider);
@@ -188,6 +199,12 @@ class AttendanceController extends AsyncNotifier<UndoAction?> {
   }
 
   Future<void> updateSession(AttendanceSession session) async {
+    final now = DateTime.now();
+    final todayStr = formatDateOnly(now);
+    if (session.sessionDate.compareTo(todayStr) > 0) {
+      throw const ValidationFailure('Cannot log attendance for future dates.');
+    }
+
     state = const AsyncLoading();
     try {
       final repo = ref.read(attendanceRepositoryProvider);

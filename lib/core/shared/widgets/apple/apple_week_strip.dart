@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_typography.dart';
+import '../../../../features/attendance/presentation/widgets/day_status_dots.dart';
 
 /// Horizontal week strip inspired by Apple Calendar and Health routines.
 ///
@@ -17,7 +17,9 @@ class AppleWeekStrip extends StatelessWidget {
     this.startDate,
     this.markedDates,
     this.dayDotColorBuilder,
+    this.dayStatusBuilder,
     this.startWithMonday = true,
+    this.now,
   });
 
   final DateTime selectedDate;
@@ -25,7 +27,9 @@ class AppleWeekStrip extends StatelessWidget {
   final DateTime? startDate;
   final Set<DateTime>? markedDates;
   final Color? Function(DateTime date)? dayDotColorBuilder;
+  final DayAttendanceStatus? Function(DateTime date)? dayStatusBuilder;
   final bool startWithMonday;
+  final DateTime? now;
 
   bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
@@ -49,6 +53,9 @@ class AppleWeekStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final weekDays = _generateWeekDays();
+    final effectiveNow = now ?? DateTime.now();
+    final today =
+        DateTime(effectiveNow.year, effectiveNow.month, effectiveNow.day);
 
     return Semantics(
       container: true,
@@ -58,36 +65,56 @@ class AppleWeekStrip extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: weekDays.map((date) {
-            final isSelected = _isSameDay(date, selectedDate);
-            final isToday = _isSameDay(date, DateTime.now());
+            final cellDate = DateTime(date.year, date.month, date.day);
+            final isFuture = cellDate.isAfter(today);
+            final isToday = _isSameDay(date, effectiveNow);
+            final isSelected = !isFuture && _isSameDay(date, selectedDate);
             final dayInitial = DateFormat('E').format(date); // Sun, Mon, etc.
             final dayNumber = DateFormat('d').format(date);
 
             // Active pill background color
-            final activeBg = colors.isDark
-                ? const Color(0xFF4A6BF7)
-                : const Color(0xFF3F5BF6);
+            final activeBg = colors.brandPrimary;
+
+            Color initialColor;
+            Color numberColor;
+            if (isFuture) {
+              initialColor = colors.textTertiary;
+              numberColor = colors.textTertiary;
+            } else if (isSelected) {
+              initialColor = Colors.white.withValues(alpha: 0.90);
+              numberColor = Colors.white;
+            } else if (isToday) {
+              initialColor = colors.textSecondary;
+              numberColor = colors.brandPrimary;
+            } else {
+              initialColor = colors.textSecondary;
+              numberColor = colors.textPrimary;
+            }
 
             Color? dotColor;
-            if (dayDotColorBuilder != null) {
+            if (isFuture) {
+              dotColor = null;
+            } else if (dayDotColorBuilder != null) {
               dotColor = dayDotColorBuilder!(date);
             } else if (markedDates != null &&
                 markedDates!.any((d) => _isSameDay(d, date))) {
-              dotColor = colors.accentMint;
+              dotColor = colors.accentGreen;
             }
 
             return Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 2),
                 child: Semantics(
-                  button: true,
+                  button: !isFuture,
                   selected: isSelected,
-                  label: '$dayInitial $dayNumber${isToday ? ", today" : ""}',
+                  label:
+                      '$dayInitial $dayNumber${isToday ? ", today" : (isFuture ? ", future date" : "")}',
                   child: InkWell(
-                    onTap: () {
-                      HapticFeedback.selectionClick();
-                      onDateSelected(date);
-                    },
+                    onTap: isFuture
+                        ? null
+                        : () {
+                            onDateSelected(date);
+                          },
                     borderRadius: BorderRadius.circular(16),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
@@ -105,9 +132,7 @@ class AppleWeekStrip extends StatelessWidget {
                             style: AppTypography.caption1.copyWith(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: isSelected
-                                  ? Colors.white.withValues(alpha: 0.90)
-                                  : colors.textSecondary,
+                              color: initialColor,
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -118,26 +143,34 @@ class AppleWeekStrip extends StatelessWidget {
                               fontWeight: isSelected || isToday
                                   ? FontWeight.w700
                                   : FontWeight.w500,
-                              color: isSelected
-                                  ? Colors.white
-                                  : (isToday
-                                      ? (colors.isDark
-                                          ? const Color(0xFF5E81F4)
-                                          : const Color(0xFF3F5BF6))
-                                      : colors.textPrimary),
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
+                              color: numberColor,
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Container(
-                            width: 4.5,
-                            height: 4.5,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: dotColor != null
-                                  ? (isSelected ? Colors.white : dotColor)
-                                  : Colors.transparent,
+                          if (isFuture)
+                            const SizedBox(height: 4.5)
+                          else if (dayStatusBuilder != null)
+                            DayStatusDots(
+                              status: dayStatusBuilder!(date) ??
+                                  const DayAttendanceStatus(),
+                              isSelected: isSelected,
+                              dotSize: 4.5,
+                              spacing: 2.0,
+                            )
+                          else
+                            Container(
+                              width: 4.5,
+                              height: 4.5,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: dotColor != null
+                                    ? (isSelected ? Colors.white : dotColor)
+                                    : Colors.transparent,
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ),

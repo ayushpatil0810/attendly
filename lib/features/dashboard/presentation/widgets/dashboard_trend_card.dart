@@ -44,26 +44,11 @@ class DashboardTrendCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  color: colors.brandPrimary,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'More Data Needed',
-                  style: AppTypography.itemTitle.copyWith(
-                    color: colors.textPrimary,
-                  ),
-                ),
-              ),
-            ],
+          Text(
+            'More Data Needed',
+            style: AppTypography.itemTitle.copyWith(
+              color: colors.textPrimary,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -118,8 +103,8 @@ class DashboardTrendCard extends StatelessWidget {
                     '${currentPct.toStringAsFixed(1)}%',
                     style: AppTypography.labelSmall.copyWith(
                       color: currentPct >= threshold * 100 - 1e-9
-                          ? colors.accentMintInk
-                          : colors.accentCoralInk,
+                          ? colors.present
+                          : colors.absent,
                       fontWeight: FontWeight.w700,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
@@ -130,18 +115,128 @@ class DashboardTrendCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Custom Sparkline Painter
+          // Trend Chart with Y-axis labels & Target Line Pill
           SizedBox(
-            height: 80,
-            width: double.infinity,
-            child: CustomPaint(
-              painter: _TrendLinePainter(
-                points: trendPoints,
-                threshold: threshold,
-                lineColor: colors.brandPrimary,
-                dividerColor: colors.divider,
-                dotBorderColor: colors.surface,
-              ),
+            height: 96,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Subtle Y-axis percentage labels
+                SizedBox(
+                  width: 32,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '100%',
+                        style: AppTypography.caption2.copyWith(
+                          color: colors.textTertiary,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                      Text(
+                        '50%',
+                        style: AppTypography.caption2.copyWith(
+                          color: colors.textTertiary,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                      Text(
+                        '0%',
+                        style: AppTypography.caption2.copyWith(
+                          color: colors.textTertiary,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+
+                // Chart Canvas with Dashed Target Line and Target Pill
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      const topPad = 8.0;
+                      const bottomPad = 8.0;
+                      final chartHeight = constraints.maxHeight;
+                      final innerHeight = chartHeight - topPad - bottomPad;
+                      final targetRatio = threshold.clamp(0.0, 1.0);
+                      final targetY =
+                          chartHeight - bottomPad - (targetRatio * innerHeight);
+
+                      return Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Positioned.fill(
+                            child: RepaintBoundary(
+                              child: CustomPaint(
+                                painter: _TrendLinePainter(
+                                  points: trendPoints,
+                                  threshold: threshold,
+                                  lineColor: colors.brandPrimary,
+                                  dividerColor: colors.divider,
+                                  dotBorderColor: colors.surface,
+                                  topPadding: topPad,
+                                  bottomPadding: bottomPad,
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Small pill on the dashed target threshold line
+                          Positioned(
+                            right: 0,
+                            top: (targetY - 10).clamp(0.0, chartHeight - 20),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colors.surface,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: colors.border.withValues(
+                                    alpha: colors.isDark ? 0.4 : 0.6,
+                                  ),
+                                  width: 0.8,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(
+                                      alpha: colors.isDark ? 0.25 : 0.05,
+                                    ),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                '${(threshold * 100).round()}% Target',
+                                style: AppTypography.caption2.copyWith(
+                                  color: colors.textSecondary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -157,6 +252,8 @@ class _TrendLinePainter extends CustomPainter {
     required this.lineColor,
     required this.dividerColor,
     required this.dotBorderColor,
+    this.topPadding = 8.0,
+    this.bottomPadding = 8.0,
   });
 
   final List<AttendanceTrendPoint> points;
@@ -164,13 +261,13 @@ class _TrendLinePainter extends CustomPainter {
   final Color lineColor;
   final Color dividerColor;
   final Color dotBorderColor;
+  final double topPadding;
+  final double bottomPadding;
 
   @override
   void paint(Canvas canvas, Size size) {
     if (points.isEmpty) return;
 
-    const topPadding = 6.0;
-    const bottomPadding = 6.0;
     final chartHeight = size.height - topPadding - bottomPadding;
 
     // Y mapping: 0% is at bottom, 100% is at top
@@ -273,6 +370,8 @@ class _TrendLinePainter extends CustomPainter {
         oldDelegate.threshold != threshold ||
         oldDelegate.lineColor != lineColor ||
         oldDelegate.dividerColor != dividerColor ||
-        oldDelegate.dotBorderColor != dotBorderColor;
+        oldDelegate.dotBorderColor != dotBorderColor ||
+        oldDelegate.topPadding != topPadding ||
+        oldDelegate.bottomPadding != bottomPadding;
   }
 }

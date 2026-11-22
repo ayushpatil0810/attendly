@@ -64,7 +64,7 @@ class CompactAttendanceStats extends StatelessWidget {
                   child: _StatColumn(
                     label: 'Present',
                     value: summary.totalPresent.toString(),
-                    valueColor: colors.accentMint,
+                    valueColor: colors.textPrimary,
                   ),
                 ),
               ],

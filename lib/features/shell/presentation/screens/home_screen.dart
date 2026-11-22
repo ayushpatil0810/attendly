@@ -10,8 +10,9 @@ import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_calculation_method.dart';
-import 'package:attendly/features/attendance/domain/entities/attendance_status.dart';
+import 'package:attendly/features/attendance/domain/entities/attendance_session.dart';
 import 'package:attendly/features/attendance/presentation/providers/attendance_providers.dart';
+import 'package:attendly/features/attendance/presentation/widgets/day_status_dots.dart';
 import 'package:attendly/features/dashboard/presentation/providers/dashboard_scope_provider.dart';
 import 'package:attendly/features/dashboard/presentation/widgets/compact_attendance_stats.dart';
 import 'package:attendly/features/dashboard/presentation/widgets/dashboard_day_schedule_card.dart';
@@ -26,20 +27,13 @@ import 'package:attendly/features/insights/presentation/widgets/subject_comparis
 import 'package:attendly/features/semesters/presentation/providers/semesters_provider.dart';
 import 'package:attendly/features/semesters/presentation/widgets/semester_switcher_sheet.dart';
 
-class HomeScreen extends ConsumerStatefulWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key, required this.onNavigateToSubjects});
 
   final VoidCallback onNavigateToSubjects;
 
   @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  DateTime _selectedDate = DateTime.now();
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
     final activeSemestersAsync = ref.watch(activeSemestersStreamProvider);
     final activeSemester = ref.watch(activeSemesterProvider);
@@ -80,15 +74,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final scope = ref.watch(dashboardAttendanceScopeProvider);
     final semesterSessionsAsync = ref.watch(activeSemesterSessionsStreamProvider);
     final allSessions = semesterSessionsAsync.asData?.value ?? [];
-
-    Color? getDayDotColor(DateTime date) {
-      final dateKey = formatDateOnly(date);
-      final daySessions = allSessions.where((s) => s.sessionDate == dateKey).toList();
-      if (daySessions.isEmpty) return null;
-      final hasAbsent = daySessions.any((s) => s.status == AttendanceStatus.absent);
-      if (hasAbsent) return colors.accentCoral;
-      return colors.accentMint;
-    }
+    final dayNotesAsync = ref.watch(dayNotesForMonthProvider);
+    final dayNotesMap = dayNotesAsync.value ?? {};
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -110,7 +97,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 left: AppSpacing.screenHorizontal,
                 right: AppSpacing.screenHorizontal,
                 top: AppSpacing.screenTop,
-                bottom: AppSpacing.dockClearance,
+                bottom: AppSpacing.safeDockClearance,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,20 +137,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ],
                     const SizedBox(height: 24),
 
-                    // Apple Week Strip with day momentum status dots
-                    AppleWeekStrip(
-                      selectedDate: _selectedDate,
-                      onDateSelected: (date) {
-                        setState(() {
-                          _selectedDate = date;
-                        });
-                      },
-                      dayDotColorBuilder: getDayDotColor,
+                    // Isolated Day Section: Week strip + Daily schedule
+                    _DashboardDaySection(
+                      allSessions: allSessions,
+                      dayNotesMap: dayNotesMap,
                     ),
-                    const SizedBox(height: 12),
-
-                    // Daily Class Schedule Card for selected date
-                    DashboardDayScheduleCard(selectedDate: _selectedDate),
                     const SizedBox(height: 24),
 
                     // Subjects overview preview
@@ -171,7 +149,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       semesterId: activeSemester.id,
                       subjects: summary.subjectSummaries,
                       threshold: activeSemester.attendanceThreshold,
-                      onNavigateToSubjects: widget.onNavigateToSubjects,
+                      onNavigateToSubjects: onNavigateToSubjects,
                     ),
                     const SizedBox(height: 24),
 
@@ -188,7 +166,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                     // Attendance trend visualization
                     DashboardTrendCard(
-                      trendPoints: summary.trendPoints,
+                      trendPoints: displaySummary.trendPoints,
                       threshold: activeSemester.attendanceThreshold,
                     ),
                     const SizedBox(height: 16),
@@ -216,7 +194,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         semesterId: activeSemester.id,
                         subjects: summary.subjectSummaries,
                         threshold: activeSemester.attendanceThreshold,
-                        onNavigateToSubjects: widget.onNavigateToSubjects,
+                        onNavigateToSubjects: onNavigateToSubjects,
                       ),
                     ],
                   ],
@@ -233,6 +211,67 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _DashboardDaySection extends StatefulWidget {
+  const _DashboardDaySection({
+    required this.allSessions,
+    required this.dayNotesMap,
+  });
+
+  final List<AttendanceSession> allSessions;
+  final Map<String, String> dayNotesMap;
+
+  @override
+  State<_DashboardDaySection> createState() => _DashboardDaySectionState();
+}
+
+class _DashboardDaySectionState extends State<_DashboardDaySection> {
+  late DateTime _selectedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _selectedDate = DateTime(now.year, now.month, now.day);
+  }
+
+  DayAttendanceStatus _getDayStatus(DateTime date) {
+    final dateKey = formatDateOnly(date);
+    final daySessions =
+        widget.allSessions.where((s) => s.sessionDate == dateKey).toList();
+    final note = widget.dayNotesMap[dateKey];
+    return DayAttendanceStatus.fromSessions(
+      sessions: daySessions,
+      note: note,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AppleWeekStrip(
+          selectedDate: _selectedDate,
+          onDateSelected: (date) {
+            final now = DateTime.now();
+            final today = DateTime(now.year, now.month, now.day);
+            if (DateTime(date.year, date.month, date.day).isAfter(today)) {
+              return;
+            }
+            setState(() {
+              _selectedDate = date;
+            });
+          },
+          dayStatusBuilder: _getDayStatus,
+        ),
+        const SizedBox(height: 12),
+        DashboardDayScheduleCard(selectedDate: _selectedDate),
+      ],
     );
   }
 }

@@ -77,7 +77,7 @@ class AppTextField extends StatelessWidget {
           maxLines: maxLines,
           minLines: minLines,
           maxLength: maxLength,
-          cursorColor: colors.brandPrimaryInk,
+          cursorColor: colors.brandPrimary,
           decoration: InputDecoration(
             hintText: hint,
             errorText: errorText,
@@ -101,15 +101,15 @@ class AppTextField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: AppRadius.mdBorder,
-              borderSide: BorderSide(color: colors.brandPrimaryInk, width: 1.5),
+              borderSide: BorderSide(color: colors.brandPrimary, width: 1.5),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: AppRadius.mdBorder,
-              borderSide: BorderSide(color: colors.accentCoralInk),
+              borderSide: BorderSide(color: colors.accentRed),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: AppRadius.mdBorder,
-              borderSide: BorderSide(color: colors.accentCoralInk, width: 1.5),
+              borderSide: BorderSide(color: colors.accentRed, width: 1.5),
             ),
           ),
         ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:attendly/core/services/preferences_service.dart';
 import 'package:attendly/core/shared/widgets/app_bottom_sheet.dart';
 import 'package:attendly/core/shared/widgets/apple/apple_inset_group.dart';
 import 'package:attendly/core/shared/widgets/apple/apple_list_tile.dart';
@@ -37,7 +36,6 @@ class SemesterSettingsSection extends ConsumerWidget {
             subtitle: 'Tap to select or create an academic semester',
             showDisclosure: true,
             onTap: () {
-              AppHaptics.selectionClick(ref);
               showAppBottomSheet(
                 context: context,
                 title: 'Semesters',
@@ -60,14 +58,11 @@ class SemesterSettingsSection extends ConsumerWidget {
         AppleListTile(
           leading: AppleIconTile(
             icon: AppIcons.subjects,
-            backgroundColor: colors.isDark
-                ? const Color(0xFF4A6BF7)
-                : const Color(0xFF3F5BF6),
+            backgroundColor: colors.brandPrimary,
           ),
           title: semester.name,
           showDisclosure: true,
           onTap: () {
-            AppHaptics.selectionClick(ref);
             showAppBottomSheet(
               context: context,
               title: 'Semesters',
@@ -76,7 +71,7 @@ class SemesterSettingsSection extends ConsumerWidget {
           },
         ),
 
-        // 2. Attendance Target & Slider Control (no verbose subtitle)
+        // 2. Attendance Target & Slider Control with precision steppers
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
           child: Column(
@@ -86,7 +81,7 @@ class SemesterSettingsSection extends ConsumerWidget {
                 children: [
                   AppleIconTile(
                     icon: AppIcons.target,
-                    backgroundColor: colors.accentMint,
+                    backgroundColor: colors.accentGreen,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -99,27 +94,93 @@ class SemesterSettingsSection extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colors.isDark
-                          ? colors.brandPrimary.withValues(alpha: 0.16)
-                          : colors.brandPrimarySoft,
-                      borderRadius: AppRadius.pillBorder,
-                    ),
-                    child: Text(
-                      '$thresholdPercent%',
-                      style: AppTypography.labelLarge.copyWith(
-                        color: colors.isDark
-                            ? colors.brandPrimary
-                            : colors.brandPrimaryInk,
-                        fontWeight: FontWeight.w700,
-                        fontFeatures: const [FontFeature.tabularFigures()],
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Minus stepper
+                      _ThresholdStepperButton(
+                        key: const Key('threshold_stepper_decrement'),
+                        icon: AppIcons.minus,
+                        tooltip: 'Decrease threshold by 1%',
+                        enabled: thresholdPercent > 50,
+                        onTap: () async {
+                          final updatedVal = (thresholdPercent - 1) / 100.0;
+                          await ref
+                              .read(semesterControllerProvider.notifier)
+                              .updateSemester(
+                                semester.copyWith(
+                                  attendanceThreshold: updatedVal,
+                                ),
+                              );
+                        },
                       ),
-                    ),
+                      const SizedBox(width: 2),
+                      // Tappable percentage pill with tabular figures
+                      Tooltip(
+                        message: 'Tap to enter exact target',
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: AppRadius.pillBorder,
+                            onTap: () {
+                              _showThresholdInputDialog(
+                                context,
+                                ref,
+                                semester,
+                                thresholdPercent,
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colors.isDark
+                                    ? colors.brandPrimary.withValues(
+                                        alpha: 0.16,
+                                      )
+                                    : colors.brandPrimarySoft,
+                                borderRadius: AppRadius.pillBorder,
+                                border: Border.all(
+                                  color: colors.brandPrimary.withValues(
+                                    alpha: colors.isDark ? 0.35 : 0.25,
+                                  ),
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: Text(
+                                '$thresholdPercent%',
+                                style: AppTypography.withTabularFigures(
+                                  AppTypography.labelLarge.copyWith(
+                                    color: colors.brandPrimary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      // Plus stepper
+                      _ThresholdStepperButton(
+                        key: const Key('threshold_stepper_increment'),
+                        icon: AppIcons.add,
+                        tooltip: 'Increase threshold by 1%',
+                        enabled: thresholdPercent < 95,
+                        onTap: () async {
+                          final updatedVal = (thresholdPercent + 1) / 100.0;
+                          await ref
+                              .read(semesterControllerProvider.notifier)
+                              .updateSemester(
+                                semester.copyWith(
+                                  attendanceThreshold: updatedVal,
+                                ),
+                              );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -166,7 +227,6 @@ class SemesterSettingsSection extends ConsumerWidget {
           color: colors.surface,
           elevation: 6,
           onSelected: (newMethod) async {
-            AppHaptics.selectionClick(ref);
             if (newMethod != semester.calculationMethod) {
               final updated =
                   semester.copyWith(calculationMethod: newMethod);
@@ -220,7 +280,7 @@ class SemesterSettingsSection extends ConsumerWidget {
           child: AppleListTile(
             leading: AppleIconTile(
               icon: AppIcons.insights,
-              backgroundColor: colors.accentPeach,
+              backgroundColor: colors.accentOrange,
             ),
             title: 'Calculation Method',
             trailing: Row(
@@ -253,7 +313,6 @@ class SemesterSettingsSection extends ConsumerWidget {
           title: 'Edit Semester Details',
           showDisclosure: true,
           onTap: () {
-            AppHaptics.selectionClick(ref);
             showAppBottomSheet(
               context: context,
               title: 'Edit Semester',
@@ -262,6 +321,172 @@ class SemesterSettingsSection extends ConsumerWidget {
           },
         ),
       ],
+    );
+  }
+
+  void _showThresholdInputDialog(
+    BuildContext context,
+    WidgetRef ref,
+    Semester semester,
+    int currentPercent,
+  ) {
+    final controller = TextEditingController(text: '$currentPercent');
+    final colors = context.colors;
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: colors.surface,
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.lgBorder),
+        title: Text(
+          'Set Attendance Threshold',
+          style: AppTypography.headline.copyWith(
+            color: colors.textPrimary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Enter target attendance percentage (50% – 95%):',
+              style: AppTypography.footnote.copyWith(
+                color: colors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              textAlign: TextAlign.center,
+              style: AppTypography.withTabularFigures(
+                AppTypography.headline.copyWith(
+                  color: colors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 24,
+                ),
+              ),
+              decoration: InputDecoration(
+                suffixText: '%',
+                suffixStyle: AppTypography.headline.copyWith(
+                  color: colors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+                filled: true,
+                fillColor: colors.surfaceSubtle,
+                border: OutlineInputBorder(
+                  borderRadius: AppRadius.mdBorder,
+                  borderSide: BorderSide(
+                    color: colors.border.withValues(alpha: 0.5),
+                    width: 0.5,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: AppRadius.mdBorder,
+                  borderSide: BorderSide(color: colors.brandPrimary, width: 1.5),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(),
+            child: Text('Cancel', style: TextStyle(color: colors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () async {
+              final parsed = int.tryParse(controller.text.trim());
+              if (parsed != null && parsed >= 50 && parsed <= 95) {
+                Navigator.of(dialogCtx).pop();
+                await ref
+                    .read(semesterControllerProvider.notifier)
+                    .updateSemester(
+                      semester.copyWith(attendanceThreshold: parsed / 100.0),
+                    );
+              }
+            },
+            child: Text(
+              'Save',
+              style: TextStyle(
+                color: colors.brandPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ThresholdStepperButton extends StatelessWidget {
+  const _ThresholdStepperButton({
+    super.key,
+    required this.icon,
+    required this.tooltip,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: tooltip,
+      child: Tooltip(
+        message: tooltip,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: enabled ? onTap : null,
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              constraints: const BoxConstraints(
+                minWidth: 44,
+                minHeight: 44,
+              ),
+              alignment: Alignment.center,
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: enabled
+                      ? colors.surfaceSubtle.withValues(
+                          alpha: colors.isDark ? 0.6 : 0.8,
+                        )
+                      : colors.surfaceSubtle.withValues(alpha: 0.3),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: colors.border.withValues(
+                      alpha: enabled ? (colors.isDark ? 0.4 : 0.6) : 0.2,
+                    ),
+                    width: 0.5,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: AppIcon(
+                  icon,
+                  size: 15,
+                  color: enabled
+                      ? colors.brandPrimary
+                      : colors.textTertiary.withValues(alpha: 0.4),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

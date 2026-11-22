@@ -82,7 +82,7 @@ void main() {
       ); // Title and button
       expect(find.text('80% Attendance Goal'), findsOneWidget);
       expect(find.text('2 Subjects'), findsOneWidget);
-      expect(find.text('Split in half'), findsOneWidget);
+      expect(find.text('50/50 Lecture & Lab'), findsOneWidget);
 
       expect(find.text('Database Management Systems'), findsOneWidget);
       expect(find.text('Theory'), findsNWidgets(2));

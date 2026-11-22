@@ -264,7 +264,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   child: Text(
                     _errorMessage!,
                     style: AppTypography.bodySmall.copyWith(
-                      color: colors.accentCoralInk,
+                      color: colors.accentRed,
                     ),
                     textAlign: TextAlign.center,
                   ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/shared/widgets/app_bottom_sheet.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
@@ -12,8 +11,10 @@ import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
+import 'package:attendly/features/attendance/domain/entities/component_attendance_summary.dart';
 import 'package:attendly/features/attendance/domain/entities/subject_attendance_summary.dart';
 import 'package:attendly/features/attendance/domain/entities/threshold_status.dart';
+import 'package:attendly/features/attendance/domain/services/attendance_action_helper.dart';
 import 'package:attendly/features/attendance/presentation/providers/attendance_providers.dart';
 import 'package:attendly/features/attendance/presentation/widgets/quick_log_sheet.dart';
 import 'package:attendly/features/semesters/presentation/providers/semesters_provider.dart';
@@ -51,6 +52,7 @@ class SubjectsScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: colors.surface,
+        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           'Delete Subject?',
@@ -137,7 +139,11 @@ class SubjectsScreen extends ConsumerWidget {
           child: AppEmptyState(
             title: 'No Active Semester',
             description: 'Please select or create a semester first.',
-            icon: const AppIcon(AppIcons.home, size: 28),
+            icon: AppIcon(
+              AppIcons.calendar,
+              size: 28,
+              color: colors.textSecondary,
+            ),
             actionLabel: 'Select Semester',
             onAction: () {
               showAppBottomSheet(
@@ -191,44 +197,64 @@ class SubjectsScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  Semantics(
-                    button: true,
-                    label: 'Add Subject',
-                    child: Tooltip(
-                      message: 'Add Subject',
-                      child: Material(
-                        color: colors.surfaceSubtle.withValues(
-                          alpha: colors.isDark ? 0.6 : 0.8,
-                        ),
-                        shape: const CircleBorder(),
-                        child: InkWell(
-                          onTap: () {
-                            HapticFeedback.selectionClick();
-                            _openAddSubject(context, activeSemester.id);
-                          },
-                          customBorder: const CircleBorder(),
-                          child: Container(
-                            width: 38,
-                            height: 38,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: colors.border.withValues(
-                                  alpha: colors.isDark ? 0.4 : 0.6,
-                                ),
-                                width: 0.5,
+                  const SizedBox(width: 8),
+                  Builder(
+                    builder: (context) {
+                      final isNarrow = MediaQuery.sizeOf(context).width < 340;
+                      final addLabel = isNarrow ? 'Subject' : 'Add Subject';
+
+                      return Semantics(
+                        button: true,
+                        label: 'Add Subject',
+                        child: Material(
+                          color: colors.surfaceSubtle.withValues(
+                            alpha: colors.isDark ? 0.65 : 0.9,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          child: InkWell(
+                            onTap: () {
+                              _openAddSubject(context, activeSemester.id);
+                            },
+                            borderRadius: BorderRadius.circular(20),
+                            child: Container(
+                              constraints: const BoxConstraints(minHeight: 44),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
                               ),
-                            ),
-                            alignment: Alignment.center,
-                            child: AppIcon(
-                              AppIcons.add,
-                              size: 19,
-                              color: colors.textPrimary,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: colors.border.withValues(
+                                    alpha: colors.isDark ? 0.4 : 0.6,
+                                  ),
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  AppIcon(
+                                    AppIcons.add,
+                                    size: 15,
+                                    color: colors.brandPrimary,
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    addLabel,
+                                    style: AppTypography.footnote.copyWith(
+                                      color: colors.textPrimary,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: -0.2,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -248,6 +274,7 @@ class SubjectsScreen extends ConsumerWidget {
                         color: colors.textSecondary,
                       ),
                       actionLabel: 'Add Subject',
+                      actionIcon: const AppIcon(AppIcons.add, size: 18),
                       onAction: () =>
                           _openAddSubject(context, activeSemester.id),
                     );
@@ -259,10 +286,11 @@ class SubjectsScreen extends ConsumerWidget {
                   for (final subj in subjects) {
                     final sum = subjectSummariesMap[subj.id];
                     if (sum != null && sum.totalConducted > 0) {
-                      if (sum.thresholdStatus == ThresholdStatus.meeting) {
-                        meetingCount++;
-                      } else if (sum.thresholdStatus == ThresholdStatus.below) {
+                      if (sum.thresholdStatus == ThresholdStatus.below ||
+                          sum.hasComponentBelowThreshold) {
                         belowCount++;
+                      } else if (sum.thresholdStatus == ThresholdStatus.meeting) {
+                        meetingCount++;
                       }
                     }
                   }
@@ -275,7 +303,7 @@ class SubjectsScreen extends ConsumerWidget {
                       left: AppSpacing.screenHorizontal,
                       right: AppSpacing.screenHorizontal,
                       top: 4,
-                      bottom: AppSpacing.dockClearance,
+                      bottom: AppSpacing.safeDockClearance,
                     ),
                     itemCount:
                         subjects.length + 1, // +1 for the top summary pill
@@ -294,6 +322,7 @@ class SubjectsScreen extends ConsumerWidget {
                       final summary = subjectSummariesMap[subject.id];
 
                       return _SubjectCard(
+                        key: ValueKey(subject.id),
                         subject: subject,
                         summary: summary,
                         threshold: activeSemester.attendanceThreshold,
@@ -390,7 +419,7 @@ class _SubjectsOverviewStrip extends StatelessWidget {
                 width: 7,
                 height: 7,
                 decoration: BoxDecoration(
-                  color: colors.accentMint,
+                  color: colors.present,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -428,7 +457,7 @@ class _SubjectsOverviewStrip extends StatelessWidget {
                 width: 7,
                 height: 7,
                 decoration: BoxDecoration(
-                  color: colors.accentCoral,
+                  color: colors.absent,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -458,6 +487,7 @@ class _SubjectsOverviewStrip extends StatelessWidget {
 
 class _SubjectCard extends StatefulWidget {
   const _SubjectCard({
+    super.key,
     required this.subject,
     required this.summary,
     required this.threshold,
@@ -484,12 +514,16 @@ class _SubjectCardState extends State<_SubjectCard> {
     if (summary == null || summary.totalConducted == 0) {
       return colors.track;
     }
-    if (summary.isProvisional) return colors.accentPeach;
+    if (summary.isProvisional) return colors.accentOrange;
+    if (summary.thresholdStatus == ThresholdStatus.below ||
+        summary.hasComponentBelowThreshold) {
+      return colors.absent;
+    }
     switch (summary.thresholdStatus) {
       case ThresholdStatus.meeting:
-        return colors.accentMint;
+        return colors.present;
       case ThresholdStatus.below:
-        return colors.accentCoral;
+        return colors.absent;
       case ThresholdStatus.notAvailable:
         return colors.track;
     }
@@ -517,7 +551,6 @@ class _SubjectCardState extends State<_SubjectCard> {
     final hasData = summary != null && summary.totalConducted > 0;
     final progressColor = _getProgressColor(context);
     final pctDisplay = _formatPct();
-    final thresholdPercent = (widget.threshold * 100).toInt();
 
     return AppleInsetGroup(
       margin: const EdgeInsets.only(bottom: 12),
@@ -526,7 +559,6 @@ class _SubjectCardState extends State<_SubjectCard> {
           color: Colors.transparent,
           child: InkWell(
             onTap: () {
-              HapticFeedback.selectionClick();
               setState(() => _isExpanded = !_isExpanded);
             },
             child: Padding(
@@ -565,9 +597,9 @@ class _SubjectCardState extends State<_SubjectCard> {
                                   Text(
                                     'Lecture',
                                     style: AppTypography.caption1.copyWith(
-                                      color: colors.brandPrimary,
+                                      color: colors.textSecondary,
                                       fontSize: 12,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 if (widget.subject.lectureEnabled &&
@@ -589,40 +621,46 @@ class _SubjectCardState extends State<_SubjectCard> {
                                   Text(
                                     'Lab',
                                     style: AppTypography.caption1.copyWith(
-                                      color: colors.accentMint,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 5,
-                                  ),
-                                  child: Text(
-                                    '•',
-                                    style: AppTypography.caption1.copyWith(
-                                      color: colors.textTertiary,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    hasData
-                                        ? '${summary.totalPresent} of ${summary.totalConducted} sessions attended'
-                                        : 'No sessions recorded yet',
-                                    style: AppTypography.caption1.copyWith(
                                       color: colors.textSecondary,
                                       fontSize: 12,
-                                      fontFeatures: const [
-                                        FontFeature.tabularFigures(),
-                                      ],
+                                      fontWeight: FontWeight.w500,
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                ),
+                                // When collapsed, show concise attended/conducted summary.
+                                // When expanded with data, hide it to avoid duplicating expanded stats.
+                                if (!_isExpanded || !hasData) ...[
+                                  if (widget.subject.lectureEnabled ||
+                                      widget.subject.labEnabled)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 5,
+                                      ),
+                                      child: Text(
+                                        '•',
+                                        style: AppTypography.caption1.copyWith(
+                                          color: colors.textTertiary,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                  Expanded(
+                                    child: Text(
+                                      hasData
+                                          ? '${summary.totalPresent} of ${summary.totalConducted} sessions attended'
+                                          : 'No sessions recorded yet',
+                                      style: AppTypography.caption1.copyWith(
+                                        color: colors.textSecondary,
+                                        fontSize: 12,
+                                        fontFeatures: const [
+                                          FontFeature.tabularFigures(),
+                                        ],
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ],
@@ -632,29 +670,16 @@ class _SubjectCardState extends State<_SubjectCard> {
 
                       // Right: Clean tabular percentage with status color
                       if (hasData) ...[
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              pctDisplay,
-                              style: AppTypography.headline.copyWith(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                                color: progressColor,
-                                fontFeatures: const [
-                                  FontFeature.tabularFigures(),
-                                ],
-                              ),
-                            ),
-                            Text(
-                              'Target $thresholdPercent%',
-                              style: AppTypography.caption2.copyWith(
-                                color: colors.textTertiary,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
+                        Text(
+                          pctDisplay,
+                          style: AppTypography.headline.copyWith(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: progressColor,
+                            fontFeatures: const [
+                              FontFeature.tabularFigures(),
+                            ],
+                          ),
                         ),
                       ] else ...[
                         Text(
@@ -691,7 +716,6 @@ class _SubjectCardState extends State<_SubjectCard> {
                         ? _buildExpandedContent(
                             context,
                             hasData,
-                            thresholdPercent,
                           )
                         : const SizedBox.shrink(),
                   ),
@@ -707,10 +731,17 @@ class _SubjectCardState extends State<_SubjectCard> {
   Widget _buildExpandedContent(
     BuildContext context,
     bool hasData,
-    int thresholdPercent,
   ) {
     final summary = widget.summary;
     final colors = context.colors;
+
+    final actionable = hasData
+        ? AttendanceActionHelper.calculateActionableInsight(
+            present: summary!.totalPresent,
+            conducted: summary.totalConducted,
+            threshold: widget.threshold,
+          )
+        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -723,7 +754,7 @@ class _SubjectCardState extends State<_SubjectCard> {
         ),
         const SizedBox(height: 14),
 
-        // 1. Structured Metrics Inset Box
+        // 1. Structured Metrics Inset Box: Actionable Insight, Present, Absent, Conducted
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
@@ -740,16 +771,30 @@ class _SubjectCardState extends State<_SubjectCard> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _MetricCell(label: 'Target', value: '$thresholdPercent%'),
+              if (actionable != null)
+                Tooltip(
+                  message: actionable.headlineText,
+                  child: _MetricCell(
+                    label: actionable.isAboveOrAtTarget ? 'Can Miss' : 'Need',
+                    value: '${actionable.count}',
+                    color: actionable.isAboveOrAtTarget
+                        ? colors.present
+                        : colors.absent,
+                  ),
+                )
+              else
+                _MetricCell(
+                  label: 'Status',
+                  value: '—',
+                  color: colors.textTertiary,
+                ),
               _MetricCell(
                 label: 'Present',
                 value: '${summary?.totalPresent ?? 0}',
-                color: colors.accentMint,
               ),
               _MetricCell(
                 label: 'Absent',
                 value: '${summary?.totalAbsent ?? 0}',
-                color: colors.accentCoral,
               ),
               _MetricCell(
                 label: 'Conducted',
@@ -760,30 +805,47 @@ class _SubjectCardState extends State<_SubjectCard> {
         ),
         const SizedBox(height: 14),
 
-        // 2. Component breakdown chips
+        // 2. Component breakdown rows (Lecture & Lab)
         if (hasData &&
             summary != null &&
             widget.subject.lectureEnabled &&
             widget.subject.labEnabled) ...[
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              _ComponentChip(
-                title: 'Lecture',
-                present: summary.lectureSummary?.presentCount ?? 0,
-                conducted: summary.lectureSummary?.conductedCount ?? 0,
-                percentage: summary.lectureSummary?.percentage,
-                color: colors.brandPrimary,
+          Container(
+            decoration: BoxDecoration(
+              color: colors.surfaceSubtle.withValues(
+                alpha: colors.isDark ? 0.5 : 0.7,
               ),
-              _ComponentChip(
-                title: 'Lab',
-                present: summary.labSummary?.presentCount ?? 0,
-                conducted: summary.labSummary?.conductedCount ?? 0,
-                percentage: summary.labSummary?.percentage,
-                color: colors.accentMint,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: colors.border.withValues(
+                  alpha: colors.isDark ? 0.4 : 0.5,
+                ),
+                width: 0.5,
               ),
-            ],
+            ),
+            child: Column(
+              children: [
+                _ComponentRow(
+                  title: 'Lecture',
+                  summary: summary.lectureSummary,
+                  threshold: widget.threshold,
+                ),
+                Divider(
+                  height: 0.5,
+                  thickness: 0.5,
+                  indent: 14,
+                  endIndent: 14,
+                  color: colors.divider.withValues(
+                    alpha: colors.isDark ? 0.4 : 0.7,
+                  ),
+                ),
+                _ComponentRow(
+                  title: 'Lab',
+                  summary: summary.labSummary,
+                  threshold: widget.threshold,
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 14),
         ] else if (!hasData) ...[
@@ -834,37 +896,41 @@ class _SubjectCardState extends State<_SubjectCard> {
                   color: Colors.transparent,
                   child: InkWell(
                     onTap: () {
-                      HapticFeedback.selectionClick();
                       widget.onEdit();
                     },
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(22),
                     child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: colors.surfaceSubtle.withValues(
-                          alpha: colors.isDark ? 0.6 : 0.8,
-                        ),
-                        border: Border.all(
-                          color: colors.border.withValues(
-                            alpha: colors.isDark ? 0.4 : 0.6,
-                          ),
-                          width: 0.5,
-                        ),
-                      ),
+                      width: 44,
+                      height: 44,
                       alignment: Alignment.center,
-                      child: AppIcon(
-                        AppIcons.edit,
-                        size: 16,
-                        color: colors.textPrimary,
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: colors.surfaceSubtle.withValues(
+                            alpha: colors.isDark ? 0.6 : 0.8,
+                          ),
+                          border: Border.all(
+                            color: colors.border.withValues(
+                              alpha: colors.isDark ? 0.4 : 0.6,
+                            ),
+                            width: 0.5,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: AppIcon(
+                          AppIcons.edit,
+                          size: 16,
+                          color: colors.textPrimary,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 4),
             // Delete icon button
             Tooltip(
               message: 'Delete Subject',
@@ -875,30 +941,34 @@ class _SubjectCardState extends State<_SubjectCard> {
                   color: Colors.transparent,
                   child: InkWell(
                     onTap: () {
-                      HapticFeedback.selectionClick();
                       widget.onDelete();
                     },
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(22),
                     child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: colors.accentCoralSoft.withValues(
-                          alpha: colors.isDark ? 0.25 : 0.5,
-                        ),
-                        border: Border.all(
-                          color: colors.accentCoral.withValues(
-                            alpha: colors.isDark ? 0.3 : 0.4,
-                          ),
-                          width: 0.5,
-                        ),
-                      ),
+                      width: 44,
+                      height: 44,
                       alignment: Alignment.center,
-                      child: AppIcon(
-                        AppIcons.delete,
-                        size: 16,
-                        color: colors.accentCoral,
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: colors.surfaceSubtle.withValues(
+                            alpha: colors.isDark ? 0.6 : 0.8,
+                          ),
+                          border: Border.all(
+                            color: colors.border.withValues(
+                              alpha: colors.isDark ? 0.4 : 0.6,
+                            ),
+                            width: 0.5,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: AppIcon(
+                          AppIcons.delete,
+                          size: 16,
+                          color: colors.absent,
+                        ),
                       ),
                     ),
                   ),
@@ -954,55 +1024,84 @@ class _MetricCell extends StatelessWidget {
   }
 }
 
-class _ComponentChip extends StatelessWidget {
-  const _ComponentChip({
+class _ComponentRow extends StatelessWidget {
+  const _ComponentRow({
     required this.title,
-    required this.present,
-    required this.conducted,
-    this.percentage,
-    required this.color,
+    required this.summary,
+    required this.threshold,
   });
 
   final String title;
-  final int present;
-  final int conducted;
-  final double? percentage;
-  final Color color;
+  final ComponentAttendanceSummary? summary;
+  final double threshold;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final pctStr = percentage != null
-        ? '${percentage!.toStringAsFixed(0)}%'
-        : '—';
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: colors.surface.withValues(alpha: colors.isDark ? 0.5 : 0.8),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: colors.border.withValues(alpha: colors.isDark ? 0.3 : 0.4),
-          width: 0.5,
-        ),
-      ),
+    final conducted = summary?.conductedCount ?? 0;
+    final present = summary?.presentCount ?? 0;
+    final pct = summary?.percentage;
+    final hasSessions = conducted > 0;
+    final isBelow = summary?.isBelowThreshold ?? false;
+
+    final actionable = hasSessions
+        ? AttendanceActionHelper.calculateActionableInsight(
+            present: present,
+            conducted: conducted,
+            threshold: threshold,
+          )
+        : null;
+
+    final String pctStr = pct != null ? '${pct.toStringAsFixed(0)}%' : '—';
+
+    final String statusText;
+    final Color statusColor;
+
+    if (!hasSessions || actionable == null) {
+      statusText = '—';
+      statusColor = colors.textTertiary;
+    } else if (isBelow) {
+      statusText = actionable.count > 0
+          ? 'Need ${actionable.count}'
+          : actionable.headlineText;
+      statusColor = colors.absent;
+    } else if (actionable.count > 0) {
+      statusText = 'Can miss ${actionable.count}';
+      statusColor = colors.present;
+    } else {
+      statusText = 'On target';
+      statusColor = colors.textSecondary;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             title,
-            style: AppTypography.caption1.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            '$present/$conducted ($pctStr)',
-            style: AppTypography.caption1.copyWith(
+            style: AppTypography.subhead.copyWith(
               color: colors.textPrimary,
               fontWeight: FontWeight.w600,
-              fontSize: 12,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            hasSessions ? '$present/$conducted · $pctStr' : '0/0 · —',
+            style: AppTypography.footnote.copyWith(
+              color: colors.textSecondary,
+              fontWeight: FontWeight.w500,
+              fontSize: 12.5,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+          const Spacer(),
+          Text(
+            statusText,
+            style: AppTypography.footnote.copyWith(
+              color: statusColor,
+              fontWeight: FontWeight.w600,
+              fontSize: 12.5,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:attendly/core/services/notification_service.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
-import 'package:attendly/core/shared/widgets/attendly_brand_mark.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_theme_colors.dart';
 import 'package:attendly/core/theme/app_motion.dart';
@@ -38,9 +37,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         subtitle:
             'Record attendance for theory classes and practical labs independently with one quick tap.',
         accentColor: colors.brandPrimary,
-        secondaryColor: colors.isDark
-            ? colors.brandPrimary.withValues(alpha: 0.16)
-            : AppColors.softLavender,
+        secondaryColor: colors.brandPrimary.withValues(alpha: 0.16),
         icon: AppIcons.lecture,
         tagText: 'Independent Components',
       ),
@@ -48,10 +45,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         title: 'Know Your Safe Absences',
         subtitle:
             'Stay above your college threshold. Always know how many sessions you can safely miss.',
-        accentColor: colors.accentMint,
-        secondaryColor: colors.isDark
-            ? colors.accentMint.withValues(alpha: 0.16)
-            : AppColors.softMint,
+        accentColor: colors.accentGreen,
+        secondaryColor: colors.accentGreen.withValues(alpha: 0.16),
         icon: AppIcons.insights,
         tagText: 'Smart Calculations',
       ),
@@ -59,12 +54,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         title: 'Review & Correct History',
         subtitle:
             'Keep a transparent timeline. Correct past records anytime with 100% offline local privacy.',
-        accentColor: colors.isDark
-            ? const Color(0xFFFF9F0A)
-            : AppColors.brandPeach,
-        secondaryColor: colors.isDark
-            ? const Color(0xFFFF9F0A).withValues(alpha: 0.16)
-            : AppColors.softPeach,
+        accentColor: colors.accentOrange,
+        secondaryColor: colors.accentOrange.withValues(alpha: 0.16),
         icon: AppIcons.history,
         tagText: '100% Offline & Private',
       ),
@@ -115,23 +106,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // App brand logo and title
+                  // Application name with Apple-inspired typography (matching dashboard)
                   Semantics(
                     label: 'Attendly',
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const AttendlyBrandMark(size: 32),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Attendly',
-                          style: AppTypography.title2.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: colors.textPrimary,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      'attendly',
+                      style: AppTypography.title2.copyWith(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.8,
+                        color: colors.textPrimary,
+                      ),
                     ),
                   ),
                   if (!isLastPage)
@@ -175,13 +159,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: page.secondaryColor,
-                            borderRadius: AppRadius.pillBorder,
+                            color: colors.surfaceSubtle.withValues(
+                              alpha: colors.isDark ? 0.6 : 0.8,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: colors.border.withValues(
+                                alpha: colors.isDark ? 0.4 : 0.6,
+                              ),
+                              width: 0.5,
+                            ),
                           ),
                           child: Text(
                             page.tagText,
                             style: AppTypography.labelSmall.copyWith(
-                              color: page.accentColor,
+                              color: colors.textPrimary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -288,8 +280,16 @@ class _OnboardingVisual extends StatelessWidget {
       width: 180,
       height: 180,
       decoration: BoxDecoration(
-        color: page.secondaryColor,
+        color: colors.surfaceSubtle.withValues(
+          alpha: colors.isDark ? 0.4 : 0.6,
+        ),
         shape: BoxShape.circle,
+        border: Border.all(
+          color: colors.border.withValues(
+            alpha: colors.isDark ? 0.35 : 0.5,
+          ),
+          width: 0.5,
+        ),
       ),
       alignment: Alignment.center,
       child: Container(

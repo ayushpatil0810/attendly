@@ -89,20 +89,20 @@ void main() {
         await tester.pumpAndSettle();
 
         // Header and date visible
-        expect(find.text('Quick Attendance Log'), findsOneWidget);
-        expect(find.text('Done Logging'), findsOneWidget);
+        expect(find.text('Log Attendance'), findsOneWidget);
+        expect(find.text('Done'), findsOneWidget);
 
         // Both subjects are visible simultaneously in vertical list
         expect(find.text('Computer Networks'), findsOneWidget);
         expect(find.text('History of Computing'), findsOneWidget);
 
-        // Computer Networks has both Theory Lecture and Practical Lab
-        expect(find.text('Theory Lecture'), findsWidgets);
-        expect(find.text('Practical Lab'), findsOneWidget);
+        // Computer Networks has both Lecture and Lab
+        expect(find.text('Lecture'), findsWidgets);
+        expect(find.text('Lab'), findsOneWidget);
 
-        // Quick action buttons visible
-        expect(find.text('+ Present'), findsWidgets);
-        expect(find.text('+ Absent'), findsWidgets);
+        // Quick action buttons visible without redundant "+"
+        expect(find.text('Present'), findsWidgets);
+        expect(find.text('Absent'), findsWidgets);
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);
@@ -110,7 +110,7 @@ void main() {
     );
 
     testWidgets(
-      'immediately records attendance upon tapping + Present without closing modal',
+      'immediately records attendance upon tapping Present without closing modal and updates live counter badge',
       (tester) async {
         setTestViewport(tester);
         addTearDown(tester.view.resetPhysicalSize);
@@ -120,17 +120,17 @@ void main() {
         await tester.pumpWidget(createWidgetUnderTest(initialDate: testDate));
         await tester.pumpAndSettle();
 
-        // Tap the first "+ Present" button (for Computer Networks - Lecture)
-        await tester.tap(find.text('+ Present').first);
+        // Tap the first "Present" button (for Computer Networks - Lecture)
+        await tester.tap(find.text('Present').first);
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
         await tester.pumpAndSettle();
 
         // Modal is STILL open
-        expect(find.text('Quick Attendance Log'), findsOneWidget);
+        expect(find.text('Log Attendance'), findsOneWidget);
 
-        // Chip is now visible on the card
-        expect(find.text('Lec 1: Present'), findsOneWidget);
+        // Button live counter is now visible
+        expect(find.text('Present · 1'), findsOneWidget);
 
         // Verify persisted in SQLite
         final repo = AttendanceRepositoryImpl(db);
@@ -149,7 +149,7 @@ void main() {
     );
 
     testWidgets(
-      'allows adding multiple lectures on the spot for a specific subject',
+      'allows adding multiple lectures on the spot for a specific subject with incrementing live counter',
       (tester) async {
         setTestViewport(tester);
         addTearDown(tester.view.resetPhysicalSize);
@@ -160,22 +160,21 @@ void main() {
         await tester.pumpAndSettle();
 
         // Add 1st lecture for Computer Networks (Present)
-        await tester.tap(find.text('+ Present').first);
+        await tester.tap(find.text('Present').first);
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
         await tester.pumpAndSettle();
 
-        expect(find.text('Lec 1: Present'), findsOneWidget);
+        expect(find.text('Present · 1'), findsOneWidget);
 
         // Add 2nd lecture on the spot for the same subject (Present)
-        await tester.tap(find.text('+ Present').first);
+        await tester.tap(find.text('Present · 1'));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
         await tester.pumpAndSettle();
 
-        // Both chips are visible
-        expect(find.text('Lec 1: Present'), findsOneWidget);
-        expect(find.text('Lec 2: Present'), findsOneWidget);
+        // Button counter updates to 2
+        expect(find.text('Present · 2'), findsOneWidget);
 
         // Verify 2 sessions exist in DB
         final repo = AttendanceRepositoryImpl(db);
@@ -203,20 +202,20 @@ void main() {
         await tester.pumpWidget(createWidgetUnderTest(initialDate: testDate));
         await tester.pumpAndSettle();
 
-        // Mark Computer Networks Lecture as Present (1st + Present button)
-        await tester.tap(find.text('+ Present').at(0));
+        // Mark Computer Networks Lecture as Present (1st Present button)
+        await tester.tap(find.text('Present').at(0));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
         await tester.pumpAndSettle();
 
-        // Mark Computer Networks Lab as Absent (2nd + Absent button)
-        await tester.tap(find.text('+ Absent').at(1));
+        // Mark Computer Networks Lab as Absent (2nd Absent button)
+        await tester.tap(find.text('Absent').at(1));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
         await tester.pumpAndSettle();
 
-        // Mark History of Computing as Present (3rd + Present button)
-        await tester.tap(find.text('+ Present').at(2));
+        // Mark History of Computing as Present (2nd Present button)
+        await tester.tap(find.text('Present').at(1));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
         await tester.pumpAndSettle();
@@ -229,14 +228,14 @@ void main() {
         expect(sessions.length, equals(3));
 
         // Sheet is still open
-        expect(find.text('Quick Attendance Log'), findsOneWidget);
+        expect(find.text('Log Attendance'), findsOneWidget);
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);
       },
     );
 
-    testWidgets('deletes session when remove button on chip is tapped', (
+    testWidgets('deletes session when decrement stepper button is tapped', (
       tester,
     ) async {
       setTestViewport(tester);
@@ -255,18 +254,19 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(initialDate: testDate));
       await tester.pumpAndSettle();
 
-      expect(find.text('Lec 1: Present'), findsOneWidget);
+      expect(find.text('Present · 1'), findsOneWidget);
 
-      // Tap the semantics action for removing the chip
-      final removeButton = find.bySemanticsLabel('Remove Lec 1 Present');
-      expect(removeButton, findsOneWidget);
-      await tester.tap(removeButton);
+      // Tap the decrement stepper button for removing 1 Present
+      final decrementButton = find.byTooltip('Remove 1 Present');
+      expect(decrementButton, findsOneWidget);
+      await tester.tap(decrementButton);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       await tester.pumpAndSettle();
 
-      // Chip is removed
-      expect(find.text('Lec 1: Present'), findsNothing);
+      // Button returns to unlogged state
+      expect(find.text('Present · 1'), findsNothing);
+      expect(find.text('Present'), findsWidgets);
 
       final sessions = await repo.getSessionsForDate(semesterId, '2026-03-10');
       expect(sessions, isEmpty);
@@ -306,8 +306,8 @@ void main() {
 
       expect(find.byType(QuickLogSheet), findsOneWidget);
 
-      // Tap Done Logging
-      await tester.tap(find.text('Done Logging'));
+      // Tap Done
+      await tester.tap(find.text('Done'));
       await tester.pumpAndSettle();
 
       // Sheet is dismissed
@@ -332,20 +332,42 @@ void main() {
 
         // Title and Done button visible
         expect(find.text('Log Attendance'), findsOneWidget);
-        expect(find.text('Done Logging'), findsOneWidget);
+        expect(find.text('Done'), findsOneWidget);
 
         // Only Computer Networks is rendered; History of Computing is excluded
         expect(find.text('Computer Networks'), findsOneWidget);
         expect(find.text('History of Computing'), findsNothing);
 
         // Allows recording attendance specifically for Computer Networks
-        expect(find.text('+ Present'), findsWidgets);
-        await tester.tap(find.text('+ Present').first);
+        expect(find.text('Present'), findsWidgets);
+        await tester.tap(find.text('Present').first);
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
         await tester.pumpAndSettle();
 
-        expect(find.text('Lec 1: Present'), findsOneWidget);
+        expect(find.text('Present · 1'), findsOneWidget);
+
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(Duration.zero);
+      },
+    );
+
+    testWidgets(
+      'clamps future initialDate to today in QuickLogSheet',
+      (tester) async {
+        setTestViewport(tester);
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final futureDate = DateTime(2099, 1, 1);
+        await tester.pumpWidget(
+          createWidgetUnderTest(initialDate: futureDate),
+        );
+        await tester.pumpAndSettle();
+
+        // The date pill should display Today, not the future date
+        expect(find.textContaining('Today'), findsOneWidget);
+        expect(find.textContaining('2099'), findsNothing);
 
         await tester.pumpWidget(const SizedBox());
         await tester.pump(Duration.zero);

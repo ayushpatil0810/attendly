@@ -20,11 +20,12 @@ class BackupSummaryDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final dateFormat = DateFormat('MMM d, yyyy • h:mm a');
     final formattedDate = dateFormat.format(summary.exportedAt.toLocal());
 
     return Dialog(
-      backgroundColor: AppColors.pureWhite,
+      backgroundColor: colors.surface,
       surfaceTintColor: Colors.transparent,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.xlBorder),
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -40,12 +41,14 @@ class BackupSummaryDialog extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.softLavender,
+                    color: colors.isDark
+                        ? colors.brandPrimary.withValues(alpha: 0.16)
+                        : colors.brandPrimarySoft,
                     shape: BoxShape.circle,
                   ),
                   child: AppIcon(
                     AppIcons.importFile,
-                    color: AppColors.brandViolet,
+                    color: colors.brandPrimary,
                     size: 22,
                   ),
                 ),
@@ -62,7 +65,7 @@ class BackupSummaryDialog extends StatelessWidget {
                       Text(
                         'Review backup summary',
                         style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.mutedInk,
+                          color: colors.textSecondary,
                         ),
                       ),
                     ],
@@ -76,25 +79,25 @@ class BackupSummaryDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.warmWhite,
+                color: colors.isDark ? colors.surfaceSubtle : colors.background,
                 borderRadius: AppRadius.mdBorder,
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: colors.border),
               ),
               child: Column(
                 children: [
                   _SummaryRow(label: 'Exported', value: formattedDate),
-                  Divider(height: 16, color: AppColors.divider),
+                  Divider(height: 16, color: colors.divider),
                   _SummaryRow(
                     label: 'Semesters',
                     value:
                         '${summary.semestersCount} (${summary.semesterNames.join(', ')})',
                   ),
-                  Divider(height: 16, color: AppColors.divider),
+                  Divider(height: 16, color: colors.divider),
                   _SummaryRow(
                     label: 'Subjects',
                     value: '${summary.subjectsCount}',
                   ),
-                  Divider(height: 16, color: AppColors.divider),
+                  Divider(height: 16, color: colors.divider),
                   _SummaryRow(
                     label: 'Attendance Sessions',
                     value:
@@ -109,18 +112,20 @@ class BackupSummaryDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.softCoral,
+                color: colors.accentRed.withValues(alpha: 0.12),
                 borderRadius: AppRadius.mdBorder,
-                border: Border.all(color: AppColors.inkCoral.withOpacity(0.4)),
+                border: Border.all(
+                  color: colors.accentRed.withValues(alpha: 0.4),
+                ),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(top: 2),
+                    padding: const EdgeInsets.only(top: 2),
                     child: AppIcon(
                       AppIcons.alert,
-                      color: AppColors.inkCoral,
+                      color: colors.accentRed,
                       size: 18,
                     ),
                   ),
@@ -129,7 +134,7 @@ class BackupSummaryDialog extends StatelessWidget {
                     child: Text(
                       'Restoring this backup will replace all current semesters, subjects, and attendance sessions on this device. This cannot be undone.',
                       style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.ink,
+                        color: colors.textPrimary,
                         height: 1.35,
                       ),
                     ),
@@ -177,13 +182,15 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
-          style: AppTypography.labelSmall.copyWith(color: AppColors.mutedInk),
+          style: AppTypography.labelSmall.copyWith(color: colors.textSecondary),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -191,7 +198,7 @@ class _SummaryRow extends StatelessWidget {
             value,
             textAlign: TextAlign.end,
             style: AppTypography.labelMedium.copyWith(
-              color: AppColors.ink,
+              color: colors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),

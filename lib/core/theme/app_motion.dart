@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Motion and haptic constants adhering to Apple's Human Interface Guidelines.
+/// Motion constants adhering to Apple's Human Interface Guidelines.
 abstract final class AppMotion {
   static bool reduced(BuildContext context) =>
       MediaQuery.maybeOf(context)?.disableAnimations ?? false;

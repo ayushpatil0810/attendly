@@ -210,17 +210,23 @@ class _SemesterFormSheetState extends ConsumerState<SemesterFormSheet> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: colors.isDark
-                        ? colors.brandPrimary.withValues(alpha: 0.16)
-                        : colors.brandPrimarySoft,
-                    borderRadius: AppRadius.pillBorder,
+                    color: colors.surfaceSubtle.withValues(
+                      alpha: colors.isDark ? 0.6 : 0.8,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: colors.border.withValues(
+                        alpha: colors.isDark ? 0.4 : 0.6,
+                      ),
+                      width: 0.5,
+                    ),
                   ),
                   child: Text(
                     '${_thresholdPercent.round()}%',
                     style: AppTypography.labelLarge.copyWith(
-                      color: colors.isDark
-                          ? colors.brandPrimary
-                          : colors.brandPrimaryInk,
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                 ),

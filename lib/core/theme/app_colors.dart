@@ -17,38 +17,14 @@ abstract final class AppColors {
         AppTheme.currentColors;
   }
 
-  // Brand Palette
-  static Color get brandViolet => AppTheme.currentColors.brandPrimary;
-  static Color get brandMint => AppTheme.currentColors.accentMint;
-  static Color get brandCoral => AppTheme.currentColors.accentCoral;
-  static Color get brandPeach => AppTheme.currentColors.accentPeach;
-  static Color get lavender => AppTheme.currentColors.brandSecondary;
+  // Brand Palette (Apple HIG Blue)
+  static Color get brandPrimary => AppTheme.currentColors.brandPrimary;
+  static Color get brandPrimarySoft => AppTheme.currentColors.brandPrimarySoft;
 
-  /// Readable text and small icons. Same hues as the pastels, darkened so
-  /// body copy clears 4.5:1 on white and on the soft tinted surfaces.
-  static Color get inkViolet => AppTheme.currentColors.brandPrimaryInk;
-  static Color get inkMint => AppTheme.currentColors.accentMintInk;
-  static Color get inkCoral => AppTheme.currentColors.accentCoralInk;
-  static Color get inkPeach => AppTheme.currentColors.accentPeachInk;
-
-  // Surfaces & Backgrounds
-  static Color get warmWhite => AppTheme.currentColors.background;
-  static Color get pureWhite => AppTheme.currentColors.surface;
-  static Color get softLavender => AppTheme.currentColors.brandPrimarySoft;
-  static Color get softMint => AppTheme.currentColors.accentMintSoft;
-  static Color get softCoral => AppTheme.currentColors.accentCoralSoft;
-  static Color get softPeach => AppTheme.currentColors.accentPeachSoft;
-  static Color get surfaceTint => AppTheme.currentColors.surfaceSubtle;
-
-  // Text & Ink
-  static Color get ink => AppTheme.currentColors.textPrimary;
-  static Color get mutedInk => AppTheme.currentColors.textSecondary;
-  static Color get subtleInk => AppTheme.currentColors.textTertiary;
-
-  // Structural & Dividers
-  static Color get divider => AppTheme.currentColors.divider;
-  static Color get track => AppTheme.currentColors.track;
-  static Color get border => AppTheme.currentColors.border;
+  // Semantic Status Hues: Attendance & Health (Apple Green, Red, Orange)
+  static Color get accentGreen => AppTheme.currentColors.accentGreen;
+  static Color get accentRed => AppTheme.currentColors.accentRed;
+  static Color get accentOrange => AppTheme.currentColors.accentOrange;
 
   // Semantic mappings
   static Color get present => AppTheme.currentColors.present;
@@ -59,6 +35,25 @@ abstract final class AppColors {
   static Color get primaryAction => AppTheme.currentColors.primaryAction;
   static Color get warning => AppTheme.currentColors.warning;
   static Color get neutral => AppTheme.currentColors.neutral;
+
+  // Surfaces & Backgrounds
+  static Color get background => AppTheme.currentColors.background;
+  static Color get surface => AppTheme.currentColors.surface;
+  static Color get surfaceSubtle => AppTheme.currentColors.surfaceSubtle;
+  static Color get surfaceElevated => AppTheme.currentColors.surfaceElevated;
+
+  // Text & Ink
+  static Color get textPrimary => AppTheme.currentColors.textPrimary;
+  static Color get textSecondary => AppTheme.currentColors.textSecondary;
+  static Color get textTertiary => AppTheme.currentColors.textTertiary;
+  static Color get ink => AppTheme.currentColors.textPrimary;
+  static Color get mutedInk => AppTheme.currentColors.textSecondary;
+  static Color get subtleInk => AppTheme.currentColors.textTertiary;
+
+  // Structural & Dividers
+  static Color get divider => AppTheme.currentColors.divider;
+  static Color get track => AppTheme.currentColors.track;
+  static Color get border => AppTheme.currentColors.border;
 
   // Dock & Overlays
   static Color get dockBackground => AppTheme.currentColors.dockBackground;

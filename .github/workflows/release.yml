@@ -1,0 +1,108 @@
+name: Release Android APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - 'feat/**'
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Code Analysis
+        run: dart analyze
+
+      - name: Run Tests
+        run: flutter test
+
+      - name: Extract App Version
+        id: app_version
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ' | cut -d'+' -f1)
+          BUILD=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ' | cut -d'+' -f2)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build=${BUILD}" >> $GITHUB_OUTPUT
+
+          if [ "${{ startsWith(github.ref, 'refs/tags/v') }}" = "true" ]; then
+            TAG_NAME="${{ github.ref_name }}"
+            RELEASE_NAME="Attendly ${{ github.ref_name }}"
+          else
+            TAG_NAME="v${VERSION}"
+            RELEASE_NAME="Attendly v${VERSION}"
+          fi
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "release_name=${RELEASE_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Build Android Release APK
+        run: flutter build apk --release
+
+      - name: Prepare Release Artifacts
+        if: github.event_name != 'pull_request'
+        run: |
+          mkdir -p release-artifacts
+          cp build/app/outputs/flutter-apk/app-release.apk release-artifacts/attendly-v${{ steps.app_version.outputs.version }}.apk
+          cp build/app/outputs/flutter-apk/app-release.apk release-artifacts/attendly-release.apk
+
+      - name: Publish GitHub Release
+        if: github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.app_version.outputs.tag_name }}
+          name: ${{ steps.app_version.outputs.release_name }}
+          draft: false
+          prerelease: false
+          make_latest: true
+          generate_release_notes: true
+          files: |
+            release-artifacts/attendly-v${{ steps.app_version.outputs.version }}.apk
+            release-artifacts/attendly-release.apk
+          body: |
+            ### Attendly Android Release
+
+            Automated release build for **Attendly v${{ steps.app_version.outputs.version }}**.
+
+            #### Downloads:
+            - **attendly-v${{ steps.app_version.outputs.version }}.apk**: Universal Android APK
+            - **attendly-release.apk**: Latest release APK direct download
+
+            #### Release Highlights:
+            - Offline-first personal attendance companion powered by local SQLite (Drift)
+            - Independent Lecture & Lab tracking with Equal Weight and 50/50 calculation policies
+            - Exact safe absence quotas and recovery targets
+            - What-If Attendance Simulator
+            - Apple HIG restraint aesthetic with Dark & Light theme support

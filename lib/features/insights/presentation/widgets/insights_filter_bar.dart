@@ -50,7 +50,7 @@ class InsightsFilterBar extends ConsumerWidget {
                     onSurface: colors.textPrimary,
                   )
                 : ColorScheme.light(
-                    primary: colors.brandPrimaryInk,
+                    primary: colors.brandPrimary,
                     onPrimary: Colors.white,
                     surface: colors.surface,
                     onSurface: colors.textPrimary,
@@ -310,13 +310,11 @@ class _FilterChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isSelected
-              ? (colors.isDark ? colors.brandPrimary : colors.brandPrimaryInk)
-              : colors.surface,
+          color: isSelected ? colors.brandPrimary : colors.surface,
           borderRadius: AppRadius.pillBorder,
           border: Border.all(
             color: isSelected
-                ? (colors.isDark ? colors.brandPrimary : colors.brandPrimaryInk)
+                ? colors.brandPrimary
                 : colors.border.withValues(alpha: colors.isDark ? 0.35 : 0.6),
             width: 0.5,
           ),
@@ -359,7 +357,7 @@ class _SecondaryFilterChip extends StatelessWidget {
           color: isSelected ? colors.brandPrimarySoft : Colors.transparent,
           borderRadius: AppRadius.smBorder,
           border: Border.all(
-            color: isSelected ? colors.brandPrimaryInk : colors.border,
+            color: isSelected ? colors.brandPrimary : colors.border,
             width: 0.8,
           ),
         ),
@@ -367,7 +365,7 @@ class _SecondaryFilterChip extends StatelessWidget {
           label,
           style: AppTypography.labelSmall.copyWith(
             fontSize: 11,
-            color: isSelected ? colors.brandPrimaryInk : colors.textSecondary,
+            color: isSelected ? colors.brandPrimary : colors.textSecondary,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),

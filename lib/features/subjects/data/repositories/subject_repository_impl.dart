@@ -145,7 +145,13 @@ class SubjectRepositoryImpl implements SubjectRepository {
   @override
   Future<void> deleteSubject(int id) async {
     try {
-      await (_db.delete(_db.subjects)..where((tbl) => tbl.id.equals(id))).go();
+      await _db.transaction(() async {
+        await (_db.delete(_db.attendanceSessions)
+              ..where((tbl) => tbl.subjectId.equals(id)))
+            .go();
+        await (_db.delete(_db.subjects)..where((tbl) => tbl.id.equals(id)))
+            .go();
+      });
     } catch (e) {
       throw DatabaseFailure('Failed to delete subject: $e');
     }

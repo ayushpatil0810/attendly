@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:attendly/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:attendly/features/onboarding/presentation/screens/splash_screen.dart';
 import 'package:attendly/features/semesters/presentation/screens/semester_setup_screen.dart';
-import 'package:attendly/features/settings/presentation/screens/settings_screen.dart';
 import 'package:attendly/features/shell/presentation/screens/main_shell_screen.dart';
 import 'package:attendly/features/simulator/presentation/screens/simulator_screen.dart';
 
@@ -43,7 +42,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.settingsPath,
         name: RouteNames.settings,
-        builder: (context, state) => const SettingsScreen(),
+        builder: (context, state) => const MainShellScreen(initialIndex: 3),
       ),
     ],
     errorBuilder: (context, state) =>

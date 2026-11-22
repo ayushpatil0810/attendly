@@ -1,12 +1,46 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
+import 'package:attendly/core/shared/widgets/app_segmented_control.dart';
 import 'package:attendly/core/shared/widgets/apple/apple_inset_group.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_typography.dart';
+import 'package:attendly/features/attendance/domain/entities/session_component.dart';
 import 'package:attendly/features/attendance/domain/entities/subject_attendance_summary.dart';
 
-class SubjectComparisonCard extends StatelessWidget {
+/// Item representing a single trackable component in the comparison chart.
+class SubjectComparisonItem {
+  const SubjectComparisonItem({
+    required this.subjectId,
+    required this.displayName,
+    required this.component,
+    required this.presentCount,
+    required this.conductedCount,
+    this.percentage,
+    required this.isAvailable,
+    required this.meetsThreshold,
+    required this.isBelowThreshold,
+    this.isProvisional = false,
+  });
+
+  final int subjectId;
+  final String displayName;
+  final SessionComponent component;
+  final int presentCount;
+  final int conductedCount;
+  final double? percentage;
+  final bool isAvailable;
+  final bool meetsThreshold;
+  final bool isBelowThreshold;
+  final bool isProvisional;
+
+  String get formattedPercentage {
+    if (percentage == null || !isAvailable) return '—';
+    final pct = percentage!;
+    if (pct == pct.roundToDouble()) return '${pct.toInt()}%';
+    return '${pct.toStringAsFixed(1)}%';
+  }
+}
+
+class SubjectComparisonCard extends StatefulWidget {
   const SubjectComparisonCard({
     super.key,
     required this.subjectSummaries,
@@ -17,50 +51,212 @@ class SubjectComparisonCard extends StatelessWidget {
   final double threshold;
 
   @override
+  State<SubjectComparisonCard> createState() => _SubjectComparisonCardState();
+}
+
+class _SubjectComparisonCardState extends State<SubjectComparisonCard> {
+  SessionComponent _selectedComponent = SessionComponent.lecture;
+  late List<SubjectComparisonItem> _lectureItems;
+  late List<SubjectComparisonItem> _labItems;
+
+  @override
+  void initState() {
+    super.initState();
+    _rebuildItems();
+  }
+
+  @override
+  void didUpdateWidget(covariant SubjectComparisonCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.subjectSummaries != widget.subjectSummaries ||
+        oldWidget.threshold != widget.threshold) {
+      _rebuildItems();
+    }
+  }
+
+  void _rebuildItems() {
+    final lectureItems = <SubjectComparisonItem>[];
+    for (final s in widget.subjectSummaries) {
+      if (s.lectureEnabled) {
+        final lecSummary = s.lectureSummary;
+        final conducted = lecSummary?.conductedCount ??
+            (s.labEnabled ? 0 : s.totalConducted);
+        final present = lecSummary?.presentCount ??
+            (s.labEnabled ? 0 : s.totalPresent);
+        final pct = lecSummary?.percentage ??
+            (s.labEnabled ? null : s.percentage);
+        final isAvail = lecSummary?.isAvailable ??
+            (s.labEnabled ? false : s.isAvailable);
+        final meets = lecSummary?.meetsThreshold ??
+            (s.labEnabled ? false : s.meetsThreshold);
+        final below = lecSummary?.isBelowThreshold ??
+            (s.labEnabled ? false : s.isBelowThreshold);
+
+        lectureItems.add(
+          SubjectComparisonItem(
+            subjectId: s.subjectId,
+            displayName: s.subjectName,
+            component: SessionComponent.lecture,
+            presentCount: present,
+            conductedCount: conducted,
+            percentage: pct,
+            isAvailable: isAvail,
+            meetsThreshold: meets,
+            isBelowThreshold: below,
+            isProvisional: !s.labEnabled && s.isProvisional,
+          ),
+        );
+      }
+    }
+
+    final labItems = <SubjectComparisonItem>[];
+    for (final s in widget.subjectSummaries) {
+      if (s.labEnabled) {
+        final labSummary = s.labSummary;
+        final conducted = labSummary?.conductedCount ??
+            (s.lectureEnabled ? 0 : s.totalConducted);
+        final present = labSummary?.presentCount ??
+            (s.lectureEnabled ? 0 : s.totalPresent);
+        final pct = labSummary?.percentage ??
+            (s.lectureEnabled ? null : s.percentage);
+        final isAvail = labSummary?.isAvailable ??
+            (s.lectureEnabled ? false : s.isAvailable);
+        final meets = labSummary?.meetsThreshold ??
+            (s.lectureEnabled ? false : s.meetsThreshold);
+        final below = labSummary?.isBelowThreshold ??
+            (s.lectureEnabled ? false : s.isBelowThreshold);
+
+        final labName = s.subjectName.toLowerCase().endsWith('lab')
+            ? s.subjectName
+            : '${s.subjectName} Lab';
+
+        labItems.add(
+          SubjectComparisonItem(
+            subjectId: s.subjectId,
+            displayName: labName,
+            component: SessionComponent.lab,
+            presentCount: present,
+            conductedCount: conducted,
+            percentage: pct,
+            isAvailable: isAvail,
+            meetsThreshold: meets,
+            isBelowThreshold: below,
+            isProvisional: !s.lectureEnabled && s.isProvisional,
+          ),
+        );
+      }
+    }
+
+    _lectureItems = lectureItems;
+    _labItems = labItems;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (subjectSummaries.isEmpty) {
+    if (widget.subjectSummaries.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    // Sort: available subjects sorted by percentage descending; unavailable at the end
-    final sortedSubjects = [...subjectSummaries]
-      ..sort((a, b) {
-        if (a.percentage != null && b.percentage != null) {
-          return b.percentage!.compareTo(a.percentage!);
-        } else if (a.percentage != null) {
-          return -1;
-        } else if (b.percentage != null) {
-          return 1;
-        }
-        return a.subjectName.compareTo(b.subjectName);
-      });
+    final hasLabs = _labItems.isNotEmpty;
+    final hasLectures = _lectureItems.isNotEmpty;
+
+    // Pick active component tab (default to Lecture; switch to Lab if only labs exist)
+    SessionComponent activeComponent = _selectedComponent;
+    if (!hasLabs) {
+      activeComponent = SessionComponent.lecture;
+    } else if (!hasLectures) {
+      activeComponent = SessionComponent.lab;
+    }
+
+    final currentItems = activeComponent == SessionComponent.lab
+        ? [..._labItems]
+        : [..._lectureItems];
+
+    // Sort: available by percentage desc; unavailable at end; then alphabetically
+    currentItems.sort((a, b) {
+      if (a.percentage != null && b.percentage != null) {
+        return b.percentage!.compareTo(a.percentage!);
+      } else if (a.percentage != null) {
+        return -1;
+      } else if (b.percentage != null) {
+        return 1;
+      }
+      return a.displayName.compareTo(b.displayName);
+    });
 
     final colors = context.colors;
+    final compLabel =
+        activeComponent == SessionComponent.lab ? 'Lab' : 'Lecture';
 
     return AppleInsetGroup(
       header: 'Subject Comparison',
       margin: EdgeInsets.zero,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top Subject Count
+              // Segmented Control (Lectures | Labs) shown only if labs exist
+              if (hasLabs && hasLectures) ...[
+                AppSegmentedControl<SessionComponent>(
+                  items: const [
+                    SegmentItem(
+                      value: SessionComponent.lecture,
+                      label: 'Lectures',
+                    ),
+                    SegmentItem(
+                      value: SessionComponent.lab,
+                      label: 'Labs',
+                    ),
+                  ],
+                  selectedValue: activeComponent,
+                  onChanged: (val) {
+                    setState(() => _selectedComponent = val);
+                  },
+                ),
+                const SizedBox(height: 14),
+              ],
+
+              // Item Count Header
               Text(
-                '${sortedSubjects.length} Subject${sortedSubjects.length == 1 ? '' : 's'}',
+                '${currentItems.length} $compLabel${currentItems.length == 1 ? '' : 's'}',
                 style: AppTypography.caption1.copyWith(
                   color: colors.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
-                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 14),
 
-              // Vertical Bar Comparison Chart
-              _VerticalSubjectBarChart(
-                subjects: sortedSubjects,
-                threshold: threshold,
+              // Animated Transition for Horizontal Bar Chart
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  );
+                },
+                child: currentItems.isEmpty
+                    ? Padding(
+                        key: ValueKey('empty_${activeComponent.name}'),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          'No $compLabel courses found.',
+                          style: AppTypography.footnote.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                      )
+                    : RepaintBoundary(
+                        child: _HorizontalSubjectBarChart(
+                          key: ValueKey(activeComponent),
+                          items: currentItems,
+                          threshold: widget.threshold,
+                        ),
+                      ),
               ),
             ],
           ),
@@ -70,122 +266,59 @@ class SubjectComparisonCard extends StatelessWidget {
   }
 }
 
-class _VerticalSubjectBarChart extends StatelessWidget {
-  const _VerticalSubjectBarChart({
-    required this.subjects,
+class _HorizontalSubjectBarChart extends StatelessWidget {
+  const _HorizontalSubjectBarChart({
+    super.key,
+    required this.items,
     required this.threshold,
   });
 
-  final List<SubjectAttendanceSummary> subjects;
+  final List<SubjectComparisonItem> items;
   final double threshold;
-
-  static const double _trackHeight = 110.0;
-  static const double _topLabelHeight = 22.0;
-  static const double _bottomSectionHeight = 42.0;
-  static const double _minColWidth = 58.0;
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final availableWidth = constraints.maxWidth;
-        final neededWidth = subjects.length * _minColWidth;
-        final isScrollable = neededWidth > availableWidth;
-        final colWidth = isScrollable
-            ? _minColWidth
-            : (availableWidth / subjects.length);
-        final chartWidth = isScrollable ? neededWidth : availableWidth;
-        final targetY = _topLabelHeight +
-            ((1.0 - threshold.clamp(0.0, 1.0)) * _trackHeight);
-
-        final chartContent = SizedBox(
-          width: chartWidth,
-          height: _topLabelHeight + _trackHeight + _bottomSectionHeight,
-          child: Stack(
-            children: [
-              // Target dashed line spanning the chart width
-              Positioned(
-                left: 0,
-                right: 0,
-                top: targetY,
-                child: SizedBox(
-                  height: 1,
-                  child: CustomPaint(
-                    painter: _TargetLinePainter(
-                      color: colors.textPrimary.withValues(
-                        alpha: colors.isDark ? 0.35 : 0.22,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // The Vertical Bar Columns
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (final subject in subjects)
-                    SizedBox(
-                      width: colWidth,
-                      child: _VerticalBarItem(
-                        summary: subject,
-                        threshold: threshold,
-                        trackHeight: _trackHeight,
-                        topLabelHeight: _topLabelHeight,
-                      ),
-                    ),
-                ],
-              ),
-            ],
+    return Column(
+      children: [
+        for (var i = 0; i < items.length; i++) ...[
+          if (i > 0) const SizedBox(height: 14),
+          _HorizontalBarItem(
+            item: items[i],
+            threshold: threshold,
           ),
-        );
-
-        if (isScrollable) {
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: chartContent,
-          );
-        }
-        return chartContent;
-      },
+        ],
+      ],
     );
   }
 }
 
-class _VerticalBarItem extends StatelessWidget {
-  const _VerticalBarItem({
-    required this.summary,
+class _HorizontalBarItem extends StatelessWidget {
+  const _HorizontalBarItem({
+    required this.item,
     required this.threshold,
-    required this.trackHeight,
-    required this.topLabelHeight,
   });
 
-  final SubjectAttendanceSummary summary;
+  final SubjectComparisonItem item;
   final double threshold;
-  final double trackHeight;
-  final double topLabelHeight;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final isAvailable = summary.isAvailable;
-    final isProvisional = summary.isProvisional;
-    final pct = summary.percentage;
+    final isAvailable = item.isAvailable;
+    final isProvisional = item.isProvisional;
+    final pct = item.percentage;
 
     Color barColor;
     Color valueColor;
-    if (summary.meetsThreshold) {
-      barColor = colors.accentMint;
-      valueColor = colors.accentMint;
-    } else if (summary.isBelowThreshold) {
-      barColor = colors.accentCoral;
-      valueColor = colors.accentCoral;
+    if (item.meetsThreshold) {
+      barColor = colors.present;
+      valueColor = colors.present;
+    } else if (item.isBelowThreshold) {
+      barColor = colors.absent;
+      valueColor = colors.absent;
     } else if (isProvisional) {
-      barColor = colors.accentPeach;
-      valueColor = colors.accentPeach;
+      barColor = colors.accentOrange;
+      valueColor = colors.accentOrange;
     } else {
       barColor = colors.track;
       valueColor = colors.textSecondary;
@@ -193,136 +326,131 @@ class _VerticalBarItem extends StatelessWidget {
 
     final double fillRatio = pct != null ? (pct / 100.0).clamp(0.0, 1.0) : 0.0;
 
-    final String topLabel = isAvailable && pct != null
+    final String pctLabel = isAvailable && pct != null
         ? '${pct.toStringAsFixed(0)}%'
         : (isProvisional ? 'Prov' : '—');
 
     final semanticLabel =
-        '${summary.subjectName}: ${summary.formattedPercentage}. '
-        '${summary.totalPresent} of ${summary.totalConducted} classes attended.';
+        '${item.displayName}: ${item.formattedPercentage}. '
+        '${item.presentCount} of ${item.conductedCount} classes attended.';
 
     return Semantics(
       container: true,
       label: semanticLabel,
       child: Tooltip(
         message:
-            '${summary.subjectName}\n${summary.formattedPercentage} (${summary.totalPresent}/${summary.totalConducted})',
+            '${item.displayName}\n${item.formattedPercentage} (${item.presentCount}/${item.conductedCount})',
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Percentage Label
-            SizedBox(
-              height: topLabelHeight,
-              child: Center(
-                child: Text(
-                  topLabel,
-                  style: AppTypography.caption1.copyWith(
-                    color: valueColor,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 11,
-                    fontFeatures: const [FontFeature.tabularFigures()],
+            // Top Row: Full Component Name on Left, Percentage & Ratio on Right
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Expanded(
+                  child: Text(
+                    item.displayName,
+                    style: AppTypography.caption1.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: colors.textPrimary,
+                    ),
+                    softWrap: true,
                   ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      pctLabel,
+                      style: AppTypography.caption1.copyWith(
+                        color: valueColor,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                    if (item.conductedCount > 0) ...[
+                      const SizedBox(width: 5),
+                      Text(
+                        '(${item.presentCount}/${item.conductedCount})',
+                        style: AppTypography.caption2.copyWith(
+                          fontSize: 11.5,
+                          color: colors.textSecondary,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
             ),
+            const SizedBox(height: 6),
 
-            // Vertical Pill Bar
-            SizedBox(
-              height: trackHeight,
-              child: Center(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(9),
+            // Horizontal Bar Track with Target Tick
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final barWidth = constraints.maxWidth;
+                final targetX = (barWidth * threshold.clamp(0.0, 1.0))
+                    .clamp(0.0, barWidth);
+
+                return SizedBox(
+                  height: 10,
+                  width: double.infinity,
                   child: Stack(
-                    alignment: Alignment.bottomCenter,
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.centerLeft,
                     children: [
-                      // Full Height Track
+                      // Background Track
                       Container(
-                        width: 18,
-                        height: trackHeight,
-                        color: colors.track.withValues(
-                          alpha: colors.isDark ? 0.35 : 0.22,
+                        height: 10,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: colors.track.withValues(
+                            alpha: colors.isDark ? 0.35 : 0.22,
+                          ),
+                          borderRadius: BorderRadius.circular(5),
                         ),
                       ),
 
-                      // Animated / Measured Fill Bar
+                      // Filled Progress Bar
                       if (pct != null && fillRatio > 0)
                         Container(
-                          width: 18,
-                          height: (fillRatio * trackHeight).clamp(0.0, trackHeight),
+                          height: 10,
+                          width: (barWidth * fillRatio).clamp(0.0, barWidth),
                           decoration: BoxDecoration(
                             color: barColor,
-                            borderRadius: BorderRadius.circular(9),
+                            borderRadius: BorderRadius.circular(5),
                           ),
                         ),
+
+                      // Vertical Target Line Tick
+                      Positioned(
+                        left: (targetX - 1.0).clamp(0.0, barWidth - 2.0),
+                        top: -2,
+                        bottom: -2,
+                        child: Container(
+                          width: 2,
+                          decoration: BoxDecoration(
+                            color: colors.textPrimary.withValues(
+                              alpha: colors.isDark ? 0.45 : 0.30,
+                            ),
+                            borderRadius: BorderRadius.circular(1),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            // Subject Name (max 1 line with ellipsis)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(
-                summary.subjectName,
-                style: AppTypography.caption1.copyWith(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: colors.textPrimary,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 2),
-
-            // Attendance Count Ratio
-            Text(
-              summary.totalConducted > 0
-                  ? '${summary.totalPresent}/${summary.totalConducted}'
-                  : '—',
-              style: AppTypography.caption2.copyWith(
-                fontSize: 10,
-                color: colors.textSecondary,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
-              textAlign: TextAlign.center,
+                );
+              },
             ),
           ],
         ),
       ),
     );
   }
-}
-
-class _TargetLinePainter extends CustomPainter {
-  const _TargetLinePainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1.0
-      ..style = PaintingStyle.stroke;
-
-    const dashWidth = 4.0;
-    const dashSpace = 4.0;
-    double startX = 0;
-    while (startX < size.width) {
-      canvas.drawLine(
-        Offset(startX, 0),
-        Offset(math.min(startX + dashWidth, size.width), 0),
-        paint,
-      );
-      startX += dashWidth + dashSpace;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _TargetLinePainter oldDelegate) =>
-      oldDelegate.color != color;
 }

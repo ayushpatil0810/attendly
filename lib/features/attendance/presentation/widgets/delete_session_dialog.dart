@@ -13,7 +13,7 @@ Future<bool?> showDeleteSessionDialog({
   return showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      backgroundColor: AppColors.pureWhite,
+      backgroundColor: context.colors.surface,
       surfaceTintColor: Colors.transparent,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.lgBorder),
       title: Text('Delete Session', style: AppTypography.sectionTitle),

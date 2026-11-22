@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:attendly/app/router/route_names.dart';
 import 'package:attendly/core/theme/app_colors.dart';
@@ -26,7 +25,7 @@ class InsightsScreen extends StatelessWidget {
             left: AppSpacing.screenHorizontal,
             right: AppSpacing.screenHorizontal,
             top: AppSpacing.screenTop,
-            bottom: AppSpacing.dockClearance,
+            bottom: AppSpacing.safeDockClearance,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,7 +65,6 @@ class InsightsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                       child: InkWell(
                         onTap: () {
-                          HapticFeedback.selectionClick();
                           context.push(RouteNames.simulatorPath);
                         },
                         borderRadius: BorderRadius.circular(20),

@@ -90,9 +90,7 @@ class _AppButtonState extends State<AppButton> {
       case AppButtonVariant.text:
         return Colors.transparent;
       case AppButtonVariant.destructive:
-        final base = colors.isDark
-            ? const Color(0xFF450A0A)
-            : const Color(0xFFFEE2E2);
+        final base = colors.absent;
         return _isPressed ? base.withValues(alpha: 0.85) : base;
     }
   }
@@ -111,7 +109,7 @@ class _AppButtonState extends State<AppButton> {
       case AppButtonVariant.text:
         return colors.textPrimary;
       case AppButtonVariant.destructive:
-        return colors.isDark ? const Color(0xFFFEE2E2) : const Color(0xFF991B1B);
+        return Colors.white;
     }
   }
 
@@ -122,12 +120,6 @@ class _AppButtonState extends State<AppButton> {
             ? (colors.isDark ? const Color(0xFF3F3F46) : const Color(0xFFD4D4D8))
             : colors.divider,
         width: 1.2,
-      );
-    }
-    if (widget.variant == AppButtonVariant.destructive && _isEnabled) {
-      return BorderSide(
-        color: colors.isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFCA5A5),
-        width: 1.0,
       );
     }
     if (widget.variant == AppButtonVariant.secondary && _isEnabled) {

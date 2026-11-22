@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/services/notification_preferences_service.dart';
-import 'package:attendly/core/services/preferences_service.dart';
 import 'package:attendly/core/shared/widgets/app_toast.dart';
 import 'package:attendly/core/shared/widgets/apple/apple_inset_group.dart';
 import 'package:attendly/core/shared/widgets/apple/apple_list_tile.dart';
@@ -46,7 +45,6 @@ class DailyReminderSection extends ConsumerWidget {
       await ref
           .read(notificationPreferencesProvider.notifier)
           .setReminderTime(picked);
-      AppHaptics.lightImpact(ref);
       if (context.mounted) {
         AppToast.showSuccess(
           context,
@@ -69,14 +67,26 @@ class DailyReminderSection extends ConsumerWidget {
         AppleListTile(
           leading: AppleIconTile(
             icon: AppIcons.notification,
-            backgroundColor: colors.isDark
-                ? const Color(0xFFBF5AF2)
-                : const Color(0xFFAF52DE),
+            backgroundColor: colors.brandPrimary,
           ),
           title: 'Daily Attendance Reminder',
           trailing: Switch.adaptive(
             value: preferences.dailyReminderEnabled,
-            activeColor: colors.isDark ? Colors.white : colors.brandPrimary,
+            activeColor: Colors.white,
+            activeTrackColor: colors.brandPrimary,
+            inactiveThumbColor: Colors.white,
+            inactiveTrackColor: colors.isDark
+                ? const Color(0xFF39393D)
+                : const Color(0xFFE9E9EA),
+            trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+            thumbColor: WidgetStateProperty.all(Colors.white),
+            trackColor: WidgetStateProperty.resolveWith(
+              (states) => states.contains(WidgetState.selected)
+                  ? colors.brandPrimary
+                  : (colors.isDark
+                      ? const Color(0xFF39393D)
+                      : const Color(0xFFE9E9EA)),
+            ),
             onChanged: (val) async {
               final success = await ref
                   .read(notificationPreferencesProvider.notifier)
@@ -84,7 +94,6 @@ class DailyReminderSection extends ConsumerWidget {
 
               if (val) {
                 if (success) {
-                  AppHaptics.selectionClick(ref);
                   if (context.mounted) {
                     AppToast.showSuccess(
                       context,
@@ -100,7 +109,6 @@ class DailyReminderSection extends ConsumerWidget {
                   );
                 }
               } else {
-                AppHaptics.selectionClick(ref);
                 if (context.mounted) {
                   AppToast.showInfo(
                     context,
@@ -112,42 +120,54 @@ class DailyReminderSection extends ConsumerWidget {
           ),
         ),
 
-        // Reminder Time Row (visible when reminder is active)
-        if (preferences.dailyReminderEnabled)
-          AppleListTile(
+        // Reminder Time Row (dimmed and disabled when reminder is OFF)
+        AnimatedOpacity(
+          opacity: preferences.dailyReminderEnabled ? 1.0 : 0.38,
+          duration: const Duration(milliseconds: 200),
+          child: AppleListTile(
+            enabled: preferences.dailyReminderEnabled,
             leading: AppleIconTile(
               icon: AppIcons.clock,
-              backgroundColor: colors.brandPrimary,
+              backgroundColor: preferences.dailyReminderEnabled
+                  ? colors.brandPrimary
+                  : (colors.isDark
+                      ? const Color(0xFF39393D)
+                      : const Color(0xFFE9E9EA)),
             ),
             title: 'Reminder Time',
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: colors.isDark
-                    ? colors.brandPrimary.withValues(alpha: 0.16)
-                    : colors.brandPrimarySoft,
+                color: preferences.dailyReminderEnabled
+                    ? (colors.isDark
+                        ? colors.brandPrimary.withValues(alpha: 0.16)
+                        : colors.brandPrimarySoft)
+                    : colors.surfaceSubtle,
                 borderRadius: AppRadius.pillBorder,
               ),
               child: Text(
                 preferences.formattedTime,
                 style: AppTypography.withTabularFigures(
                   AppTypography.labelLarge.copyWith(
-                    color: colors.isDark
+                    color: preferences.dailyReminderEnabled
                         ? colors.brandPrimary
-                        : colors.brandPrimaryInk,
+                        : colors.textTertiary,
                     fontWeight: FontWeight.w700,
                     fontSize: 13,
                   ),
                 ),
               ),
             ),
-            showDisclosure: true,
-            onTap: () => _pickReminderTime(
-              context,
-              ref,
-              preferences.reminderTime,
-            ),
+            showDisclosure: preferences.dailyReminderEnabled,
+            onTap: preferences.dailyReminderEnabled
+                ? () => _pickReminderTime(
+                      context,
+                      ref,
+                      preferences.reminderTime,
+                    )
+                : null,
           ),
+        ),
       ],
     );
   }

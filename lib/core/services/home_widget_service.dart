@@ -41,7 +41,7 @@ class HomeWidgetService {
 
   final HomeWidgetWrapper _wrapper;
 
-  /// Updates all 3 native home screen widgets (Small, Medium, Large)
+  /// Updates native home screen widgets (Small 2x2, Medium 4x2)
   /// with actual attendance data.
   Future<void> updateWidgets(SemesterAttendanceSummary? summary) async {
     try {
@@ -55,7 +55,6 @@ class HomeWidgetService {
       await _wrapper.updateWidget(
         androidName: 'MediumAttendanceWidgetProvider',
       );
-      await _wrapper.updateWidget(androidName: 'LargeAttendanceWidgetProvider');
     } catch (e) {
       debugPrint('HomeWidget update error (non-fatal): $e');
     }
@@ -80,7 +79,6 @@ class HomeWidgetService {
       await _wrapper.updateWidget(
         androidName: 'MediumAttendanceWidgetProvider',
       );
-      await _wrapper.updateWidget(androidName: 'LargeAttendanceWidgetProvider');
     } catch (e) {
       debugPrint('HomeWidget theme update error (non-fatal): $e');
     }

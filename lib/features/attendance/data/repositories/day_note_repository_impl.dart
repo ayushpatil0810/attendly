@@ -82,6 +82,13 @@ class DayNoteRepositoryImpl implements DayNoteRepository {
     required String date,
     required String content,
   }) async {
+    final nowTime = DateTime.now();
+    final todayStr =
+        '${nowTime.year.toString().padLeft(4, '0')}-${nowTime.month.toString().padLeft(2, '0')}-${nowTime.day.toString().padLeft(2, '0')}';
+    if (date.compareTo(todayStr) > 0) {
+      throw const ValidationFailure('Cannot add notes for future dates.');
+    }
+
     final trimmed = content.trim();
     if (trimmed.isEmpty) {
       // Empty content removes the note

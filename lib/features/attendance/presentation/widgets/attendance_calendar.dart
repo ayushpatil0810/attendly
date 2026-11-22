@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 import 'package:attendly/core/theme/app_icons.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/attendance/domain/entities/attendance_session.dart';
-import 'package:attendly/features/attendance/domain/entities/attendance_status.dart';
 import 'package:attendly/features/attendance/presentation/providers/attendance_providers.dart';
+import 'package:attendly/features/attendance/presentation/widgets/day_status_dots.dart';
 import 'package:intl/intl.dart';
 
 class AttendanceCalendar extends ConsumerWidget {
@@ -87,7 +86,6 @@ class AttendanceCalendar extends ConsumerWidget {
               if (!isCurrentMonth) ...[
                 TextButton(
                   onPressed: () {
-                    HapticFeedback.selectionClick();
                     ref.read(currentMonthProvider.notifier).currentMonth();
                     ref.read(selectedDateProvider.notifier).selectToday();
                   },
@@ -102,9 +100,7 @@ class AttendanceCalendar extends ConsumerWidget {
                   child: Text(
                     'Today',
                     style: AppTypography.subhead.copyWith(
-                      color: colors.isDark
-                          ? const Color(0xFF5E81F4)
-                          : const Color(0xFF3F5BF6),
+                      color: colors.brandPrimary,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -122,7 +118,6 @@ class AttendanceCalendar extends ConsumerWidget {
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                 onPressed: () {
-                  HapticFeedback.selectionClick();
                   ref.read(currentMonthProvider.notifier).previousMonth();
                 },
               ),
@@ -137,7 +132,6 @@ class AttendanceCalendar extends ConsumerWidget {
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                 onPressed: () {
-                  HapticFeedback.selectionClick();
                   ref.read(currentMonthProvider.notifier).nextMonth();
                 },
               ),
@@ -210,22 +204,22 @@ class AttendanceCalendar extends ConsumerWidget {
                 currentMonth.month,
                 dayNumber,
               );
-              final isToday = cellDate.isAtSameMomentAs(today);
-              final isSelected = cellDate.isAtSameMomentAs(selectedDate);
+              final isToday = cellDate.year == today.year &&
+                  cellDate.month == today.month &&
+                  cellDate.day == today.day;
+              final isSelected = cellDate.year == selectedDate.year &&
+                  cellDate.month == selectedDate.month &&
+                  cellDate.day == selectedDate.day;
               final isFuture = cellDate.isAfter(today);
 
               final dateKey = formatDateOnly(cellDate);
               final sessionsForDay = sessionsByDate[dateKey] ?? [];
+              final note = dayNotesMap[dateKey];
 
-              final hasPresent = sessionsForDay.any(
-                (s) => s.status == AttendanceStatus.present,
+              final dayStatus = DayAttendanceStatus.fromSessions(
+                sessions: sessionsForDay,
+                note: note,
               );
-              final hasAbsent = sessionsForDay.any(
-                (s) => s.status == AttendanceStatus.absent,
-              );
-              final hasNote =
-                  dayNotesMap.containsKey(dateKey) &&
-                  (dayNotesMap[dateKey]?.trim().isNotEmpty ?? false);
 
               return Expanded(
                 child: _CalendarDayCell(
@@ -233,13 +227,10 @@ class AttendanceCalendar extends ConsumerWidget {
                   isToday: isToday,
                   isSelected: isSelected,
                   isFuture: isFuture,
-                  hasPresent: hasPresent,
-                  hasAbsent: hasAbsent,
-                  hasNote: hasNote,
+                  status: dayStatus,
                   onTap: isFuture
                       ? null
                       : () {
-                          HapticFeedback.selectionClick();
                           ref
                               .read(selectedDateProvider.notifier)
                               .selectDate(cellDate);
@@ -284,9 +275,7 @@ class _CalendarDayCell extends StatelessWidget {
     required this.isToday,
     required this.isSelected,
     required this.isFuture,
-    required this.hasPresent,
-    required this.hasAbsent,
-    required this.hasNote,
+    required this.status,
     required this.onTap,
   });
 
@@ -294,17 +283,13 @@ class _CalendarDayCell extends StatelessWidget {
   final bool isToday;
   final bool isSelected;
   final bool isFuture;
-  final bool hasPresent;
-  final bool hasAbsent;
-  final bool hasNote;
+  final DayAttendanceStatus status;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final accentBlue = colors.isDark
-        ? const Color(0xFF4A6BF7)
-        : const Color(0xFF3F5BF6);
+    final primaryBlue = colors.brandPrimary;
 
     Color textColor;
     if (isFuture) {
@@ -312,17 +297,17 @@ class _CalendarDayCell extends StatelessWidget {
     } else if (isSelected) {
       textColor = Colors.white;
     } else if (isToday) {
-      textColor = accentBlue;
+      textColor = primaryBlue;
     } else {
       textColor = colors.textPrimary;
     }
 
-    final noteText = hasNote ? ', Has note' : '';
-    final statusText = hasPresent && hasAbsent
+    final noteText = status.hasNote ? ', Has note' : '';
+    final statusText = status.hasPresent && status.hasAbsent
         ? ', Present and Absent recorded'
-        : hasPresent
+        : status.hasPresent
         ? ', Present recorded'
-        : hasAbsent
+        : status.hasAbsent
         ? ', Absent recorded'
         : ', No sessions recorded';
 
@@ -343,14 +328,10 @@ class _CalendarDayCell extends StatelessWidget {
                 width: 30,
                 height: 30,
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? accentBlue
-                      : isToday
-                      ? accentBlue.withValues(alpha: 0.12)
-                      : Colors.transparent,
+                  color: isSelected ? primaryBlue : Colors.transparent,
                   shape: BoxShape.circle,
                   border: isToday && !isSelected
-                      ? Border.all(color: accentBlue, width: 1.5)
+                      ? Border.all(color: primaryBlue, width: 1.5)
                       : null,
                 ),
                 alignment: Alignment.center,
@@ -367,44 +348,12 @@ class _CalendarDayCell extends StatelessWidget {
               ),
               const SizedBox(height: 2),
 
-              // Indicator dots: Mint for present, Coral for absent, Blue for note.
-              SizedBox(
-                height: 5,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (hasPresent)
-                      Container(
-                        width: 4,
-                        height: 4,
-                        margin: const EdgeInsets.symmetric(horizontal: 1),
-                        decoration: BoxDecoration(
-                          color: colors.accentMint,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    if (hasAbsent)
-                      Container(
-                        width: 4,
-                        height: 4,
-                        margin: const EdgeInsets.symmetric(horizontal: 1),
-                        decoration: BoxDecoration(
-                          color: colors.accentCoral,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    if (hasNote)
-                      Container(
-                        width: 4,
-                        height: 4,
-                        margin: const EdgeInsets.symmetric(horizontal: 1),
-                        decoration: BoxDecoration(
-                          color: accentBlue,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                  ],
-                ),
+              // Indicator dots using shared DayStatusDots
+              DayStatusDots(
+                status: status,
+                isSelected: isSelected,
+                dotSize: 4.0,
+                spacing: 2.0,
               ),
             ],
           ),

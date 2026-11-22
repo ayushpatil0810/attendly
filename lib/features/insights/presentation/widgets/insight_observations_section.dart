@@ -39,13 +39,13 @@ class _ObservationTile extends StatelessWidget {
   Color _accentColor(AppThemeColors colors) {
     switch (observation.type) {
       case InsightObservationType.positive:
-        return colors.accentMint;
+        return colors.present;
       case InsightObservationType.warning:
-        return colors.accentCoral;
+        return colors.absent;
       case InsightObservationType.info:
         return colors.brandPrimary;
       case InsightObservationType.neutral:
-        return colors.accentPeach;
+        return colors.accentOrange;
     }
   }
 

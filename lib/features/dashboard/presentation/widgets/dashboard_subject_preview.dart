@@ -10,6 +10,7 @@ import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/attendance/domain/entities/subject_attendance_summary.dart';
 import 'package:attendly/features/attendance/domain/entities/threshold_status.dart';
+import 'package:attendly/features/attendance/domain/services/attendance_action_helper.dart';
 import 'package:attendly/features/subjects/presentation/widgets/subject_form_sheet.dart';
 
 class DashboardSubjectPreview extends StatefulWidget {
@@ -91,9 +92,11 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview>
     final attentionSubjects = widget.subjects.where((s) {
       if (s.totalConducted == 0) return true;
       if (s.thresholdStatus == ThresholdStatus.below) return true;
+      if (s.hasComponentBelowThreshold) return true;
       if (s.isProvisional) return true;
       final safe = s.safeAbsenceResult.safeAbsences;
       if (safe != null && safe <= 1) return true;
+      if (s.hasComponentAtRisk) return true;
       return false;
     }).toList();
 
@@ -150,9 +153,7 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview>
                   child: Text(
                     'View All',
                     style: AppTypography.subhead.copyWith(
-                      color: colors.isDark
-                          ? const Color(0xFF5E81F4)
-                          : const Color(0xFF3F5BF6),
+                      color: colors.brandPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -261,14 +262,14 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview>
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: colors.accentMintSoft,
+                          color: colors.present.withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                         ),
                         child: Center(
                           child: AppIcon(
                             AppIcons.check,
                             size: 20,
-                            color: colors.accentMint,
+                            color: colors.present,
                           ),
                         ),
                       ),
@@ -441,9 +442,7 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview>
                                     ? 'Show less'
                                     : '+ ${remainingSubjects.length} more ${remainingSubjects.length == 1 ? "subject" : "subjects"} to review',
                                 style: AppTypography.footnote.copyWith(
-                                  color: colors.isDark
-                                      ? const Color(0xFF5E81F4)
-                                      : const Color(0xFF3F5BF6),
+                                  color: colors.brandPrimary,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -458,9 +457,7 @@ class _DashboardSubjectPreviewState extends State<DashboardSubjectPreview>
                                 child: AppIcon(
                                   AppIcons.arrowDown,
                                   size: 14,
-                                  color: colors.isDark
-                                      ? const Color(0xFF5E81F4)
-                                      : const Color(0xFF3F5BF6),
+                                  color: colors.brandPrimary,
                                 ),
                               ),
                             ],
@@ -491,13 +488,17 @@ class _SubjectPreviewRow extends StatelessWidget {
   Color _getRingColor(BuildContext context) {
     final colors = context.colors;
     if (subject.isProvisional) {
-      return colors.accentPeach;
+      return colors.accentOrange;
+    }
+    if (subject.thresholdStatus == ThresholdStatus.below ||
+        subject.hasComponentBelowThreshold) {
+      return colors.absent;
     }
     switch (subject.thresholdStatus) {
       case ThresholdStatus.meeting:
-        return colors.accentMint;
+        return colors.present;
       case ThresholdStatus.below:
-        return colors.accentCoral;
+        return colors.absent;
       case ThresholdStatus.notAvailable:
         return colors.track;
     }
@@ -537,40 +538,81 @@ class _SubjectPreviewRow extends StatelessWidget {
     Color statusColor = colors.textSecondary;
     FontWeight statusWeight = FontWeight.w400;
 
+    final actionable = AttendanceActionHelper.calculateActionableInsight(
+      present: subject.totalPresent,
+      conducted: subject.totalConducted,
+      threshold: threshold,
+    );
+
+    final hasBothComponents =
+        subject.lectureEnabled && subject.labEnabled;
+    final lecBelow =
+        hasBothComponents && (subject.lectureSummary?.isBelowThreshold ?? false);
+    final labBelow =
+        hasBothComponents && (subject.labSummary?.isBelowThreshold ?? false);
+
     if (subject.totalConducted == 0) {
       statusNote = 'No sessions yet';
+    } else if (lecBelow && labBelow) {
+      statusNote = 'Lecture & Lab below target';
+      statusColor = colors.absent;
+      statusWeight = FontWeight.w600;
+    } else if (labBelow) {
+      final actionableLab = AttendanceActionHelper.calculateActionableInsight(
+        present: subject.labSummary!.presentCount,
+        conducted: subject.labSummary!.conductedCount,
+        threshold: threshold,
+      );
+      statusNote = actionableLab != null
+          ? 'Lab: ${actionableLab.headlineText}'
+          : 'Lab below target (${subject.labSummary!.formattedPercentage})';
+      statusColor = colors.absent;
+      statusWeight = FontWeight.w600;
+    } else if (lecBelow) {
+      final actionableLec = AttendanceActionHelper.calculateActionableInsight(
+        present: subject.lectureSummary!.presentCount,
+        conducted: subject.lectureSummary!.conductedCount,
+        threshold: threshold,
+      );
+      statusNote = actionableLec != null
+          ? 'Lecture: ${actionableLec.headlineText}'
+          : 'Lecture below target (${subject.lectureSummary!.formattedPercentage})';
+      statusColor = colors.absent;
+      statusWeight = FontWeight.w600;
     } else if (subject.thresholdStatus == ThresholdStatus.below) {
-      final needed = subject.recoveryResult.requiredConsecutivePresents;
-      if (needed != null && needed > 0) {
-        final unit = needed == 1 ? 'class' : 'classes';
-        statusNote = 'Needs $needed $unit to recover';
-        statusColor = colors.accentCoral;
+      if (actionable != null) {
+        statusNote = actionable.subjectSubtext;
+        statusColor = colors.absent;
         statusWeight = FontWeight.w600;
       } else {
         statusNote = componentsText.isNotEmpty
             ? componentsText
             : 'Action needed';
-        if (componentsText.isEmpty) {
-          statusColor = colors.accentCoral;
-          statusWeight = FontWeight.w600;
-        }
+        statusColor = colors.absent;
+        statusWeight = FontWeight.w600;
       }
-    } else if (safe != null && safe == 0) {
-      statusNote = '0 safe absences left';
-      statusColor = colors.accentPeach;
-      statusWeight = FontWeight.w600;
-    } else if (safe != null && safe == 1) {
-      statusNote = '1 safe absence left';
-      statusColor = colors.accentPeach;
+    } else if (safe != null && safe <= 1) {
+      if (actionable != null) {
+        statusNote = actionable.headlineText;
+      } else {
+        statusNote = safe == 0 ? '0 safe absences left' : '1 safe absence left';
+      }
+      statusColor = colors.accentOrange;
       statusWeight = FontWeight.w600;
     } else if (subject.isProvisional) {
       statusNote = 'Provisional calculation';
-      statusColor = colors.accentPeach;
+      statusColor = colors.accentOrange;
       statusWeight = FontWeight.w500;
     } else {
-      statusNote = componentsText.isNotEmpty
-          ? componentsText
-          : 'Meeting target';
+      if (actionable != null && actionable.count > 0) {
+        statusNote = actionable.headlineText;
+        statusColor = colors.present;
+        statusWeight = FontWeight.w500;
+      } else {
+        statusNote = componentsText.isNotEmpty
+            ? componentsText
+            : 'Meeting target';
+      }
     }
 
     return Semantics(

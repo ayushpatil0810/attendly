@@ -1,10 +1,12 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:attendly/core/theme/app_colors.dart';
 
-/// Crisp, theme-adaptive vector rendering of the Attendly Calendar Symbol mark.
+/// Crisp, theme-adaptive vector rendering of the Attendly Brand Symbol.
 ///
 /// Refined modern calendar tile with golden-ratio proportions, sleek binding rings,
-/// an origami corner accent, and a mathematically centered attendance checkmark.
+/// subtle depth shadows, attendance progress arcs, and a signature attendance checkmark
+/// matching the official attendly.svg mark.
 class AttendlyBrandMark extends StatelessWidget {
   const AttendlyBrandMark({
     super.key,
@@ -30,10 +32,10 @@ class AttendlyBrandMark extends StatelessWidget {
   /// Ring interior cutout color (defaults to [context.colors.background]).
   final Color? cutoutColor;
 
-  /// Folded bottom-right corner accent (defaults to [context.colors.accentCoral]).
+  /// Outer accent arc color (defaults to [primaryColor] or [context.colors.brandPrimary]).
   final Color? coralColor;
 
-  /// Attendance checkmark stroke color (defaults to [context.colors.accentMint]).
+  /// Attendance checkmark & inner progress arc color (defaults to [context.colors.accentGreen]).
   final Color? mintColor;
 
   /// Progress of the attendance checkmark draw animation (0.0 to 1.0).
@@ -48,8 +50,8 @@ class AttendlyBrandMark extends StatelessWidget {
     final effectivePrimary = primaryColor ?? colors.brandPrimary;
     final effectiveSurface = surfaceColor ?? colors.surface;
     final effectiveCutout = cutoutColor ?? colors.background;
-    final effectiveCoral = coralColor ?? colors.accentCoral;
-    final effectiveMint = mintColor ?? colors.accentMint;
+    final effectiveCoral = coralColor ?? effectivePrimary;
+    final effectiveMint = mintColor ?? colors.accentGreen;
 
     return Semantics(
       label: semanticLabel,
@@ -90,128 +92,215 @@ class _AttendlyBrandMarkPainter extends CustomPainter {
   final Color mintColor;
   final double checkmarkProgress;
 
+  Color _computeShadowColor(Color primary) {
+    // Elegant Apple-style 20% luminance depth shadow for binder tabs
+    final hsl = HSLColor.fromColor(primary);
+    final darker = hsl.withLightness((hsl.lightness * 0.78).clamp(0.0, 1.0));
+    return darker.toColor();
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
-    // 512x512 reference viewBox scale
-    final s = size.width / 512.0;
+    // attendly.svg canonical viewBox: 0 0 868 930
+    final scale = math.min(size.width / 868.0, size.height / 930.0);
+    final dx = (size.width - 868.0 * scale) / 2.0;
+    final dy = (size.height - 930.0 * scale) / 2.0;
+
+    canvas.save();
+    canvas.translate(dx, dy);
+    canvas.scale(scale, scale);
 
     final primaryPaint = Paint()
       ..color = primaryColor
       ..style = PaintingStyle.fill
       ..isAntiAlias = true;
 
-    final surfacePaint = Paint()
-      ..color = surfaceColor
+    final shadowPaint = Paint()
+      ..color = _computeShadowColor(primaryColor)
       ..style = PaintingStyle.fill
       ..isAntiAlias = true;
 
-    final coralPaint = Paint()
+    final checkmarkPaint = Paint()
+      ..color = mintColor
+      ..style = PaintingStyle.fill
+      ..isAntiAlias = true;
+
+    final outerArcPaint = Paint()
       ..color = coralColor
       ..style = PaintingStyle.fill
       ..isAntiAlias = true;
 
-    final mintPaint = Paint()
+    final innerArcPaint = Paint()
       ..color = mintColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 32.0 * s
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
+      ..style = PaintingStyle.fill
       ..isAntiAlias = true;
 
-    // 1. Calendar Body Tile (outer rounded squircle from SVG)
-    final body = RRect.fromRectAndRadius(
-      Rect.fromLTWH(88.0 * s, 112.0 * s, 336.0 * s, 328.0 * s),
-      Radius.circular(72.0 * s),
-    );
-    canvas.drawRRect(body, primaryPaint);
+    // 1. Calendar Body Path
+    final bodyPath = Path()
+      ..moveTo(145, 106)
+      ..lineTo(720, 106)
+      ..arcToPoint(
+        const Offset(764, 117),
+        radius: const Radius.circular(145),
+        largeArc: false,
+        clockwise: true,
+      )
+      ..lineTo(560, 329)
+      ..lineTo(92, 329)
+      ..lineTo(92, 773)
+      ..arcToPoint(
+        const Offset(154, 835),
+        radius: const Radius.circular(62),
+        largeArc: false,
+        clockwise: false,
+      )
+      ..lineTo(409, 835)
+      ..arcToPoint(
+        const Offset(418.5, 929),
+        radius: const Radius.circular(76),
+        largeArc: false,
+        clockwise: false,
+      )
+      ..lineTo(145, 929)
+      ..arcToPoint(
+        const Offset(0, 784),
+        radius: const Radius.circular(145),
+        largeArc: false,
+        clockwise: true,
+      )
+      ..lineTo(0, 251)
+      ..arcToPoint(
+        const Offset(145, 106),
+        radius: const Radius.circular(145),
+        largeArc: false,
+        clockwise: true,
+      )
+      ..close();
+    canvas.drawPath(bodyPath, primaryPaint);
 
-    // 2. Twin binder tabs anchored at the top
+    // 2. Top Calendar Binding Tabs
     final leftTab = RRect.fromRectAndRadius(
-      Rect.fromLTWH(158.0 * s, 64.0 * s, 48.0 * s, 112.0 * s),
-      Radius.circular(24.0 * s),
+      const Rect.fromLTWH(187, 0, 93, 192),
+      const Radius.circular(46.5),
     );
     final rightTab = RRect.fromRectAndRadius(
-      Rect.fromLTWH(306.0 * s, 64.0 * s, 48.0 * s, 112.0 * s),
-      Radius.circular(24.0 * s),
+      const Rect.fromLTWH(576, 0, 94, 193),
+      const Radius.circular(47.0),
     );
     canvas.drawRRect(leftTab, primaryPaint);
     canvas.drawRRect(rightTab, primaryPaint);
 
-    // 3. Inner Calendar Page (clean surface face)
-    final page = RRect.fromRectAndRadius(
-      Rect.fromLTWH(120.0 * s, 216.0 * s, 272.0 * s, 192.0 * s),
-      Radius.circular(42.0 * s),
-    );
-    canvas.drawRRect(page, surfacePaint);
-
-    // 4. Clean Origami Page Fold Accent (bottom-right bezier fold)
-    final foldPath = Path()
-      ..moveTo(352.0 * s, 352.0 * s)
-      ..cubicTo(
-        352.0 * s,
-        330.0 * s,
-        370.0 * s,
-        312.0 * s,
-        392.0 * s,
-        312.0 * s,
-      )
-      ..lineTo(424.0 * s, 312.0 * s)
-      ..lineTo(424.0 * s, 368.0 * s)
-      ..cubicTo(
-        424.0 * s,
-        408.0 * s,
-        392.0 * s,
-        440.0 * s,
-        352.0 * s,
-        440.0 * s,
-      )
-      ..lineTo(286.0 * s, 440.0 * s)
-      ..cubicTo(
-        324.0 * s,
-        420.0 * s,
-        352.0 * s,
-        390.0 * s,
-        352.0 * s,
-        352.0 * s,
+    // 3. Subtle Overlap Shadows Inside Header
+    final shadow1 = Path()
+      ..moveTo(187, 106)
+      ..lineTo(280, 106)
+      ..lineTo(280, 145.5)
+      ..arcToPoint(
+        const Offset(187, 145.5),
+        radius: const Radius.circular(46.5),
+        largeArc: false,
+        clockwise: true,
       )
       ..close();
-    canvas.drawPath(foldPath, coralPaint);
+    final shadow2 = Path()
+      ..moveTo(576, 106)
+      ..lineTo(670, 106)
+      ..lineTo(670, 146)
+      ..arcToPoint(
+        const Offset(576, 146),
+        radius: const Radius.circular(47.0),
+        largeArc: false,
+        clockwise: true,
+      )
+      ..close();
+    canvas.drawPath(shadow1, shadowPaint);
+    canvas.drawPath(shadow2, shadowPaint);
 
-    // 5. Attendance Checkmark
+    // 4. Attendance Checkmark (with smooth animation clip support)
     if (checkmarkProgress > 0.0) {
       final checkPath = Path()
-        ..moveTo(184.0 * s, 304.0 * s)
-        ..lineTo(238.0 * s, 358.0 * s)
-        ..lineTo(336.0 * s, 260.0 * s);
+        ..moveTo(801, 137)
+        ..lineTo(373, 584)
+        ..lineTo(284, 497)
+        ..arcToPoint(
+          const Offset(196, 580),
+          radius: const Radius.circular(60),
+          largeArc: false,
+          clockwise: false,
+        )
+        ..lineTo(336, 725)
+        ..arcToPoint(
+          const Offset(405, 727),
+          radius: const Radius.circular(48),
+          largeArc: false,
+          clockwise: false,
+        )
+        ..lineTo(829, 287)
+        ..cubicTo(858, 257, 858, 196, 825, 162)
+        ..cubicTo(817, 153, 809, 145, 801, 137)
+        ..close();
 
       if (checkmarkProgress >= 0.999) {
-        canvas.drawPath(checkPath, mintPaint);
+        canvas.drawPath(checkPath, checkmarkPaint);
       } else {
-        final metrics = checkPath.computeMetrics().toList();
-        if (metrics.isNotEmpty) {
-          final metric = metrics.first;
-          final extracted = metric.extractPath(0.0, metric.length * checkmarkProgress);
-          canvas.drawPath(extracted, mintPaint);
-        }
+        canvas.save();
+        // Animate from left pivot point across to right
+        final clipWidth = 196.0 + (868.0 - 196.0) * checkmarkProgress;
+        canvas.clipRect(Rect.fromLTWH(0, 0, clipWidth, 930));
+        canvas.drawPath(checkPath, checkmarkPaint);
+        canvas.restore();
       }
     }
 
-    // 6. Transparent binding openings / cutouts
-    final cutoutPaint = Paint()
-      ..color = cutoutColor
-      ..style = PaintingStyle.fill
-      ..isAntiAlias = true;
+    // 5. Outer Progress Arc
+    final outerArcPath = Path()
+      ..moveTo(779.3, 392.5)
+      ..arcToPoint(
+        const Offset(466.5, 916.2),
+        radius: const Radius.circular(316),
+        largeArc: false,
+        clockwise: true,
+      )
+      ..arcToPoint(
+        const Offset(488.1, 839.2),
+        radius: const Radius.circular(40),
+        largeArc: false,
+        clockwise: true,
+      )
+      ..arcToPoint(
+        const Offset(721.8, 448.1),
+        radius: const Radius.circular(236),
+        largeArc: false,
+        clockwise: false,
+      )
+      ..close();
+    canvas.drawPath(outerArcPath, outerArcPaint);
 
-    final leftOpening = RRect.fromRectAndRadius(
-      Rect.fromLTWH(170.0 * s, 78.0 * s, 24.0 * s, 78.0 * s),
-      Radius.circular(12.0 * s),
-    );
-    final rightOpening = RRect.fromRectAndRadius(
-      Rect.fromLTWH(318.0 * s, 78.0 * s, 24.0 * s, 78.0 * s),
-      Radius.circular(12.0 * s),
-    );
-    canvas.drawRRect(leftOpening, cutoutPaint);
-    canvas.drawRRect(rightOpening, cutoutPaint);
+    // 6. Inner Progress Arc
+    final innerArcPath = Path()
+      ..moveTo(698.4, 480.2)
+      ..arcToPoint(
+        const Offset(552, 809),
+        radius: const Radius.circular(197),
+        largeArc: false,
+        clockwise: true,
+      )
+      ..arcToPoint(
+        const Offset(552, 748),
+        radius: const Radius.circular(30.5),
+        largeArc: false,
+        clockwise: true,
+      )
+      ..arcToPoint(
+        const Offset(653.1, 521),
+        radius: const Radius.circular(136),
+        largeArc: false,
+        clockwise: false,
+      )
+      ..close();
+    canvas.drawPath(innerArcPath, innerArcPaint);
+
+    canvas.restore();
   }
 
   @override

@@ -1,5 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#FFFAF9</color>
-    <color name="splash_background">#FFFAF9</color>
+    <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="splash_background">#000000</color>
+
+    <!-- Attendly Apple HIG Widget Tokens (Dark Mode) -->
+    <color name="widget_card_bg">#1C1C1E</color>
+    <color name="widget_border">#2C2C2E</color>
+    <color name="widget_track">#2C2C2E</color>
+    <color name="widget_ink">#FFFFFF</color>
+    <color name="widget_muted_ink">#98989D</color>
+    <color name="widget_subtle_ink">#636366</color>
+    <color name="widget_pure_white">#FFFFFF</color>
+
+    <!-- Brand & Accent (Apple Dark Blue) -->
+    <color name="widget_brand_primary">#0A84FF</color>
+
+    <!-- Status Meeting (Apple Dark Green) -->
+    <color name="widget_brand_green">#30D158</color>
+    <color name="widget_badge_meeting_bg">#13381E</color>
+    <color name="widget_badge_meeting_text">#30D158</color>
+
+    <!-- Status Below (Apple Dark Red) -->
+    <color name="widget_brand_red">#FF453A</color>
+    <color name="widget_badge_below_bg">#3E1819</color>
+    <color name="widget_badge_below_text">#FF453A</color>
+
+    <!-- Status Neutral (Apple Dark Orange / Gray) -->
+    <color name="widget_brand_orange">#FF9F0A</color>
+    <color name="widget_badge_neutral_bg">#2C2C2E</color>
+    <color name="widget_badge_neutral_text">#98989D</color>
+
+    <!-- Backward Compatibility Aliases -->
+    <color name="widget_warm_white">#1C1C1E</color>
+    <color name="widget_brand_violet">#0A84FF</color>
+    <color name="widget_ink_violet">#0A84FF</color>
+    <color name="widget_soft_lavender">#2C2C2E</color>
+    <color name="widget_brand_mint">#30D158</color>
+    <color name="widget_ink_mint">#30D158</color>
+    <color name="widget_soft_mint">#13381E</color>
+    <color name="widget_brand_coral">#FF453A</color>
+    <color name="widget_ink_coral">#FF453A</color>
+    <color name="widget_soft_coral">#3E1819</color>
 </resources>

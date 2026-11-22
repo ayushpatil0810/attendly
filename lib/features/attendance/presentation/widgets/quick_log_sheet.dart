@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:attendly/core/errors/app_failure.dart';
-import 'package:attendly/core/services/preferences_service.dart';
 import 'package:attendly/core/shared/widgets/app_bottom_sheet.dart';
 import 'package:attendly/core/shared/widgets/app_button.dart';
 import 'package:attendly/core/shared/widgets/app_error_state.dart';
@@ -15,6 +14,7 @@ import 'package:attendly/features/attendance/domain/entities/attendance_session.
 import 'package:attendly/features/attendance/domain/entities/attendance_status.dart';
 import 'package:attendly/features/attendance/domain/entities/session_component.dart';
 import 'package:attendly/features/attendance/presentation/providers/attendance_providers.dart';
+import 'package:attendly/features/attendance/presentation/widgets/attendance_action_button.dart';
 import 'package:attendly/features/attendance/presentation/widgets/day_note_banner.dart';
 import 'package:attendly/features/subjects/domain/entities/subject.dart';
 import 'package:attendly/features/subjects/presentation/providers/subjects_provider.dart';
@@ -45,18 +45,23 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
   void initState() {
     super.initState();
     final now = DateTime.now();
-    _selectedDate =
-        widget.initialDate ?? DateTime(now.year, now.month, now.day);
+    final today = DateTime(now.year, now.month, now.day);
+    final initial = widget.initialDate;
+    _selectedDate = (initial != null && !initial.isAfter(today))
+        ? initial
+        : today;
   }
 
   Future<void> _selectDate() async {
     final colors = context.colors;
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final initialDate = _selectedDate.isAfter(today) ? today : _selectedDate;
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate,
+      initialDate: initialDate,
       firstDate: DateTime(2020),
-      lastDate: DateTime(now.year, now.month, now.day),
+      lastDate: today,
       builder: (ctx, child) {
         return Theme(
           data: Theme.of(ctx).copyWith(
@@ -93,6 +98,15 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
     if (_inFlightKeys.contains(key)) return;
 
     setState(() => _inFlightKeys.add(key));
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    if (DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day).isAfter(today)) {
+      if (mounted) {
+        setState(() => _inFlightKeys.remove(key));
+        AppToast.showError(context, message: 'Cannot log attendance for future dates.');
+      }
+      return;
+    }
     final dateStr = formatDateOnly(_selectedDate);
 
     try {
@@ -104,8 +118,6 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
             component: component,
             status: status,
           );
-
-      AppHaptics.lightImpact(ref);
 
       if (!mounted) return;
 
@@ -150,7 +162,6 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
       await ref
           .read(attendanceControllerProvider.notifier)
           .deleteSession(session);
-      AppHaptics.lightImpact(ref);
 
       if (!mounted) return;
       AppToast.showInfo(
@@ -214,18 +225,14 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    color: colors.isDark
-                        ? colors.accentPeach.withValues(alpha: 0.16)
-                        : colors.accentPeachSoft,
+                    color: colors.accentOrange.withValues(alpha: 0.16),
                     shape: BoxShape.circle,
                   ),
                   alignment: Alignment.center,
                   child: AppIcon(
                     AppIcons.subjects,
                     size: 28,
-                    color: colors.isDark
-                        ? colors.accentPeach
-                        : colors.accentPeachInk,
+                    color: colors.accentOrange,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -283,18 +290,14 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    color: colors.isDark
-                        ? colors.accentPeach.withValues(alpha: 0.16)
-                        : colors.accentPeachSoft,
+                    color: colors.accentOrange.withValues(alpha: 0.16),
                     shape: BoxShape.circle,
                   ),
                   alignment: Alignment.center,
                   child: AppIcon(
                     AppIcons.subjects,
                     size: 28,
-                    color: colors.isDark
-                        ? colors.accentPeach
-                        : colors.accentPeachInk,
+                    color: colors.accentOrange,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -435,6 +438,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                                 lectureSessions.length + labSessions.length;
 
                             return _SubjectLogCard(
+                              key: ValueKey(subject.id),
                               subject: subject,
                               isInitial: false,
                               lectureSessions: lectureSessions,
@@ -473,6 +477,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                         lectureSessions.length + labSessions.length;
 
                     return _SubjectLogCard(
+                      key: ValueKey(subject.id),
                       subject: subject,
                       isInitial: isInitial,
                       lectureSessions: lectureSessions,
@@ -494,7 +499,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                 border: Border(top: BorderSide(color: colors.divider)),
               ),
               child: AppButton(
-                label: 'Done Logging',
+                label: 'Done',
                 size: AppButtonSize.large,
                 isFullWidth: true,
                 onPressed: () => Navigator.of(context).pop(),
@@ -529,10 +534,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
             children: [
               Expanded(
                 child: Text(
-                  widget.title ??
-                      (isSingleSubject
-                          ? 'Log Attendance'
-                          : 'Quick Attendance Log'),
+                  widget.title ?? 'Log Attendance',
                   style: AppTypography.sectionTitle.copyWith(
                     color: colors.textPrimary,
                   ),
@@ -552,6 +554,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
 
 class _SubjectLogCard extends StatelessWidget {
   const _SubjectLogCard({
+    super.key,
     required this.subject,
     required this.isInitial,
     required this.lectureSessions,
@@ -577,10 +580,12 @@ class _SubjectLogCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: AppRadius.lgBorder,
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isInitial ? colors.brandPrimary : colors.border,
-          width: isInitial ? 1.5 : 1,
+          color: isInitial
+              ? colors.brandPrimary
+              : colors.border.withValues(alpha: colors.isDark ? 0.5 : 0.7),
+          width: isInitial ? 1.5 : 0.5,
         ),
       ),
       child: Column(
@@ -588,49 +593,62 @@ class _SubjectLogCard extends StatelessWidget {
         children: [
           // Header: Subject Name & Total Count
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
                     subject.name,
-                    style: AppTypography.itemTitle.copyWith(
+                    style: AppTypography.headline.copyWith(
                       fontWeight: FontWeight.w700,
-                      fontSize: 15,
+                      fontSize: 14.5,
                       color: colors.textPrimary,
+                      letterSpacing: -0.2,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 if (totalCount > 0)
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
+                      horizontal: 7,
+                      vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: colors.isDark
-                          ? colors.brandPrimary.withValues(alpha: 0.16)
-                          : colors.brandPrimarySoft,
+                      color: colors.surfaceSubtle.withValues(
+                        alpha: colors.isDark ? 0.6 : 0.8,
+                      ),
                       borderRadius: AppRadius.pillBorder,
+                      border: Border.all(
+                        color: colors.border.withValues(
+                          alpha: colors.isDark ? 0.4 : 0.6,
+                        ),
+                        width: 0.5,
+                      ),
                     ),
                     child: Text(
-                      totalCount == 1 ? '1 class' : '$totalCount classes',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: colors.isDark
-                            ? colors.brandPrimary
-                            : colors.brandPrimaryInk,
+                      totalCount == 1 ? '1 logged' : '$totalCount logged',
+                      style: AppTypography.caption2.copyWith(
+                        color: colors.textSecondary,
                         fontWeight: FontWeight.w600,
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                   ),
               ],
             ),
           ),
-          Divider(height: 1, color: colors.divider),
+          Divider(
+            height: 0.5,
+            thickness: 0.5,
+            color: colors.divider.withValues(alpha: colors.isDark ? 0.4 : 0.7),
+          ),
 
           // Component rows
           if (subject.lectureEnabled)
-            _ComponentSubRow(
+            _CompactComponentRow(
+              key: ValueKey('${subject.id}_${SessionComponent.lecture.name}'),
               subject: subject,
               component: SessionComponent.lecture,
               sessions: lectureSessions,
@@ -641,14 +659,16 @@ class _SubjectLogCard extends StatelessWidget {
 
           if (subject.hasBothComponents)
             Divider(
-              height: 1,
-              indent: 16,
-              endIndent: 16,
-              color: colors.divider,
+              height: 0.5,
+              thickness: 0.5,
+              indent: 14,
+              endIndent: 14,
+              color: colors.divider.withValues(alpha: colors.isDark ? 0.3 : 0.5),
             ),
 
           if (subject.labEnabled)
-            _ComponentSubRow(
+            _CompactComponentRow(
+              key: ValueKey('${subject.id}_${SessionComponent.lab.name}'),
               subject: subject,
               component: SessionComponent.lab,
               sessions: labSessions,
@@ -662,8 +682,9 @@ class _SubjectLogCard extends StatelessWidget {
   }
 }
 
-class _ComponentSubRow extends StatelessWidget {
-  const _ComponentSubRow({
+class _CompactComponentRow extends StatelessWidget {
+  const _CompactComponentRow({
+    super.key,
     required this.subject,
     required this.component,
     required this.sessions,
@@ -684,256 +705,101 @@ class _ComponentSubRow extends StatelessWidget {
     final colors = context.colors;
     final isLecture = component == SessionComponent.lecture;
     final componentIcon = isLecture ? AppIcons.lecture : AppIcons.lab;
-    final componentLabel = isLecture ? 'Theory Lecture' : 'Practical Lab';
-    final componentColor = isLecture
-        ? colors.textPrimary
-        : colors.accentMint;
+    final componentLabel = component.displayName;
+    final componentColor = isLecture ? colors.brandPrimary : colors.accentGreen;
+
+    final presentSessions = sessions.where((s) => s.isPresent).toList();
+    final absentSessions = sessions.where((s) => !s.isPresent).toList();
+    final presentCount = presentSessions.length;
+    final absentCount = absentSessions.length;
 
     final presentKey = '${subject.id}_${component.name}_present';
     final absentKey = '${subject.id}_${component.name}_absent';
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Component label row
-          Row(
-            children: [
-              AppIcon(componentIcon, size: 14, color: componentColor),
-              const SizedBox(width: 6),
-              Text(
-                componentLabel,
-                style: AppTypography.labelSmall.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colors.textPrimary,
-                ),
-              ),
-              if (sessions.isNotEmpty) ...[
-                const SizedBox(width: 8),
-                Text(
-                  '(${sessions.length} logged)',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: colors.textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ],
-          ),
-
-          // Logged session chips
-          if (sessions.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              children: [
-                for (var i = 0; i < sessions.length; i++)
-                  _SessionChip(
-                    session: sessions[i],
-                    index: i,
-                    subjectName: subject.name,
-                    isDeleting: inFlightKeys.contains(
-                      'delete_${sessions[i].id}',
-                    ),
-                    onDelete: () => onDeleteSession(sessions[i], subject.name),
-                  ),
-              ],
-            ),
-          ],
-          const SizedBox(height: 10),
-
-          // Action buttons: + Present and + Absent
-          Row(
-            children: [
-              Expanded(
-                child: _QuickActionButton(
-                  label: '+ Present',
-                  icon: AppIcons.check,
-                  backgroundColor: colors.accentMintSoft,
-                  borderColor: colors.accentMint.withValues(alpha: 0.4),
-                  textColor: colors.accentMintInk,
-                  semanticLabel:
-                      'Mark Present for ${subject.name} $componentLabel',
-                  isLoading: inFlightKeys.contains(presentKey),
-                  onTap: () =>
-                      onRecord(subject, component, AttendanceStatus.present),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _QuickActionButton(
-                  label: '+ Absent',
-                  icon: AppIcons.close,
-                  backgroundColor: colors.accentCoralSoft,
-                  borderColor: colors.accentCoral.withValues(alpha: 0.4),
-                  textColor: colors.accentCoralInk,
-                  semanticLabel:
-                      'Mark Absent for ${subject.name} $componentLabel',
-                  isLoading: inFlightKeys.contains(absentKey),
-                  onTap: () =>
-                      onRecord(subject, component, AttendanceStatus.absent),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SessionChip extends StatelessWidget {
-  const _SessionChip({
-    required this.session,
-    required this.index,
-    required this.subjectName,
-    required this.isDeleting,
-    required this.onDelete,
-  });
-
-  final AttendanceSession session;
-  final int index;
-  final String subjectName;
-  final bool isDeleting;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final isPresent = session.isPresent;
-    final prefix = session.component == SessionComponent.lecture
-        ? 'Lec'
-        : 'Lab';
-    final statusText = isPresent ? 'Present' : 'Absent';
-    final bgColor = isPresent ? colors.accentMintSoft : colors.accentCoralSoft;
-    final textColor = isPresent ? colors.accentMintInk : colors.accentCoralInk;
-    final borderColor = isPresent
-        ? colors.accentMint.withValues(alpha: 0.3)
-        : colors.accentCoral.withValues(alpha: 0.3);
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(10, 4, 4, 4),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: AppRadius.pillBorder,
-        border: Border.all(color: borderColor),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          AppIcon(
-            isPresent ? AppIcons.check : AppIcons.close,
-            size: 13,
-            color: textColor,
-          ),
-          const SizedBox(width: 5),
-          Text(
-            '$prefix ${index + 1}: $statusText',
-            style: AppTypography.labelSmall.copyWith(
-              color: textColor,
-              fontWeight: FontWeight.w600,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Semantics(
-            button: true,
-            label: 'Remove $prefix ${index + 1} $statusText',
-            child: InkWell(
-              onTap: isDeleting ? null : onDelete,
-              borderRadius: BorderRadius.circular(12),
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: Center(
-                  child: isDeleting
-                      ? SizedBox(
-                          width: 10,
-                          height: 10,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 1.5,
-                            color: textColor,
-                          ),
-                        )
-                      : AppIcon(AppIcons.close, size: 13, color: textColor),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickActionButton extends StatelessWidget {
-  const _QuickActionButton({
-    required this.label,
-    required this.icon,
-    required this.backgroundColor,
-    required this.borderColor,
-    required this.textColor,
-    required this.onTap,
-    this.isLoading = false,
-    this.semanticLabel,
-  });
-
-  final String label;
-  final dynamic icon;
-  final Color backgroundColor;
-  final Color borderColor;
-  final Color textColor;
-  final VoidCallback onTap;
-  final bool isLoading;
-  final String? semanticLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      enabled: !isLoading,
-      label: semanticLabel ?? label,
-      child: Material(
-        color: backgroundColor,
-        borderRadius: AppRadius.mdBorder,
-        child: InkWell(
-          onTap: isLoading ? null : onTap,
-          borderRadius: AppRadius.mdBorder,
-          child: Container(
-            height: 44,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              borderRadius: AppRadius.mdBorder,
-              border: Border.all(color: borderColor, width: 1.2),
-            ),
-            child: isLoading
-                ? SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: textColor,
-                    ),
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+          // Left: Component label with icon & live counter summary
+          Expanded(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AppIcon(componentIcon, size: 15, color: componentColor),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      AppIcon(icon, size: 16, color: textColor),
-                      const SizedBox(width: 6),
                       Text(
-                        label,
-                        style: AppTypography.labelLarge.copyWith(
-                          color: textColor,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
+                        componentLabel,
+                        style: AppTypography.subhead.copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13.5,
+                          color: colors.textPrimary,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
+                      if (sessions.isNotEmpty) ...[
+                        const SizedBox(height: 1),
+                        Text(
+                          presentCount > 0 && absentCount > 0
+                              ? '$presentCount P • $absentCount A'
+                              : (presentCount > 0
+                                  ? '$presentCount present'
+                                  : '$absentCount absent'),
+                          style: AppTypography.caption2.copyWith(
+                            color: colors.textSecondary,
+                            fontSize: 11,
+                            fontFeatures: const [
+                              FontFeature.tabularFigures(),
+                            ],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ],
                   ),
+                ),
+              ],
+            ),
           ),
-        ),
+          const SizedBox(width: 8),
+
+          // Right: Action buttons (✓ Present and ✕ Absent) with live counters and decrement stepper
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AttendanceActionButton(
+                status: AttendanceStatus.present,
+                count: presentCount,
+                isLoading: inFlightKeys.contains(presentKey),
+                semanticSubjectName: subject.name,
+                semanticComponentLabel: componentLabel,
+                onTap: () => onRecord(subject, component, AttendanceStatus.present),
+                onDecrement: presentCount > 0
+                    ? () => onDeleteSession(presentSessions.last, subject.name)
+                    : null,
+              ),
+              const SizedBox(width: 6),
+              AttendanceActionButton(
+                status: AttendanceStatus.absent,
+                count: absentCount,
+                isLoading: inFlightKeys.contains(absentKey),
+                semanticSubjectName: subject.name,
+                semanticComponentLabel: componentLabel,
+                onTap: () => onRecord(subject, component, AttendanceStatus.absent),
+                onDecrement: absentCount > 0
+                    ? () => onDeleteSession(absentSessions.last, subject.name)
+                    : null,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -946,6 +812,12 @@ void showQuickLogSheet({
   int? onlySubjectId,
   String? title,
 }) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final clampedInitialDate = (initialDate != null && initialDate.isAfter(today))
+      ? today
+      : initialDate;
+
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -960,7 +832,7 @@ void showQuickLogSheet({
           child: Padding(
             padding: EdgeInsets.only(bottom: mediaQuery.viewInsets.bottom),
             child: QuickLogSheet(
-              initialDate: initialDate,
+              initialDate: clampedInitialDate,
               initialSubjectId: initialSubjectId,
               onlySubjectId: onlySubjectId,
               title: title,
