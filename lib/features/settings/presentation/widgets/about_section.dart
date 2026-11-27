@@ -25,6 +25,7 @@ class AboutSection extends StatelessWidget {
             backgroundColor: colors.brandPrimary,
           ),
           title: 'About Attendly',
+          subtitle: 'Developer, website & source code',
           showDisclosure: true,
           onTap: () => showAboutAttendlySheet(context),
         ),
