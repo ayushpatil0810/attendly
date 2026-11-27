@@ -115,3 +115,18 @@ lib/
     ├── simulator/     # What-If projection engine & hypothetical sandbox
     └── subjects/      # Course management, lecture/lab toggles & expanded stats
 ```
+
+---
+
+## Author & Developer
+
+**Ayush Patil**
+- 🌐 Website: [ayushpatil.in](https://ayushpatil.in)
+- 🐙 GitHub: [@ayushpatil0810](https://github.com/ayushpatil0810)
+- 📦 Repository: [ayushpatil0810/attendly](https://github.com/ayushpatil0810/attendly)
+
+---
+
+## License & Open Source
+
+Attendly is an open-source project licensed under the [MIT License](LICENSE). Contributions, issues, and feature suggestions are warmly welcomed!

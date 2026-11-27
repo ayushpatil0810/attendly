@@ -6,6 +6,8 @@ import 'package:attendly/core/theme/app_spacing.dart';
 import 'package:attendly/core/theme/app_typography.dart';
 import 'package:attendly/features/semesters/presentation/providers/semesters_provider.dart';
 
+import '../widgets/about_attendly_sheet.dart';
+import '../widgets/about_section.dart';
 import '../widgets/appearance_section.dart';
 import '../widgets/backup_restore_section.dart';
 import '../widgets/daily_reminder_section.dart';
@@ -61,15 +63,24 @@ class SettingsScreen extends ConsumerWidget {
                 const DailyReminderSection(),
                 const SizedBox(height: 24),
                 const BackupRestoreSection(),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
+                const AboutSection(),
+                const SizedBox(height: 16),
                 Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Text(
-                      'Attendly 1.0.0',
-                      style: AppTypography.caption2.copyWith(
-                        color: colors.textSecondary.withValues(alpha: 0.6),
-                        letterSpacing: 0.3,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => showAboutAttendlySheet(context),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      child: Text(
+                        'Attendly 1.0.0 • Open Source',
+                        style: AppTypography.caption2.copyWith(
+                          color: colors.textSecondary.withValues(alpha: 0.6),
+                          letterSpacing: 0.3,
+                        ),
                       ),
                     ),
                   ),
